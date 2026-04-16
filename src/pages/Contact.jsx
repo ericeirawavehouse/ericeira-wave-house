@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/lib/i18n';
-import { base44 } from '@/api/base44Client';
+// 1. Importa o cliente do Supabase
+import { supabase } from '@/lib/supabaseClient'; 
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -21,10 +22,28 @@ export default function Contact() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
-    await base44.entities.ContactMessage.create(form);
-    setForm({ name: '', email: '', phone: '', subject: '', message: '' });
-    setSending(false);
-    toast({ title: t('contact.success') });
+
+    try {
+      // 2. Enviar a mensagem para a tabela contact_messages no Supabase
+      const { error } = await supabase
+        .from('contact_messages')
+        .insert([form]);
+
+      if (error) throw error;
+
+      // Limpar formulário e dar feedback de sucesso
+      setForm({ name: '', email: '', phone: '', subject: '', message: '' });
+      toast({ title: t('contact.success') });
+    } catch (error) {
+      console.error('Erro ao enviar mensagem:', error);
+      toast({ 
+        variant: "destructive", 
+        title: "Erro", 
+        description: "Não foi possível enviar a mensagem. Tente novamente." 
+      });
+    } finally {
+      setSending(false);
+    }
   };
 
   return (

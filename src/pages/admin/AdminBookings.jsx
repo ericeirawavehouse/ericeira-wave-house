@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabaseClient'; 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,13 +14,30 @@ export default function AdminBookings() {
   const [statusFilter, setStatusFilter] = useState('all');
   const queryClient = useQueryClient();
 
+  // 2. BUSCA DE RESERVAS NO SUPABASE
   const { data: bookings = [], isLoading } = useQuery({
     queryKey: ['admin-bookings'],
-    queryFn: () => base44.entities.Booking.list('-created_date'),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('*')
+        .order('created_at', { ascending: false }); // No Supabase usamos created_at
+      
+      if (error) throw error;
+      return data;
+    },
   });
 
+  // 3. MUTATION PARA ATUALIZAR STATUS (Aprovar/Rejeitar)
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Booking.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      const { error } = await supabase
+        .from('bookings')
+        .update(data)
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-bookings'] }),
   });
 
@@ -34,15 +51,9 @@ export default function AdminBookings() {
     updateMutation.mutate({ id: booking.id, data: { status: 'confirmed' } });
     toast({ title: 'Reserva confirmada!' });
 
-    // Send check-in email for accommodation
-    if (booking.type === 'accommodation' && booking.guest_email) {
-      const checkInUrl = `${window.location.origin}/checkin?booking=${booking.id}`;
-      await base44.integrations.Core.SendEmail({
-        to: booking.guest_email,
-        subject: 'Check-in - Ericeira Wave House',
-        body: `Olá ${booking.guest_name},\n\nA sua reserva foi confirmada! Por favor preencha o formulário de check-in:\n\n${checkInUrl}\n\nObrigado!\nEriceira Wave House`,
-      });
-    }
+    // Nota: O envio de email via base44.integrations não funcionará no Vercel.
+    // Podes implementar EmailJS aqui mais tarde.
+    console.log(`Link de Check-in para o cliente: ${window.location.origin}/checkin?booking=${booking.id}`);
   };
 
   const handleReject = (booking) => {
@@ -50,14 +61,11 @@ export default function AdminBookings() {
     toast({ title: 'Reserva rejeitada.' });
   };
 
-  const handleSendCheckIn = async (booking) => {
+  const handleSendCheckIn = (booking) => {
     const checkInUrl = `${window.location.origin}/checkin?booking=${booking.id}`;
-    await base44.integrations.Core.SendEmail({
-      to: booking.guest_email,
-      subject: 'Check-in - Ericeira Wave House',
-      body: `Olá ${booking.guest_name},\n\nPor favor preencha o formulário de check-in:\n\n${checkInUrl}\n\nObrigado!\nEriceira Wave House`,
-    });
-    toast({ title: 'Email de check-in enviado!' });
+    // Sugestão: Copiar para a área de transferência ou usar mailto:
+    navigator.clipboard.writeText(checkInUrl);
+    toast({ title: 'Link de check-in copiado para a área de transferência!' });
   };
 
   if (isLoading) {
@@ -68,6 +76,7 @@ export default function AdminBookings() {
     );
   }
 
+  // ... (O JSX permanece igual ao que tinhas)
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -102,7 +111,12 @@ export default function AdminBookings() {
       </div>
 
       {view === 'list' ? (
-        <BookingListView bookings={filteredBookings} onApprove={handleApprove} onReject={handleReject} onSendCheckIn={handleSendCheckIn} />
+        <BookingListView 
+          bookings={filteredBookings} 
+          onApprove={handleApprove} 
+          onReject={handleReject} 
+          onSendCheckIn={handleSendCheckIn} 
+        />
       ) : (
         <BookingCalendarView bookings={filteredBookings} />
       )}

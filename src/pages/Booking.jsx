@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/lib/i18n';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabaseClient';
 import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -26,37 +26,59 @@ export default function Booking() {
     guest_name: '', guest_email: '', guest_phone: '', guests_count: 2, surf_time: '', notes: '',
   });
 
-  // Fetch confirmed bookings for accommodation calendar
+  // 2. BUSCA DE DATAS OCUPADAS (SUPABASE)
   const { data: confirmedBookings = [] } = useQuery({
     queryKey: ['confirmed-bookings'],
-    queryFn: () => base44.entities.Booking.filter({ type: 'accommodation', status: 'confirmed' }),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('check_in, check_out')
+        .eq('type', 'accommodation')
+        .eq('status', 'confirmed');
+      
+      if (error) throw error;
+      return data;
+    },
   });
 
-  // Build disabled dates from confirmed accommodation bookings
   const disabledDates = confirmedBookings.flatMap((b) => {
     if (!b.check_in || !b.check_out) return [];
     return eachDayOfInterval({ start: parseISO(b.check_in), end: parseISO(b.check_out) });
   });
 
+  // 3. SUBMISSÃO DA RESERVA (SUPABASE)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
-    const data = {
+    
+    const dataToInsert = {
       ...form,
       type,
       status: 'pending',
     };
+
     if (type === 'accommodation' && dateRange.from) {
-      data.check_in = format(dateRange.from, 'yyyy-MM-dd');
-      if (dateRange.to) data.check_out = format(dateRange.to, 'yyyy-MM-dd');
+      dataToInsert.check_in = format(dateRange.from, 'yyyy-MM-dd');
+      if (dateRange.to) dataToInsert.check_out = format(dateRange.to, 'yyyy-MM-dd');
     }
+
     if (type === 'surf' && surfDate) {
-      data.surf_date = format(surfDate, 'yyyy-MM-dd');
+      dataToInsert.surf_date = format(surfDate, 'yyyy-MM-dd');
     }
-    await base44.entities.Booking.create(data);
+
+    const { error } = await supabase
+      .from('bookings')
+      .insert([dataToInsert]);
+
     setSending(false);
-    setSuccess(true);
-    toast({ title: t('booking.success') });
+    
+    if (error) {
+      console.error(error);
+      toast({ variant: "destructive", title: "Erro", description: "Não foi possível enviar a reserva." });
+    } else {
+      setSuccess(true);
+      toast({ title: t('booking.success') });
+    }
   };
 
   if (success) {

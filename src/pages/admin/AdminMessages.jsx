@@ -1,23 +1,41 @@
-import React from 'react';
-import { base44 } from '@/api/base44Client';
+import React, { useState } from 'react';
+// 1. Importa o cliente do Supabase
+import { supabase } from '@/lib/supabaseClient'; 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, Mail, MailOpen, Eye } from 'lucide-react';
+import { Loader2, Mail, MailOpen } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function AdminMessages() {
-  const [selected, setSelected] = React.useState(null);
+  const [selected, setSelected] = useState(null);
   const queryClient = useQueryClient();
 
+  // 2. BUSCA DE MENSAGENS (SUPABASE)
   const { data: messages = [], isLoading } = useQuery({
     queryKey: ['admin-messages'],
-    queryFn: () => base44.entities.ContactMessage.list('-created_date'),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('contact_messages')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
   });
 
+  // 3. MUTATION PARA MARCAR COMO LIDA
   const markReadMutation = useMutation({
-    mutationFn: (id) => base44.entities.ContactMessage.update(id, { read: true }),
+    mutationFn: async (id) => {
+      const { error } = await supabase
+        .from('contact_messages')
+        .update({ read: true })
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-messages'] }),
   });
 
@@ -27,7 +45,11 @@ export default function AdminMessages() {
   };
 
   if (isLoading) {
-    return <div className="flex items-center justify-center py-24"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
   }
 
   const unreadCount = messages.filter((m) => !m.read).length;
@@ -63,7 +85,7 @@ export default function AdminMessages() {
               <p className="text-xs text-muted-foreground truncate">{msg.message}</p>
             </div>
             <p className="text-xs text-muted-foreground shrink-0">
-              {msg.created_date ? format(new Date(msg.created_date), 'dd/MM HH:mm') : ''}
+              {msg.created_at ? format(new Date(msg.created_at), 'dd/MM HH:mm') : ''}
             </p>
           </div>
         ))}
