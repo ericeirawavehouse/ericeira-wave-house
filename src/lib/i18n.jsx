@@ -222,40 +222,37 @@ const translations = {
 // Alterado para evitar erro de atribuição no Provider
 const LanguageContext = createContext(/** @type {any} */ (null));
 
+/** @param {{ children: React.ReactNode }} props */
 export function LanguageProvider({ children }) {
-  const [lang, setLang] = useState('pt');
-  const [translations, setTranslations] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [lang, setLang] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('lang') || 'pt';
+    }
+    return 'pt';
+  });
 
   useEffect(() => {
-    // Carregamento assíncrono que não bloqueia o render se falhar
-    import(`./locales/${lang}.json`)
-      .then((m) => {
-        setTranslations(m.default);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Erro ao carregar traduções:", err);
-        setLoading(false); // Forçamos o fim do loading mesmo com erro
-      });
+    localStorage.setItem('lang', lang);
   }, [lang]);
 
-  const t = (key) => {
-    const keys = key.split('.');
-    let value = translations;
-    for (const k of keys) {
-      value = value?.[k];
+  /** @param {string} path */
+  const t = (path) => {
+    const keys = path.split('.');
+    let result = translations[lang] || translations['pt']; 
+    
+    for (const key of keys) {
+      result = result?.[key];
     }
-    // Se não encontrar a tradução, devolve a chave para não crashar o site
-    return value || key;
+    return result || path;
   };
 
   return (
-    <LanguageContext.Provider value={{ t, lang, setLang, isLoading: loading }}>
+    <LanguageContext.Provider value={{ lang, setLang, t }}>
       {children}
     </LanguageContext.Provider>
   );
 }
+
 /** @returns {{ lang: string, setLang: Function, t: (path: string) => string }} */
 export function useLanguage() {
   const context = useContext(LanguageContext);
