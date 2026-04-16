@@ -22,7 +22,6 @@ import AdminMessages from './pages/admin/AdminMessages';
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
-  // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
@@ -31,20 +30,9 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle authentication errors
-  if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
-      navigateToLogin();
-      return null;
-    }
-  }
-
-  // Render the main app
   return (
     <Routes>
+      {/* ROTAS PÚBLICAS: Estão sempre disponíveis */}
       <Route element={<SiteLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/accommodation" element={<Accommodation />} />
@@ -55,15 +43,17 @@ const AuthenticatedApp = () => {
         <Route path="/booking" element={<Booking />} />
         <Route path="/checkin" element={<CheckInForm />} />
       </Route>
-      <Route element={<AdminLayout />}>
-        <Route path="/admin" element={<AdminBookings />} />
-        <Route path="/admin/messages" element={<AdminMessages />} />
+
+      {/* ROTAS DE ADMIN: Só entram se não houver erro de auth */}
+      <Route path="/admin" element={!authError ? <AdminLayout /> : <UserNotRegisteredError />}>
+        <Route index element={<AdminBookings />} />
+        <Route path="messages" element={<AdminMessages />} />
       </Route>
+
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
 };
-
 
 function App() {
 
