@@ -1,0 +1,73 @@
+{
+  "name": "Booking",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "accommodation",
+        "surf"
+      ],
+      "description": "Type of booking"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Booking status"
+    },
+    "guest_name": {
+      "type": "string",
+      "description": "Guest full name"
+    },
+    "guest_email": {
+      "type": "string",
+      "description": "Guest email"
+    },
+    "guest_phone": {
+      "type": "string",
+      "description": "Guest phone number"
+    },
+    "check_in": {
+      "type": "string",
+      "format": "date",
+      "description": "Check-in date"
+    },
+    "check_out": {
+      "type": "string",
+      "format": "date",
+      "description": "Check-out date (accommodation only)"
+    },
+    "surf_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Surf lesson date"
+    },
+    "surf_time": {
+      "type": "string",
+      "description": "Preferred surf time"
+    },
+    "guests_count": {
+      "type": "number",
+      "description": "Number of guests"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "checkin_completed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether check-in form was completed"
+    }
+  },
+  "required": [
+    "type",
+    "guest_name",
+    "guest_email"
+  ]
+}

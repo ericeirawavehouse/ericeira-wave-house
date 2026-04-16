@@ -1,0 +1,65 @@
+{
+  "name": "CheckIn",
+  "type": "object",
+  "properties": {
+    "booking_id": {
+      "type": "string",
+      "description": "Associated booking ID"
+    },
+    "full_name": {
+      "type": "string"
+    },
+    "id_number": {
+      "type": "string",
+      "description": "ID/Passport number"
+    },
+    "nationality": {
+      "type": "string"
+    },
+    "date_of_birth": {
+      "type": "string",
+      "format": "date"
+    },
+    "address": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "arrival_time": {
+      "type": "string"
+    },
+    "special_requests": {
+      "type": "string"
+    },
+    "additional_guests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "full_name": {
+            "type": "string"
+          },
+          "id_number": {
+            "type": "string"
+          },
+          "nationality": {
+            "type": "string"
+          },
+          "date_of_birth": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "booking_id",
+    "full_name",
+    "id_number"
+  ]
+}
