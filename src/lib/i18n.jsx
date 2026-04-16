@@ -222,37 +222,30 @@ const translations = {
 // Alterado para evitar erro de atribuição no Provider
 const LanguageContext = createContext(/** @type {any} */ (null));
 
-/** @param {{ children: React.ReactNode }} props */
+// Exemplo de como deve estar para não travar
 export function LanguageProvider({ children }) {
-  const [lang, setLang] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('lang') || 'pt';
-    }
-    return 'pt';
-  });
-
-  useEffect(() => {
-    localStorage.setItem('lang', lang);
-  }, [lang]);
-
-  /** @param {string} path */
-  const t = (path) => {
-    const keys = path.split('.');
-    let result = translations[lang] || translations['pt']; 
+  const [lang, setLang] = useState('pt');
+  
+  // FUNÇÃO DE TRADUÇÃO SEGURA
+  const t = (key) => {
+    // Se as traduções ainda não carregaram, retorna a própria chave
+    // Isso evita que o código quebre ao tentar ler propriedade de undefined
+    const keys = key.split('.');
+    let value = translations[lang]; 
     
-    for (const key of keys) {
-      result = result?.[key];
+    for (const k of keys) {
+      if (value) value = value[k];
     }
-    return result || path;
+    
+    return value || key; 
   };
 
   return (
-    <LanguageContext.Provider value={{ lang, setLang, t }}>
+    <LanguageContext.Provider value={{ t, lang, setLang }}>
       {children}
     </LanguageContext.Provider>
   );
 }
-
 /** @returns {{ lang: string, setLang: Function, t: (path: string) => string }} */
 export function useLanguage() {
   const context = useContext(LanguageContext);

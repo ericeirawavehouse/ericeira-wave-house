@@ -66,37 +66,10 @@ const ProtectedAdmin = ({ children }) => {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClientInstance}>
-      <LanguageProvider>
-        {/* Envolvemos em AuthProvider mas não deixamos que ele controle o fluxo do Router */}
-        <AuthProvider> 
-          <Router>
-            <Routes>
-              {/* ROTAS PÚBLICAS - Livres de qualquer lógica de loading/auth */}
-              <Route element={<SiteLayout />}>
-                <Route path="/" element={<Home />} />
-                <Route path="/accommodation" element={<Accommodation />} />
-                <Route path="/surf" element={<Surf />} />
-                <Route path="/ericeira" element={<Ericeira />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/booking" element={<Booking />} />
-                <Route path="/checkin" element={<CheckInForm />} />
-              </Route>
-
-              {/* ROTAS DE ADMIN */}
-              <Route path="/admin/*" element={<ProtectedAdmin><AdminLayout /></ProtectedAdmin>}>
-                <Route index element={<AdminBookings />} />
-                <Route path="messages" element={<AdminMessages />} />
-              </Route>
-
-              <Route path="*" element={<PageNotFound />} />
-            </Routes>
-          </Router>
-          <Toaster />
-        </AuthProvider>
-      </LanguageProvider>
-    </QueryClientProvider>
+    <div className="p-20 text-center">
+      <h1>Teste de Renderização</h1>
+      <p>Se estás a ver isto, o problema está nos Providers (Auth ou Language).</p>
+    </div>
   );
 }
 
