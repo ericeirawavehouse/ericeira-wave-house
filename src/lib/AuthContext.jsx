@@ -14,9 +14,12 @@ export const AuthProvider = ({ children }) => {
   const [authChecked, setAuthChecked] = useState(false);
   const [appPublicSettings, setAppPublicSettings] = useState(null); // Contains only { id, public_settings }
 
-  useEffect(() => {
-    checkAppState();
-  }, []);
+ // Dentro da função AuthProvider, simplifica o useEffect:
+useEffect(() => {
+  // Em vez de fazer fetch à API que não existe no Vercel:
+  setIsLoadingAuth(false);
+  setUser({ id: 1, name: 'Admin', role: 'admin' }); // Força um utilizador logado para teste
+}, []);
 
   const checkAppState = async () => {
     try {
