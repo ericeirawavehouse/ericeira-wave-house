@@ -54,14 +54,12 @@ const AuthenticatedApp = () => {
     </Routes>
   );
 };
-// 1. Criamos um componente apenas para proteger o Admin
+// 1. Simplificamos o ProtectedAdmin para não travar o render
 const ProtectedAdmin = ({ children }) => {
-  const { isLoadingAuth, authError } = useAuth();
-
-  if (isLoadingAuth) return <div className="fixed inset-0 flex items-center justify-center"><div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div></div>;
+  const auth = useAuth();
   
-  // Se houver erro de auth, mostra o erro em vez do admin, mas NÃO mata o site todo
-  if (authError) return <UserNotRegisteredError />;
+  // Se o context de auth falhar no Vercel, isto evita o ecrã branco
+  if (!auth || auth.isLoadingAuth) return <div className="p-20 text-center">A carregar...</div>;
   
   return children;
 };
@@ -70,10 +68,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClientInstance}>
       <LanguageProvider>
-        <AuthProvider> {/* O Provider continua aqui para quem precisar dele */}
+        {/* Envolvemos em AuthProvider mas não deixamos que ele controle o fluxo do Router */}
+        <AuthProvider> 
           <Router>
             <Routes>
-              {/* ROTAS PÚBLICAS - Totalmente independentes */}
+              {/* ROTAS PÚBLICAS - Livres de qualquer lógica de loading/auth */}
               <Route element={<SiteLayout />}>
                 <Route path="/" element={<Home />} />
                 <Route path="/accommodation" element={<Accommodation />} />
@@ -85,8 +84,8 @@ function App() {
                 <Route path="/checkin" element={<CheckInForm />} />
               </Route>
 
-              {/* ROTAS DE ADMIN - Protegidas individualmente */}
-              <Route path="/admin" element={<ProtectedAdmin><AdminLayout /></ProtectedAdmin>}>
+              {/* ROTAS DE ADMIN */}
+              <Route path="/admin/*" element={<ProtectedAdmin><AdminLayout /></ProtectedAdmin>}>
                 <Route index element={<AdminBookings />} />
                 <Route path="messages" element={<AdminMessages />} />
               </Route>
