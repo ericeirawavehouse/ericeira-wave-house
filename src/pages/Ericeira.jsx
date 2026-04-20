@@ -3,11 +3,11 @@ import { useLanguage } from '@/lib/i18n';
 import FadeInView from '../components/shared/FadeInView';
 import SectionHeading from '../components/shared/SectionHeading';
 
-import imagemRua from '../images/rua_eri.jpg';
-import imagemPraia from '../images/Surf_Ericeira.jpg'; 
-import imagemRestaurante from '../images/restaurante.jpg';
-import imagemExperiencias from '../images/trilho.jpg';
-import imagemEriceira from '../images/ericeira.png';
+import imagemRua from '../images/Outros/rua_eri.jpg';
+import imagemPraia from '../images/Surf/Surf_Ericeira.jpg'; 
+import imagemRestaurante from '../images/Outros/restaurante.jpg';
+import imagemExperiencias from '../images/Outros/trilho.jpg';
+import imagemEriceira from '../images/Capa/ericeira.png';
 
 const sections = {
   pt: {

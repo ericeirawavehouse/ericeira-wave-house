@@ -10,14 +10,14 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import '@/lib/leafletFix';
 
-import imgSala from '@/images/imagem_sala.png';
-import imgPrancha from '@/images/imagem_prancha.png';
-import imgCasaDeBanho from '@/images/wc.jpeg';
-import imgCozinha from '@/images/cozinha.jpeg';
-import imgFora from '@/images/imagem_fora_gemini.png';
-import imgQuarto1 from '@/images/imagem_quarto1_2.png';
-import imgQuarto2 from '@/images/imagem_quarto_2_2.png';
-import imgVaranda from '@/images/varanda.jpeg';
+import imgSala from '@/images/Casa/imagem_sala.png';
+import imgPrancha from '@/images/Casa/imagem_prancha.png';
+import imgCasaDeBanho from '@/images/Casa/wc.jpeg';
+import imgCozinha from '@/images/Casa/cozinha.jpeg';
+import imgFora from '@/images/Casa/imagem_fora_gemini.png';
+import imgQuarto1 from '@/images/Casa/imagem_quarto1_2.png';
+import imgQuarto2 from '@/images/Casa/imagem_quarto_2_2.png';
+import imgVaranda from '@/images/Casa/varanda.jpeg';
 
 const galleryImages = [imgSala, imgPrancha, imgCasaDeBanho, imgQuarto1, imgQuarto2];
 
