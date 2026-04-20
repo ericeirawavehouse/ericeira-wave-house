@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/lib/i18n';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { ShieldCheck, Ban, Clock, Dog, Home, Users, BedDouble, Bath, Wifi, UtensilsCrossed, TreePine, Car, Flame, Wind, WashingMachine, ShowerHead, Tv, Coffee } from 'lucide-react';
-
+// Ícones atualizados para as novas comodidades
+import { Ban, Clock, Dog, Home, Users, BedDouble, Bath, Wifi, UtensilsCrossed, Car, Flame, Wind, Tv, Coffee, Sun, Utensils, ChefHat, Zap, Droplets, Box, Fan, Thermometer } from 'lucide-react';
 
 import FadeInView from '../components/shared/FadeInView';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -14,7 +14,7 @@ import imgSala from '@/images/Casa/imagem_sala.png';
 import imgPrancha from '@/images/Casa/imagem_prancha.png';
 import imgCasaDeBanho from '@/images/Casa/wc.jpeg';
 import imgCozinha from '@/images/Casa/cozinha.jpeg';
-import imgFora from '@/images/Casa/imagem_fora_gemini.png';
+// import imgEscritorio from '@/images/Casa/escritorio.jpeg'; // Descomenta isto quando tirares a foto
 import imgQuarto1 from '@/images/Casa/imagem_quarto1_2.png';
 import imgQuarto2 from '@/images/Casa/imagem_quarto_2_2.png';
 import imgVaranda from '@/images/Casa/varanda.jpeg';
@@ -22,16 +22,32 @@ import imgVaranda from '@/images/Casa/varanda.jpeg';
 const galleryImages = [imgSala, imgPrancha, imgCasaDeBanho, imgQuarto1, imgQuarto2];
 
 const rooms = [
-  { img: imgQuarto1, nameKey: 'room1', descKey: 'room1Desc' },
-  { img: imgQuarto2, nameKey: 'room2', descKey: 'room2Desc' },
-  { img: 'https://media.base44.com/images/public/69dff41ed1950015f453d59f/38fe33d45_generated_f25d6fdf.png', nameKey: 'room3', descKey: 'room3Desc' },
+  // Trocámos a ordem das imagens aqui para o Quarto Principal (room1) ficar com a cama Queen (imgQuarto2)
+  { img: imgQuarto2, nameKey: 'room1', descKey: 'room1Desc' },
+  { img: imgQuarto1, nameKey: 'room2', descKey: 'room2Desc' },
+  // Usamos um placeholder provisório até tirares a foto. Depois substituis por: imgEscritorio
+  { img: 'https://placehold.co/600x400/f3f4f6/64748b?text=Foto+do+Escritório', nameKey: 'room3', descKey: 'room3Desc' },
 ];
 
+// Nova lista de comodidades mapeada para os novos ícones
 const amenityIcons = {
-  wifi: Wifi, kitchen: UtensilsCrossed, garden: TreePine, parking: Car,
-  bbq: Flame, ac: Wind, washer: WashingMachine, towels: ShowerHead, tv: Tv, coffee: Coffee, pets: Dog
+  wifi: Wifi,
+  parking: Car,
+  balcony: Sun,
+  dining: Utensils,
+  tv: Tv,
+  kitchen: UtensilsCrossed,
+  kitchenware: ChefHat,
+  oven: Flame,
+  microwave: Zap,
+  coffee: Coffee,
+  kettle: Droplets,
+  toaster: Box,
+  towels: Bath,
+  hairdryer: Wind,
+  fan: Fan,
+  heater: Thermometer
 };
-
 
 export default function Accommodation() {
   const { t } = useLanguage();
@@ -96,7 +112,6 @@ export default function Accommodation() {
               <TabsTrigger value="location" className="rounded-full px-6">{t('accommodation.location')}</TabsTrigger>
             </TabsList>
 
-           
             <TabsContent value="overview">
               <FadeInView>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -105,23 +120,19 @@ export default function Accommodation() {
                       {t('accommodation.description')}
                     </p>
 
-                    {/* Regras integradas de forma minimalista */}
                     <div className="grid grid-cols-2 gap-y-4 gap-x-2 border-t border-border/50 pt-8 mt-8">
                       <div className="flex items-center gap-3 text-sm text-muted-foreground">
                         <Clock className="w-4 h-4 text-primary/70" />
                         <span>{t('accommodation.rules.checkIn')}</span>
                       </div>
-                      
                       <div className="flex items-center gap-3 text-sm text-muted-foreground">
                         <Clock className="w-4 h-4 text-primary/70" />
                         <span>{t('accommodation.rules.checkOut')}</span>
                       </div>
-                      
                       <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                        <Dog className="w-4 h-4 text-primary/70" />
-                        <span>{t('accommodation.rules.pets')}</span>
+                        <Car className="w-4 h-4 text-primary/70" />
+                        <span>{t('accommodation.rules.parking')}</span>
                       </div>
-                      
                       <div className="flex items-center gap-3 text-sm text-muted-foreground">
                         <Ban className="w-4 h-4 text-primary/70" />
                         <span>{t('accommodation.rules.parties')}</span>
@@ -138,10 +149,12 @@ export default function Accommodation() {
                     </div>
                   </div>
 
+                  {/* Alteração: Galeria de 4 imagens (Sala, Varanda, Casa de Banho, Prancha) */}
                   <div className="grid grid-cols-2 gap-3">
                     <img src={imgSala} alt="Living Room" className="rounded-xl w-full h-48 object-cover" />
                     <img src={imgVaranda} alt="Balcony" className="rounded-xl w-full h-48 object-cover" />
-                    <img src={imgCozinha} alt="Kitchen" className="rounded-xl w-full h-48 object-cover col-span-2" />
+                    <img src={imgCasaDeBanho} alt="Bathroom" className="rounded-xl w-full h-48 object-cover" />
+                    <img src={imgPrancha} alt="Hallway" className="rounded-xl w-full h-48 object-cover" />
                   </div>
                 </div>
               </FadeInView>
@@ -175,7 +188,7 @@ export default function Accommodation() {
 
             <TabsContent value="amenities">
               <FadeInView>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                   {Object.entries(amenityIcons).map(([key, Icon]) => (
                     <div key={key} className="flex flex-col items-center gap-3 p-6 bg-card rounded-xl border border-border text-center">
                       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
