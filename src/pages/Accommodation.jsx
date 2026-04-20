@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useLanguage } from '@/lib/i18n';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 // Ícones atualizados para as novas comodidades
-import { Ban, Clock, Dog, Home, Users, BedDouble, Bath, Wifi, UtensilsCrossed, Car, Flame, Wind, Tv, Coffee, Sun, Utensils, ChefHat, Zap, Droplets, Box, Fan, Thermometer } from 'lucide-react';
+import { Ban, Clock, Dog, Home, Users, BedDouble, Bath, Wifi, Accessibility, UtensilsCrossed, Car, Flame, Wind, Tv, Coffee, Sun, Utensils, ChefHat, Zap, Droplets, Box, Fan, Thermometer } from 'lucide-react';
 
 import FadeInView from '../components/shared/FadeInView';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -33,11 +33,11 @@ const rooms = [
 const amenityIcons = {
   wifi: Wifi,
   parking: Car,
+  accessible: Accessibility,
   balcony: Sun,
   dining: Utensils,
   tv: Tv,
   kitchen: UtensilsCrossed,
-  kitchenware: ChefHat,
   oven: Flame,
   microwave: Zap,
   coffee: Coffee,

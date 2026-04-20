@@ -31,17 +31,12 @@ export default function Footer() {
               <a href="mailto:ericeirawavehouse@gmail.com" className="flex items-center gap-2 text-sm opacity-70 hover:opacity-100 transition-opacity">
                 <Mail className="w-4 h-4" /> ericeirawavehouse@gmail.com
               </a>
-              <a href="tel:+351912345678" className="flex items-center gap-2 text-sm opacity-70 hover:opacity-100 transition-opacity">
-                <Phone className="w-4 h-4" /> +351 912 345 678
+              <a href="tel:+351960461100" className="flex items-center gap-2 text-sm opacity-70 hover:opacity-100 transition-opacity">
+                <Phone className="w-4 h-4" /> +351 96 04 61 100 
               </a>
               <p className="flex items-center gap-2 text-sm opacity-70">
                 <MapPin className="w-4 h-4" /> Ericeira, Portugal
               </p>
-            </div>
-            <div className="flex items-center gap-4 mt-6">
-              <a href="#" className="opacity-70 hover:opacity-100 transition-opacity" aria-label="Instagram">
-                <Instagram className="w-5 h-5" />
-              </a>
             </div>
           </div>
         </div>
