@@ -38,6 +38,7 @@ const amenityIcons = {
   dining: Utensils,
   tv: Tv,
   kitchen: UtensilsCrossed,
+  kitchenware: ChefHat,
   oven: Flame,
   microwave: Zap,
   coffee: Coffee,
