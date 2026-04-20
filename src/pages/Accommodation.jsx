@@ -101,7 +101,7 @@ export default function Accommodation() {
               <FadeInView>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                   <div>
-                    <p className="text-foreground/80 leading-relaxed text-base mb-8">
+                    <p className="text-muted-foreground leading-relaxed mb-8 text-base whitespace-pre-line">
                       {t('accommodation.description')}
                     </p>
 

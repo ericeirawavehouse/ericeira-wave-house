@@ -46,7 +46,7 @@ export default function AccommodationPreview() {
 
           <FadeInView delay={0.2}>
             <div className="lg:pl-8">
-              <p className="text-muted-foreground leading-relaxed mb-8 text-base">
+              <p className="text-muted-foreground leading-relaxed mb-8 text-base whitespace-pre-line">
                 {t('accommodation.description')}
               </p>
               <div className="flex flex-wrap gap-6 mb-10">
