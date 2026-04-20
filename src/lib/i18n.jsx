@@ -48,10 +48,10 @@ const translations = {
         pets: "Cães Permitidos (sob consulta)"
       }
       rules: {
-        checkIn: 'Check-in: 15:00 - 22:00',
-        checkOut: 'Check-out: 11:30',
-        pets: 'Cães permitidos (€25/noite)',
-        parties: 'Festas não permitidas',
+        checkIn: 'Check-in: 15:00 - 23:00',
+        checkOut: 'Check-out: 12:00',
+        parking: 'Estacionamento Privativo',
+        parties: 'Festas proibidas',
       },
     },
 
@@ -164,10 +164,10 @@ const translations = {
         coffee: 'Coffee machine',
       },
       rules: {
-        checkIn: 'Check-in: 3:00 PM - 10:00 PM',
-        checkOut: 'Check-out: 11:30 AM',
-        pets: 'Dogs allowed (€25/night)',
-        parties: 'No parties allowed',
+        checkIn: 'Check-in: 3:00 PM - 11:00 PM',
+        checkOut: 'Check-out: 12:00 AM',
+        parking: 'Private parking',
+        parties: 'Parties prohibited',
       },
     },
     surf: {
