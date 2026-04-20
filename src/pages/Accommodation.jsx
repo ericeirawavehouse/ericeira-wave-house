@@ -102,7 +102,7 @@ export default function Accommodation() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                   <div>
                     <p className="text-foreground/80 leading-relaxed text-base mb-8">
-                      dangerouslySetInnerHTML={{ __html: t('accommodation.description') }}
+                      {t('accommodation.description')}
                     </p>
 
                     {/* Regras integradas de forma minimalista */}
