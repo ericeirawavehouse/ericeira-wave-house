@@ -18,6 +18,7 @@ import imgCozinha from '@/images/Casa/cozinha.jpeg';
 import imgQuarto1 from '@/images/Casa/imagem_quarto1_2.png';
 import imgQuarto2 from '@/images/Casa/imagem_quarto_2_2.png';
 import imgVaranda from '@/images/Casa/varanda.jpeg';
+import imgEscritorio from '@/images/Casa/escritorio.jpeg';
 
 const galleryImages = [imgSala, imgPrancha, imgCasaDeBanho, imgQuarto1, imgQuarto2];
 
@@ -25,8 +26,7 @@ const rooms = [
   // Trocámos a ordem das imagens aqui para o Quarto Principal (room1) ficar com a cama Queen (imgQuarto2)
   { img: imgQuarto2, nameKey: 'room1', descKey: 'room1Desc' },
   { img: imgQuarto1, nameKey: 'room2', descKey: 'room2Desc' },
-  // Usamos um placeholder provisório até tirares a foto. Depois substituis por: imgEscritorio
-  { img: 'https://placehold.co/600x400/f3f4f6/64748b?text=Foto+do+Escritório', nameKey: 'room3', descKey: 'room3Desc' },
+  { img: imgEscritorio, nameKey: 'room3', descKey: 'room3Desc' },
 ];
 
 // Nova lista de comodidades mapeada para os novos ícones

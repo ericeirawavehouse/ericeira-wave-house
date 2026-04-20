@@ -32,7 +32,7 @@ export default function Footer() {
                 <Mail className="w-4 h-4" /> ericeirawavehouse@gmail.com
               </a>
               <a href="tel:+351960461100" className="flex items-center gap-2 text-sm opacity-70 hover:opacity-100 transition-opacity">
-                <Phone className="w-4 h-4" /> +351 96 04 61 100 
+                <Phone className="w-4 h-4" /> +351 960 461 100 
               </a>
               <p className="flex items-center gap-2 text-sm opacity-70">
                 <MapPin className="w-4 h-4" /> Ericeira, Portugal

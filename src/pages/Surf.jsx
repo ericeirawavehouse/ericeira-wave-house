@@ -48,9 +48,6 @@ export default function Surf() {
                 <p className="text-foreground/80 leading-relaxed text-base mb-4">
                   {t('surf.description')}
                 </p>
-                <p className="text-foreground/80 leading-relaxed text-base mb-8">
-                  {t('surf.experienceDesc')}
-                </p>
                 <Link
                   to="/booking"
                   className="inline-block bg-primary text-primary-foreground px-10 py-3.5 text-sm font-medium tracking-wide rounded-full hover:bg-primary/90 transition-all duration-300"

@@ -69,7 +69,7 @@ const translations = {
     surf: {
       title: 'Surf na Ericeira',
       subtitle: 'Sente a energia do oceano',
-      description: 'Junta-te a nós para uma experiência única no mar. Aulas para todos os níveis, com instrutores locais apaixonados pelo surf e pela Ericeira.',
+      description: 'Junta-te às nossas aulas de surf, privadas ou em grupo, na Ericeira - um dos spots de surf mais icónicos de Portugal. Quer seja a tua primeira vez numa prancha ou estejas à procura de aperfeiçoar a tua técnica, os nossos experientes instrutores locais estão cá para te apoiar a cada passo. Avaliamos o teu nível e encontramos a solução ideal para ti, para que possas aprender, progredir e desfrutar da experiência em total segurança.',
       bookLesson: 'Reservar Aula',
       experience: 'A Experiência',
       experienceDesc: 'Mais do que uma aula, é uma imersão. Ondas perfeitas, boa energia e memórias para a vida. Não precisas de experiência - só de vontade de te divertir.',
@@ -189,7 +189,7 @@ const translations = {
     surf: {
       title: 'Surf in Ericeira',
       subtitle: 'Feel the ocean\'s energy',
-      description: 'Join us for a unique ocean experience. Lessons for all levels, with local instructors passionate about surfing and Ericeira.',
+      description: 'Join our private or group surf lessons in Ericeira, one of Portugal\'s most iconic surf spots. Whether it\'s your first time on a board or you\'re looking to improve your skills, our experienced local instructors are here to support you throughout. We evaluate your level and match you with the right solution, so you can learn, progress, and enjoy the experience safely.',
       bookLesson: 'Book Lesson',
       experience: 'The Experience',
       experienceDesc: 'More than a lesson, it\'s an immersion. Perfect waves, good vibes and memories for life. No experience needed - just the will to have fun.',
