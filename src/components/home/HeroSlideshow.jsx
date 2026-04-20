@@ -7,8 +7,8 @@ import { ChevronDown } from 'lucide-react';
 
 
 import imagemCapa1 from '../../images/Capa/1.jpg'; 
-import imagemCapa1 from '../../images/Capa/2.jpg'; 
-import imagemCapa1 from '../../images/Capa/3.jpg'; 
+import imagemCapa2 from '../../images/Capa/2.jpg'; 
+import imagemCapa3 from '../../images/Capa/3.jpg'; 
 
 const slides = [
   imagemCapa1,
