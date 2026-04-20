@@ -46,7 +46,7 @@ const translations = {
         tv: "Televisão",
         coffee: "Máquina de Café",
         pets: "Cães Permitidos (sob consulta)"
-      }
+      },
       rules: {
         checkIn: 'Check-in: 15:00 - 23:00',
         checkOut: 'Check-out: 12:00',
