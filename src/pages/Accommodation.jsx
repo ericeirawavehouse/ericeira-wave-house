@@ -109,19 +109,22 @@ export default function Accommodation() {
                     <div className="grid grid-cols-2 gap-y-4 gap-x-2 border-t border-border/50 pt-8 mt-8">
                       <div className="flex items-center gap-3 text-sm text-muted-foreground">
                         <Clock className="w-4 h-4 text-primary/70" />
-                        <span>Check-in: 15:00 - 22:00</span>
+                        <span>{t('accommodation.rules.checkIn')}</span>
                       </div>
+                      
                       <div className="flex items-center gap-3 text-sm text-muted-foreground">
                         <Clock className="w-4 h-4 text-primary/70" />
-                        <span>Check-out: 11:30</span>
+                        <span>{t('accommodation.rules.checkOut')}</span>
                       </div>
+                      
                       <div className="flex items-center gap-3 text-sm text-muted-foreground">
                         <Dog className="w-4 h-4 text-primary/70" />
-                        <span>Cães permitidos (€25/noite)</span>
+                        <span>{t('accommodation.rules.pets')}</span>
                       </div>
+                      
                       <div className="flex items-center gap-3 text-sm text-muted-foreground">
                         <Ban className="w-4 h-4 text-primary/70" />
-                        <span>Festas não permitidas</span>
+                        <span>{t('accommodation.rules.parties')}</span>
                       </div>
                     </div>
 
