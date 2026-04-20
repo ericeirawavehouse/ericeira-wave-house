@@ -47,6 +47,12 @@ const translations = {
         coffee: "Máquina de Café",
         pets: "Cães Permitidos (sob consulta)"
       }
+      rules: {
+        checkIn: 'Check-in: 15:00 - 22:00',
+        checkOut: 'Check-out: 11:30',
+        pets: 'Cães permitidos (€25/noite)',
+        parties: 'Festas não permitidas',
+      },
     },
 
 
@@ -156,6 +162,12 @@ const translations = {
         towels: 'Bed linen & towels',
         tv: 'Smart TV',
         coffee: 'Coffee machine',
+      },
+      rules: {
+        checkIn: 'Check-in: 3:00 PM - 10:00 PM',
+        checkOut: 'Check-out: 11:30 AM',
+        pets: 'Dogs allowed (€25/night)',
+        parties: 'No parties allowed',
       },
     },
     surf: {
