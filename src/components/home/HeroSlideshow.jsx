@@ -11,8 +11,8 @@ import imagemCapa2 from '../../images/Capa/2.jpg';
 import imagemCapa3 from '../../images/Capa/3.jpg'; 
 
 const slides = [
-  imagemCapa1,
   imagemCapa2,
+  imagemCapa1,
   imagemCapa3,
 ];
 
