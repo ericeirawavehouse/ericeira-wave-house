@@ -21,7 +21,7 @@ const translations = {
     accommodation: {
       title: 'Ericeira Wave House',
       subtitle: 'Central & Spacious Apartment',
-      description: 'Luminoso apartamento T2+1 a apenas 5 minutos a pé do centro da Ericeira. Ideal para casais, amigos ou nómadas digitais. Inclui 2 quartos duplos, um escritório com sofá-cama, cozinha totalmente equipada e uma zona de estar acolhedora. Localização tranquila, a passos do Mercado Municipal e das principais praias.',
+      description: 'Ideal para casais, amigos ou nómadas digitais, dispõe de dois quartos duplos, um escritório com sofá-cama, casa de banho, cozinha equipada e uma zona de estar com mesa de jantar. Localização privilegiada, a apenas 5 minutos a pé do centro da vila, com todas as comodidades e fácil acesso às principais praias. Situado numa zona tranquila, combina conforto e conveniência.',
       entireHome: 'Apartamento Inteiro',
       guests: '5 Hóspedes',
       bedrooms: '3 Quartos',
@@ -129,7 +129,7 @@ const translations = {
     accommodation: {
       title: 'The House',
       subtitle: 'An entire retreat just for you',
-      description: 'Book the entire house - a space designed for those seeking tranquility, comfort and the magic of Ericeira. Wake up to the sound of the sea and let nature embrace you.',
+      description: 'Ideal for couples, friends, or digital nomads, this property features two double bedrooms, an office with a sofa bed, a bathroom, a fully equipped kitchen, and a living area with a dining table. Prime location, just a 5-minute walk from the village center, close to all amenities and with easy access to the main beaches. Situated in a quiet area, it perfectly combines comfort and convenience.',
       overview: 'Overview',
       rooms: 'Rooms',
       amenities: 'Amenities',

@@ -4,12 +4,16 @@ import { useLanguage } from '@/lib/i18n';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
+
+
+import imagemCapa1 from '../../images/Capa/1.jpg'; 
+import imagemCapa1 from '../../images/Capa/2.jpg'; 
+import imagemCapa1 from '../../images/Capa/3.jpg'; 
+
 const slides = [
-  'https://media.base44.com/images/public/69dff41ed1950015f453d59f/58645cdca_generated_0c170174.png',
-  'https://media.base44.com/images/public/69dff41ed1950015f453d59f/cd48d436d_generated_c981fbc1.png',
-  'https://media.base44.com/images/public/69dff41ed1950015f453d59f/ad8496ae3_generated_32084552.png',
-  'https://media.base44.com/images/public/69dff41ed1950015f453d59f/109601bbb_generated_0b4c5082.png',
-  'https://media.base44.com/images/public/69dff41ed1950015f453d59f/4f0aeb2da_generated_e032532b.png',
+  imagemCapa1,
+  imagemCapa2,
+  imagemCapa3,
 ];
 
 export default function HeroSlideshow() {
