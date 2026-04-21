@@ -12,7 +12,7 @@ export default function About() {
     <div className="pt-20">
       {/* Hero */}
       <section className="relative h-[50vh] md:h-[60vh]">
-        <img src={imageSobre} alt="About us" className="w-full h-full object-cover" />
+        <img src="https://media.base44.com/images/public/69dff41ed1950015f453d59f/77e69fa31_generated_28e62714.png" alt="About us" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="absolute bottom-12 left-6 right-6 md:bottom-16 md:left-12">
           <div className="max-w-7xl mx-auto">
@@ -28,7 +28,7 @@ export default function About() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <FadeInView>
               <img
-                src="https://media.base44.com/images/public/69dff41ed1950015f453d59f/ad8496ae3_generated_32084552.png"
+                src={imageSobre}
                 alt="Sunset terrace"
                 className="w-full h-[450px] object-cover rounded-2xl"
               />
