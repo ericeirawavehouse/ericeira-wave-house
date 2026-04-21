@@ -14,17 +14,17 @@ const sections = {
     beaches: {
       title: 'Praias',
       items: [
-        { name: 'Praia dos Pescadores', desc: 'A praia mais central, perfeita para um dia relaxante à beira-mar.' },
-        { name: 'Ribeira d\'Ilhas', desc: 'Famosa mundialmente pelo surf, com uma energia incrível.' },
-        { name: 'Praia de São Lourenço', desc: 'Águas cristalinas e falésias impressionantes. Um paraíso escondido.' },
+        { name: 'Surf', desc: 'Praia de Ribeira d\'Ilhas, Praia da Empa, Praia do Matadouro.' },
+        { name: 'Relaxar', desc: 'Praia da Foz do Lizandro, Praia do Sul, Praia de São Sebastião.' },
+        { name: 'Vista', desc: 'Praia de São Julião, Praia de São Lourenço, Praia dos Coxos.' },
       ],
     },
     restaurants: {
       title: 'Restaurantes',
       items: [
-        { name: 'Prim', desc: 'Cozinha contemporânea com ingredientes locais e vista oceano.' },
-        { name: 'Tik Tapas', desc: 'Petiscos criativos num ambiente descontraído.' },
-        { name: 'Mar d\'Areia', desc: 'Marisco fresco com os pés na areia.' },
+        { name: 'Jangada', desc: 'Espaço acolhedor com uma seleção variada de pratos de sabores requintados.' },
+        { name: 'Ti Matilde', desc: 'Restaurante tradicional de ambiente familiar conhecido pelo peixe e marisco frescos.' },
+        { name: 'A Panela', desc: 'Restaurante no centro da vila com cozinha portuguesa contemporânea.' },
       ],
     },
     spots: {
@@ -48,17 +48,17 @@ const sections = {
     beaches: {
       title: 'Beaches',
       items: [
-        { name: 'Praia dos Pescadores', desc: 'The most central beach, perfect for a relaxing day by the sea.' },
-        { name: 'Ribeira d\'Ilhas', desc: 'World-famous for surfing, with incredible energy.' },
-        { name: 'Praia de São Lourenço', desc: 'Crystal clear waters and impressive cliffs. A hidden paradise.' },
+        { name: 'Surf', desc: 'Praia de Ribeira d\'Ilhas, Praia da Empa, Praia do Matadouro.' },
+        { name: 'Relaxing', desc: 'Praia da Foz do Lizandro, Praia do Sul, Praia de São Sebastião.' },
+        { name: 'Views', desc: 'Praia de São Julião, Praia de São Lourenço, Praia dos Coxos.' },
       ],
     },
     restaurants: {
       title: 'Restaurants',
       items: [
-        { name: 'Prim', desc: 'Contemporary cuisine with local ingredients and ocean views.' },
-        { name: 'Tik Tapas', desc: 'Creative tapas in a laid-back atmosphere.' },
-        { name: 'Mar d\'Areia', desc: 'Fresh seafood with your feet in the sand.' },
+        { name: 'Jangada', desc: 'Welcoming space with a diverse selection of exquisitely flavored dishes.' },
+        { name: 'Ti Matilde', desc: 'Traditional restaurant with a family atmosphere, known for its fresh fish and seafood.' },
+        { name: 'A Panela', desc: 'Restaurant in the town center featuring contemporary Portuguese cuisine.' },
       ],
     },
     spots: {

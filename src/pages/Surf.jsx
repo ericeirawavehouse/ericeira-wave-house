@@ -7,12 +7,14 @@ import SectionHeading from '../components/shared/SectionHeading';
 
 const surfTestimonials = {
   pt: [
-    { name: 'Ana R.', text: 'Nunca tinha surfado e foi uma das melhores experiências da minha vida! Os instrutores são incríveis.' },
-    { name: 'Marco P.', text: 'A energia da Ericeira é única. A aula foi super divertida e relaxada. Recomendo a 100%!' },
+    { name: 'Emily R.', text: 'Primeira vez a surfar e adorei completamente. Os instrutores foram super pacientes e tornaram tudo fácil de entender. Ambiente realmente relaxado e amigável.' },
+    { name: 'James L.', text: 'Aula muito bem organizada do início ao fim. Senti-me seguro e apoiado na água o tempo todo. Ótima equipe e uma experiência realmente divertida.' },
+    { name: 'Lucas M.', text: 'Eu e a minha namorada nunca tínhamos surfado antes, e recebemos muita atenção personalizada e ótimas dicas ao longo de toda a experiência. Com certeza voltaremos no próximo ano!' },
   ],
   en: [
-    { name: 'Ana R.', text: 'I had never surfed before and it was one of the best experiences of my life! The instructors are amazing.' },
-    { name: 'Marco P.', text: 'The energy of Ericeira is unique. The lesson was super fun and relaxed. 100% recommend!' },
+    { name: 'Emily R.', text: 'First time surfing and I absolutely loved it. The instructors were super patient and made everything easy to understand. Really relaxed and friendly atmosphere.' },
+    { name: 'James L.', text: 'Very well organized lesson from start to finish. I felt safe and supported in the water the whole time. Great team and a really fun experience.' },
+    { name: 'Lucas M.', text: 'Me and my girlfriend had never surfed before, and we got loads of personalized attention and great tips throughout. We\'ll definitely be back next year!' },
   ],
 };
 

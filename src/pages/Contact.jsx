@@ -95,11 +95,11 @@ export default function Contact() {
                     </div>
                     ericeirawavehouse@gmail.com
                   </a>
-                  <a href="tel:+351912345678" className="flex items-center gap-3 text-foreground/80 hover:text-primary transition-colors">
+                  <a href="tel:+351960461100" className="flex items-center gap-3 text-foreground/80 hover:text-primary transition-colors">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                       <Phone className="w-4 h-4 text-primary" />
                     </div>
-                    +351 912 345 678
+                    +351 960 461 100 
                   </a>
                   <div className="flex items-center gap-3 text-foreground/80">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">

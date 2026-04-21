@@ -85,7 +85,7 @@ const translations = {
     about: {
       title: 'Sobre Nós',
       subtitle: 'A nossa história',
-      story: 'Nascemos da paixão pelo mar e pelo estilo de vida da Ericeira. Depois de anos a surfar estas ondas e a explorar cada recanto desta vila, decidimos partilhar este lugar especial contigo. A nossa casa é mais do que um alojamento - é um convite a viver a Ericeira como um local.',
+      story: 'Locias e apaixonados pela Ericeira, é sem dúvida a melhor maneira de nos descrever. Conhecemo-nos há cerca de dez anos e hoje partilhamos a vida e este projeto. O Nuno é Instrutor de Surf, ligado ao mar desde criança, e a Carolina trabalha como Business Developer. Criámos este espaço pelo gosto em receber pessoas e pela vontade de partilhar o melhor da Ericeira.',
     },
     contact: {
       title: 'Contacto',
@@ -205,7 +205,7 @@ const translations = {
     about: {
       title: 'About Us',
       subtitle: 'Our story',
-      story: 'We were born from a passion for the sea and the Ericeira lifestyle. After years of surfing these waves and exploring every corner of this village, we decided to share this special place with you. Our house is more than accommodation - it\'s an invitation to live Ericeira like a local.',
+      story: 'Locals and passionate about Ericeira, that\'s the best way to describe us. We met around ten years ago and now share our life together, along with this project. Nuno is a surf instructor, connected to the ocean since childhood, and Carolina works as a Business Developer. We created this space out of a love for hosting and a desire to share the best of Ericeira.',
     },
     contact: {
       title: 'Contact',
