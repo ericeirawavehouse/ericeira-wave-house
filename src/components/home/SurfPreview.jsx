@@ -38,7 +38,7 @@ export default function SurfPreview() {
               to="/booking?type=surf"
               className="inline-block bg-white text-foreground px-8 py-3 text-sm font-medium tracking-wide rounded-full hover:bg-white/90 transition-all duration-300"
             >
-              Book Surf Lesson
+              {t('surf.bookLesson')}
             </Link>
           </div>
         </FadeInView>

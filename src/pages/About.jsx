@@ -30,7 +30,7 @@ export default function About() {
               <img
                 src={imageSobre}
                 alt="Sunset terrace"
-                className="w-full h-[650px] object-cover rounded-2xl"
+                className="w-full h-[600px] object-cover rounded-2xl"
               />
             </FadeInView>
             <FadeInView delay={0.2}>
@@ -42,15 +42,15 @@ export default function About() {
                 <div className="grid grid-cols-3 gap-6 mt-10">
                   <div className="text-center">
                     <p className="font-heading text-3xl font-semibold text-primary">5+</p>
-                    <p className="text-xs text-muted-foreground mt-1">{t('lang') === 'pt' ? 'Anos' : 'Years'}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t('about.years')}</p>
                   </div>
                   <div className="text-center">
                     <p className="font-heading text-3xl font-semibold text-primary">200+</p>
-                    <p className="text-xs text-muted-foreground mt-1">{t('lang') === 'pt' ? 'Hóspedes' : 'Guests'}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t('about.guests')}</p>
                   </div>
                   <div className="text-center">
                     <p className="font-heading text-3xl font-semibold text-primary">4.9</p>
-                    <p className="text-xs text-muted-foreground mt-1">Rating</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t('about.rating')}</p>
                   </div>
                 </div>
               </div>

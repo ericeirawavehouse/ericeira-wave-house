@@ -90,6 +90,13 @@ export default function Booking() {
               <CheckCircle className="w-8 h-8 text-primary" />
             </div>
             <h2 className="font-heading text-2xl font-semibold mb-3">{t('booking.success')}</h2>
+
+            <Link
+              to="/"
+              className="inline-block bg-primary text-primary-foreground px-10 py-3.5 text-sm font-medium tracking-wide rounded-full hover:bg-primary/90 transition-all duration-300"
+            >
+              {t('booking.returnHome')}
+            </Link>
           </div>
         </FadeInView>
       </div>
