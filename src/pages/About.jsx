@@ -3,7 +3,7 @@ import { useLanguage } from '@/lib/i18n.jsx';
 import FadeInView from '@/components/shared/FadeInView';
 
 
-import imageSobre from '../../images/Outros/15.jpeg'; 
+import imageSobre from '../images/Outros/15.jpeg'; 
 
 export default function About() {
   const { t } = useLanguage();
