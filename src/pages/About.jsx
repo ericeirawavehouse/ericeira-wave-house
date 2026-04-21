@@ -30,7 +30,7 @@ export default function About() {
               <img
                 src={imageSobre}
                 alt="Sunset terrace"
-                className="w-full h-[450px] object-cover rounded-2xl"
+                className="w-full h-[650px] object-cover rounded-2xl"
               />
             </FadeInView>
             <FadeInView delay={0.2}>

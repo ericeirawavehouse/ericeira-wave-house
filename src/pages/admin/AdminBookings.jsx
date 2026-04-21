@@ -51,8 +51,6 @@ export default function AdminBookings() {
     updateMutation.mutate({ id: booking.id, data: { status: 'confirmed' } });
     toast({ title: 'Reserva confirmada!' });
 
-    // Nota: O envio de email via base44.integrations não funcionará no Vercel.
-    // Podes implementar EmailJS aqui mais tarde.
     console.log(`Link de Check-in para o cliente: ${window.location.origin}/checkin?booking=${booking.id}`);
   };
 
