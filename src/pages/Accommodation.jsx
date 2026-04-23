@@ -10,7 +10,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import '@/lib/leafletFix';
 
-import imgSala from '@/images/Casa/imagem_sala.png';
+import imgSala from '@/images/Casa/sala.png';
 import imgPrancha from '@/images/Casa/imagem_prancha.png';
 import imgCasaDeBanho from '@/images/Casa/wc.jpeg';
 import imgCozinha from '@/images/Casa/cozinha.jpeg';
