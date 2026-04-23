@@ -6,14 +6,14 @@ import SectionHeading from '../shared/SectionHeading';
 
 const testimonials = {
   pt: [
-    { name: 'Maria & João', location: 'Lisboa, Portugal', text: 'Um lugar mágico. Acordar com o som do mar e tomar o pequeno-almoço no jardim foi inesquecível. Voltaremos sem dúvida.' },
-    { name: 'Sarah B.', location: 'Londres, UK', text: 'A casa é ainda mais bonita pessoalmente. Tudo pensado ao detalhe. A Ericeira conquistou o nosso coração.' },
-    { name: 'Thomas K.', location: 'Berlim, Alemanha', text: 'Experiência perfeita - desde a casa acolhedora até às aulas de surf. O melhor fim de semana que tivemos em anos.' },
+    { name: 'Maria & Bernardo', location: 'Coimbra, Portugal', text: 'Estadia maravilhosa! O espaço era exatamente o que precisavamos: limpo, confortável e super bem localizado. Tomar o pequeno-almoço no exterior foi inesquecível. Voltaremos sem dúvida!' },
+    { name: 'Sarah B.', location: 'Londres, UK', text: 'A Carolina e o Nuno foram anfitriões excelentes, com muitas recomendações. A casa é ainda mais bonita pessoalmente e adorámos a possibilidade de ir a pé até às praias e aos restaurantes. A Ericeira conquistou o nosso coração.' },
+    { name: 'Thomas K.', location: 'Berlim, Alemanha', text: 'Experiência perfeita - desde a casa acolhedora até às aulas de surf com o Nuno. A melhor semana que eu e os meus amigos tivemos em anos.' },
   ],
   en: [
-    { name: 'Maria & João', location: 'Lisbon, Portugal', text: 'A magical place. Waking up to the sound of the sea and having breakfast in the garden was unforgettable. We will definitely return.' },
-    { name: 'Sarah B.', location: 'London, UK', text: 'The house is even more beautiful in person. Everything thoughtfully designed. Ericeira captured our hearts.' },
-    { name: 'Thomas K.', location: 'Berlin, Germany', text: 'Perfect experience - from the cozy house to the surf lessons. The best weekend we\'ve had in years.' },
+    { name: 'Maria & Bernardo', location: 'Coimbra, Portugal', text: 'Wonderful stay! The space was exactly what we needed: clean, comfortable, and very well located. Having breakfast outside was unforgettable. We will definitely be back!' },
+    { name: 'Sarah B.', location: 'London, UK', text: 'Carolina and Nuno were excellent hosts, with plenty of great recommendations. The house is even more beautiful in person and we loved being able to walk to the beaches and restaurants. Ericeira truly stole our hearts.' },
+    { name: 'Thomas K.', location: 'Berlin, Germany', text: 'Perfect experience - from the cozy house to the surf lessons with Nuno. The best week me and my friends had in years.' },
   ],
 };
 
