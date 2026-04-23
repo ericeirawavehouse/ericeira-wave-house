@@ -5,7 +5,7 @@ import { Home, Users, BedDouble, ArrowRight } from 'lucide-react';
 import FadeInView from '../shared/FadeInView';
 import SectionHeading from '../shared/SectionHeading';
 
-import imagemSala from '../../images/Casa/sala.png'; 
+import imagemSala from '../../images/Casa/sala.jpeg'; 
 import imagemPrancha from '../../images/Casa/imagem_prancha.png';
 
 
