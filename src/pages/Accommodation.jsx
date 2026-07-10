@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/lib/i18n';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 // Ícones atualizados para as novas comodidades
-import { Ban, Clock, Dog, Home, Users, BedDouble, Bath, Wifi, Accessibility, UtensilsCrossed, Car, Flame, Wind, Tv, Coffee, Sun, Utensils, ChefHat, Zap, Droplets, Box, Fan, Thermometer } from 'lucide-react';
+import { Ban, Clock, Dog, Home, Users, BedDouble, Bath, Wifi, Accessibility, UtensilsCrossed, Car, Flame, Wind, Tv, Coffee, Sun, Utensils, ChefHat, Zap, Droplets, Box, Fan, Thermometer, ChevronLeft, ChevronRight, Expand } from 'lucide-react';
 
 import FadeInView from '../components/shared/FadeInView';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -13,14 +14,31 @@ import '@/lib/leafletFix';
 import imgSala from '@/images/Casa/sala.jpeg';
 import imgPrancha from '@/images/Casa/prancha.jpeg';
 import imgCasaDeBanho from '@/images/Casa/wc.jpeg';
+import imgCasaDeBanho2 from '@/images/Casa/wc2.jpeg';
 import imgCozinha from '@/images/Casa/cozinha.jpeg';
-// import imgEscritorio from '@/images/Casa/escritorio.jpeg'; // Descomenta isto quando tirares a foto
+import imgMesa from '@/images/Casa/mesa.jpeg';
 import imgQuarto1 from '@/images/Casa/quarto_1.jpeg';
 import imgQuarto2 from '@/images/Casa/quarto_2.jpeg';
 import imgVaranda from '@/images/Casa/varanda.jpeg';
 import imgEscritorio from '@/images/Casa/escritorio.jpeg';
+import imgRua from '@/images/Casa/rua.png';
 
-const galleryImages = [imgSala, imgPrancha, imgCasaDeBanho, imgQuarto1, imgQuarto2];
+// Todas as fotos da casa, numa lista só, organizadas por divisão
+const allPhotos = [
+  { src: imgSala, alt: 'Sala de estar' },
+  { src: imgVaranda, alt: 'Varanda' },
+  { src: imgQuarto2, alt: 'Quarto Principal' },
+  { src: imgQuarto1, alt: 'Quarto' },
+  { src: imgEscritorio, alt: 'Escritório' },
+  { src: imgCasaDeBanho, alt: 'Casa de Banho' },
+  { src: imgCasaDeBanho2, alt: 'Casa de Banho' },
+  { src: imgCozinha, alt: 'Cozinha' },
+  { src: imgMesa, alt: 'Zona de Jantar' },
+  { src: imgPrancha, alt: 'Hall de entrada' },
+  { src: imgRua, alt: 'Envolvente' },
+];
+
+const heroPhotos = allPhotos.slice(0, 5);
 
 const rooms = [
   // Trocámos a ordem das imagens aqui para o Quarto Principal (room1) ficar com a cama Queen (imgQuarto2)
@@ -52,7 +70,29 @@ const amenityIcons = {
 
 export default function Accommodation() {
   const { t } = useLanguage();
-  const [selectedImg, setSelectedImg] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  const openLightbox = (src) => {
+    const idx = allPhotos.findIndex((p) => p.src === src);
+    setLightboxIndex(idx >= 0 ? idx : 0);
+    setLightboxOpen(true);
+  };
+
+  const showPrev = () => setLightboxIndex((i) => (i - 1 + allPhotos.length) % allPhotos.length);
+  const showNext = () => setLightboxIndex((i) => (i + 1) % allPhotos.length);
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const onKeyDown = (e) => {
+      if (e.key === 'ArrowLeft') showPrev();
+      if (e.key === 'ArrowRight') showNext();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [lightboxOpen]);
+
+  const remainingCount = allPhotos.length - heroPhotos.length;
 
   return (
     <div className="pt-20">
@@ -60,17 +100,38 @@ export default function Accommodation() {
       <section className="px-6 pt-8 pb-4">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 h-[300px] md:h-[500px]">
-            <div className="lg:col-span-3 rounded-2xl overflow-hidden cursor-pointer" onClick={() => setSelectedImg(0)}>
-              <img src={galleryImages[0]} alt="Main" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+            <div
+              className="lg:col-span-3 rounded-2xl overflow-hidden cursor-pointer group relative"
+              onClick={() => openLightbox(heroPhotos[0].src)}
+            >
+              <img src={heroPhotos[0].src} alt={heroPhotos[0].alt} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
             </div>
             <div className="lg:col-span-2 grid grid-cols-2 gap-3 hidden lg:grid">
-              {galleryImages.slice(1).map((img, i) => (
-                <div key={i} className="rounded-xl overflow-hidden cursor-pointer" onClick={() => setSelectedImg(i + 1)}>
-                  <img src={img} alt={`Gallery ${i + 2}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
-                </div>
-              ))}
+              {heroPhotos.slice(1).map((photo, i) => {
+                const isLast = i === heroPhotos.slice(1).length - 1;
+                return (
+                  <div
+                    key={i}
+                    className="relative rounded-xl overflow-hidden cursor-pointer group"
+                    onClick={() => openLightbox(photo.src)}
+                  >
+                    <img src={photo.src} alt={photo.alt} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    {isLast && remainingCount > 0 && (
+                      <div className="absolute inset-0 bg-black/55 flex items-center justify-center text-white font-medium text-lg">
+                        +{remainingCount} fotos
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
+          <button
+            onClick={() => openLightbox(allPhotos[0].src)}
+            className="mt-3 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors lg:hidden"
+          >
+            <Expand className="w-4 h-4" /> Ver todas as fotos ({allPhotos.length})
+          </button>
         </div>
       </section>
 
@@ -150,12 +211,24 @@ export default function Accommodation() {
                     </div>
                   </div>
 
-                  {/* Alteração: Galeria de 4 imagens (Sala, Varanda, Casa de Banho, Prancha) */}
+                  {/* Galeria com todas as fotos da casa */}
                   <div className="grid grid-cols-2 gap-3">
-                    <img src={imgSala} alt="Living Room" className="rounded-xl w-full h-48 object-cover" />
-                    <img src={imgVaranda} alt="Balcony" className="rounded-xl w-full h-48 object-cover" />
-                    <img src={imgCasaDeBanho} alt="Bathroom" className="rounded-xl w-full h-48 object-cover" />
-                    <img src={imgPrancha} alt="Hallway" className="rounded-xl w-full h-48 object-cover" />
+                    {allPhotos.map((photo, i) => (
+                      <div
+                        key={i}
+                        className="rounded-xl overflow-hidden cursor-pointer group relative"
+                        onClick={() => openLightbox(photo.src)}
+                      >
+                        <img
+                          src={photo.src}
+                          alt={photo.alt}
+                          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                          <Expand className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </FadeInView>
@@ -165,7 +238,10 @@ export default function Accommodation() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {rooms.map((room, i) => (
                   <FadeInView key={room.nameKey} delay={i * 0.15}>
-                    <div className="group rounded-2xl overflow-hidden bg-card border border-border">
+                    <div
+                      className="group rounded-2xl overflow-hidden bg-card border border-border cursor-pointer"
+                      onClick={() => openLightbox(room.img)}
+                    >
                       <div className="h-64 overflow-hidden">
                         <img
                           src={room.img}
@@ -217,10 +293,48 @@ export default function Accommodation() {
                 </div>
               </FadeInView>
             </TabsContent>
-            
+
           </Tabs>
         </div>
       </section>
+
+      {/* Lightbox de fotos */}
+      <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+        <DialogContent className="max-w-[100vw] w-screen h-screen sm:rounded-none border-0 bg-black/95 p-0 flex items-center justify-center [&>button]:text-white [&>button]:z-20 [&>button]:opacity-80 [&>button]:hover:opacity-100">
+          <DialogTitle className="sr-only">
+            {allPhotos[lightboxIndex]?.alt}
+          </DialogTitle>
+          {allPhotos.length > 1 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); showPrev(); }}
+              className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+              aria-label="Foto anterior"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+          )}
+
+          <img
+            src={allPhotos[lightboxIndex]?.src}
+            alt={allPhotos[lightboxIndex]?.alt}
+            className="max-w-[92vw] max-h-[85vh] object-contain rounded-md"
+          />
+
+          {allPhotos.length > 1 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); showNext(); }}
+              className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+              aria-label="Próxima foto"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          )}
+
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/80 text-sm">
+            {allPhotos[lightboxIndex]?.alt} — {lightboxIndex + 1} / {allPhotos.length}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
