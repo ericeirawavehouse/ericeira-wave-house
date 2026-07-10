@@ -10,13 +10,13 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import '@/lib/leafletFix';
 
-import imgSala from '@/images/Casa/sala.png';
-import imgPrancha from '@/images/Casa/prancha.png';
+import imgSala from '@/images/Casa/sala.jpeg';
+import imgPrancha from '@/images/Casa/prancha.jpeg';
 import imgCasaDeBanho from '@/images/Casa/wc.jpeg';
 import imgCozinha from '@/images/Casa/cozinha.jpeg';
 // import imgEscritorio from '@/images/Casa/escritorio.jpeg'; // Descomenta isto quando tirares a foto
-import imgQuarto1 from '@/images/Casa/quarto1_2.png';
-import imgQuarto2 from '@/images/Casa/quarto2.png';
+import imgQuarto1 from '@/images/Casa/quarto1_2.jpeg';
+import imgQuarto2 from '@/images/Casa/quarto2.jpeg';
 import imgVaranda from '@/images/Casa/varanda.jpeg';
 import imgEscritorio from '@/images/Casa/escritorio.jpeg';
 
