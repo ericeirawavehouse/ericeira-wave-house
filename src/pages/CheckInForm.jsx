@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useLanguage } from '@/lib/i18n';
 import { supabase } from '@/lib/supabaseClient'; 
 import { Input } from '@/components/ui/input';
@@ -22,7 +23,49 @@ export default function CheckInForm() {
   });
   const [additionalGuests, setAdditionalGuests] = useState([]);
 
-  // ... (addGuest, removeGuest, updateGuest mantêm-se iguais)
+  const labels = lang === 'pt' ? {
+    title: 'Check-in Online',
+    subtitle: 'Preenche os teus dados antes da chegada para agilizar o check-in.',
+    fullName: 'Nome completo',
+    idNumber: 'Nº do documento (CC/Passaporte)',
+    nationality: 'Nacionalidade',
+    dob: 'Data de nascimento',
+    address: 'Morada',
+    phone: 'Telefone',
+    email: 'Email',
+    arrivalTime: 'Hora prevista de chegada',
+    requests: 'Pedidos especiais',
+    addGuest: 'Adicionar hóspede',
+    submit: 'Submeter Check-in',
+    success: 'Check-in concluído com sucesso!',
+  } : {
+    title: 'Online Check-in',
+    subtitle: 'Fill in your details before arrival to speed up check-in.',
+    fullName: 'Full name',
+    idNumber: 'ID number (ID card/Passport)',
+    nationality: 'Nationality',
+    dob: 'Date of birth',
+    address: 'Address',
+    phone: 'Phone',
+    email: 'Email',
+    arrivalTime: 'Expected arrival time',
+    requests: 'Special requests',
+    addGuest: 'Add guest',
+    submit: 'Submit Check-in',
+    success: 'Check-in completed successfully!',
+  };
+
+  const addGuest = () => {
+    setAdditionalGuests([...additionalGuests, { full_name: '', id_number: '', nationality: '', date_of_birth: '' }]);
+  };
+
+  const removeGuest = (index) => {
+    setAdditionalGuests(additionalGuests.filter((_, i) => i !== index));
+  };
+
+  const updateGuest = (index, field, value) => {
+    setAdditionalGuests(additionalGuests.map((guest, i) => (i === index ? { ...guest, [field]: value } : guest)));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -73,6 +116,12 @@ export default function CheckInForm() {
               <CheckCircle className="w-8 h-8 text-primary" />
             </div>
             <h2 className="font-heading text-2xl font-semibold mb-2">{labels.success}</h2>
+            <Link
+              to="/"
+              className="inline-block bg-primary text-primary-foreground px-8 py-3 text-sm font-medium tracking-wide rounded-full hover:bg-primary/90 transition-all duration-300 mt-4"
+            >
+              {lang === 'pt' ? 'Voltar à página principal' : 'Back to home'}
+            </Link>
           </div>
         </FadeInView>
       </div>

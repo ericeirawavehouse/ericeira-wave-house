@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useLanguage } from '@/lib/i18n';
 import { supabase } from '@/lib/supabaseClient';
 import { useQuery } from '@tanstack/react-query';
@@ -90,6 +91,12 @@ export default function Booking() {
               <CheckCircle className="w-8 h-8 text-primary" />
             </div>
             <h2 className="font-heading text-2xl font-semibold mb-3">{t('booking.success')}</h2>
+            <Link
+              to="/"
+              className="inline-block bg-primary text-primary-foreground px-8 py-3 text-sm font-medium tracking-wide rounded-full hover:bg-primary/90 transition-all duration-300 mt-2"
+            >
+              {lang === 'pt' ? 'Voltar à página principal' : 'Back to home'}
+            </Link>
           </div>
         </FadeInView>
       </div>
