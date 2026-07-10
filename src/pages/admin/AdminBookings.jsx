@@ -59,13 +59,6 @@ export default function AdminBookings() {
     toast({ title: 'Reserva rejeitada.' });
   };
 
-  const handleSendCheckIn = (booking) => {
-    const checkInUrl = `${window.location.origin}/checkin?booking=${booking.id}`;
-    // Sugestão: Copiar para a área de transferência ou usar mailto:
-    navigator.clipboard.writeText(checkInUrl);
-    toast({ title: 'Link de check-in copiado para a área de transferência!' });
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -109,11 +102,10 @@ export default function AdminBookings() {
       </div>
 
       {view === 'list' ? (
-        <BookingListView 
-          bookings={filteredBookings} 
-          onApprove={handleApprove} 
-          onReject={handleReject} 
-          onSendCheckIn={handleSendCheckIn} 
+        <BookingListView
+          bookings={filteredBookings}
+          onApprove={handleApprove}
+          onReject={handleReject}
         />
       ) : (
         <BookingCalendarView bookings={filteredBookings} />

@@ -8,12 +8,10 @@ import SectionHeading from '../components/shared/SectionHeading';
 const surfTestimonials = {
   pt: [
     { name: 'Emily R.', text: 'Primeira vez a surfar e adorei completamente. Os instrutores foram super pacientes e tornaram tudo fácil de entender. Ambiente realmente relaxado e amigável.' },
-    { name: 'James L.', text: 'Aula muito bem organizada do início ao fim. Senti-me seguro e apoiado na água o tempo todo. Ótima equipe e uma experiência realmente divertida.' },
     { name: 'Lucas M.', text: 'Eu e a minha namorada nunca tínhamos surfado antes, e recebemos muita atenção personalizada e ótimas dicas ao longo de toda a experiência. Com certeza voltaremos no próximo ano!' },
   ],
   en: [
     { name: 'Emily R.', text: 'First time surfing and I absolutely loved it. The instructors were super patient and made everything easy to understand. Really relaxed and friendly atmosphere.' },
-    { name: 'James L.', text: 'Very well organized lesson from start to finish. I felt safe and supported in the water the whole time. Great team and a really fun experience.' },
     { name: 'Lucas M.', text: 'Me and my girlfriend had never surfed before, and we got loads of personalized attention and great tips throughout. We\'ll definitely be back next year!' },
   ],
 };

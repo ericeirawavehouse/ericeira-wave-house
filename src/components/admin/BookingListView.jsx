@@ -2,9 +2,11 @@ import React from 'react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Check, X, Eye, Home, Waves, Mail } from 'lucide-react';
+import { Check, X, Eye, Home, Waves, Mail, Copy, CheckCheck } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 
 const statusColors = {
   pending: 'bg-amber-100 text-amber-800 border-amber-200',
@@ -14,8 +16,25 @@ const statusColors = {
 
 const statusLabels = { pending: 'Pendente', confirmed: 'Confirmada', rejected: 'Rejeitada' };
 
-export default function BookingListView({ bookings, onApprove, onReject, onSendCheckIn }) {
+export default function BookingListView({ bookings, onApprove, onReject }) {
   const [selected, setSelected] = React.useState(null);
+  const [checkInBooking, setCheckInBooking] = React.useState(null);
+  const [copied, setCopied] = React.useState(false);
+
+  const checkInUrl = checkInBooking
+    ? `${window.location.origin}/checkin?booking=${checkInBooking.id}`
+    : '';
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(checkInUrl);
+    setCopied(true);
+    toast({ title: 'Link copiado para a área de transferência!' });
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const mailtoHref = checkInBooking
+    ? `mailto:${checkInBooking.guest_email}?subject=${encodeURIComponent('Check-in Ericeira Wave House')}&body=${encodeURIComponent(`Olá ${checkInBooking.guest_name},\n\nPor favor preenche o teu check-in através deste link:\n${checkInUrl}\n\nAté breve!`)}`
+    : '';
 
   return (
     <>
@@ -71,7 +90,7 @@ export default function BookingListView({ bookings, onApprove, onReject, onSendC
                       </>
                     )}
                     {b.status === 'confirmed' && b.type === 'accommodation' && !b.checkin_completed && (
-                      <Button size="icon" variant="ghost" onClick={() => onSendCheckIn(b)} className="h-8 w-8 text-primary hover:bg-primary/10" title="Enviar check-in">
+                      <Button size="icon" variant="ghost" onClick={() => setCheckInBooking(b)} className="h-8 w-8 text-primary hover:bg-primary/10" title="Enviar check-in">
                         <Mail className="w-4 h-4" />
                       </Button>
                     )}
@@ -124,6 +143,37 @@ export default function BookingListView({ bookings, onApprove, onReject, onSendC
                 <Badge variant="outline" className={selected.checkin_completed ? 'bg-emerald-100 text-emerald-800' : 'bg-muted text-muted-foreground'}>
                   {selected.checkin_completed ? 'Sim' : 'Não'}
                 </Badge>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!checkInBooking} onOpenChange={(open) => !open && setCheckInBooking(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Enviar Check-in</DialogTitle>
+          </DialogHeader>
+          {checkInBooking && (
+            <div className="space-y-5 text-sm">
+              <p className="text-muted-foreground">
+                Para <span className="font-medium text-foreground">{checkInBooking.guest_name}</span> ({checkInBooking.guest_email})
+              </p>
+
+              <a href={mailtoHref}>
+                <Button className="w-full">
+                  <Mail className="w-4 h-4 mr-2" /> Enviar por email
+                </Button>
+              </a>
+
+              <div className="space-y-1.5">
+                <p className="text-muted-foreground text-xs">Ou copia o link diretamente</p>
+                <div className="flex items-center gap-2">
+                  <Input readOnly value={checkInUrl} className="text-xs" />
+                  <Button size="icon" variant="outline" onClick={handleCopyLink} className="shrink-0">
+                    {copied ? <CheckCheck className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                  </Button>
+                </div>
               </div>
             </div>
           )}
