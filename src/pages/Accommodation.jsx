@@ -15,8 +15,8 @@ import imgPrancha from '@/images/Casa/prancha.jpeg';
 import imgCasaDeBanho from '@/images/Casa/wc.jpeg';
 import imgCozinha from '@/images/Casa/cozinha.jpeg';
 // import imgEscritorio from '@/images/Casa/escritorio.jpeg'; // Descomenta isto quando tirares a foto
-import imgQuarto1 from '@/images/Casa/quarto1_2.jpeg';
-import imgQuarto2 from '@/images/Casa/quarto2.jpeg';
+import imgQuarto1 from '@/images/Casa/quarto_1.jpeg';
+import imgQuarto2 from '@/images/Casa/quarto_2.jpeg';
 import imgVaranda from '@/images/Casa/varanda.jpeg';
 import imgEscritorio from '@/images/Casa/escritorio.jpeg';
 
