@@ -39,7 +39,8 @@ export default function Navbar() {
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${bgClass}`}>
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        <Link to="/" className={`font-heading text-2xl font-semibold tracking-wide transition-colors duration-300 ${textClass}`}>
+        <Link to="/" className={`flex items-center gap-2 font-heading text-2xl font-semibold tracking-wide transition-colors duration-300 ${textClass}`}>
+          <img src="/favicon_sem_fundo.png" alt="" className="w-9 h-9 object-contain" />
           Ericeira Wave House
         </Link>
 
