@@ -92,7 +92,9 @@ export default function Accommodation() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [lightboxOpen]);
 
-  const remainingCount = allPhotos.length - heroPhotos.length;
+  const visibleCount = 6;
+  const visiblePhotos = allPhotos.slice(0, visibleCount);
+  const hiddenCount = allPhotos.length - visibleCount;
 
   return (
     <div className="pt-20">
@@ -107,23 +109,15 @@ export default function Accommodation() {
               <img src={heroPhotos[0].src} alt={heroPhotos[0].alt} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
             </div>
             <div className="lg:col-span-2 grid grid-cols-2 gap-3 hidden lg:grid">
-              {heroPhotos.slice(1).map((photo, i) => {
-                const isLast = i === heroPhotos.slice(1).length - 1;
-                return (
-                  <div
-                    key={i}
-                    className="relative rounded-xl overflow-hidden cursor-pointer group"
-                    onClick={() => openLightbox(photo.src)}
-                  >
-                    <img src={photo.src} alt={photo.alt} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                    {isLast && remainingCount > 0 && (
-                      <div className="absolute inset-0 bg-black/55 flex items-center justify-center text-white font-medium text-lg">
-                        +{remainingCount} fotos
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+              {heroPhotos.slice(1).map((photo, i) => (
+                <div
+                  key={i}
+                  className="relative rounded-xl overflow-hidden cursor-pointer group"
+                  onClick={() => openLightbox(photo.src)}
+                >
+                  <img src={photo.src} alt={photo.alt} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                </div>
+              ))}
             </div>
           </div>
           <button
@@ -211,24 +205,33 @@ export default function Accommodation() {
                     </div>
                   </div>
 
-                  {/* Galeria com todas as fotos da casa */}
+                  {/* Galeria com as fotos da casa, com "+N fotos" na última visível */}
                   <div className="grid grid-cols-2 gap-3">
-                    {allPhotos.map((photo, i) => (
-                      <div
-                        key={i}
-                        className="rounded-xl overflow-hidden cursor-pointer group relative"
-                        onClick={() => openLightbox(photo.src)}
-                      >
-                        <img
-                          src={photo.src}
-                          alt={photo.alt}
-                          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                          <Expand className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                    {visiblePhotos.map((photo, i) => {
+                      const isLast = i === visiblePhotos.length - 1;
+                      return (
+                        <div
+                          key={i}
+                          className="rounded-xl overflow-hidden cursor-pointer group relative"
+                          onClick={() => openLightbox(photo.src)}
+                        >
+                          <img
+                            src={photo.src}
+                            alt={photo.alt}
+                            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700"
+                          />
+                          {isLast && hiddenCount > 0 ? (
+                            <div className="absolute inset-0 bg-black/55 flex items-center justify-center text-white font-medium text-lg">
+                              +{hiddenCount} fotos
+                            </div>
+                          ) : (
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                              <Expand className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </FadeInView>
