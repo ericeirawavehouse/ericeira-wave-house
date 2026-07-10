@@ -27,8 +27,8 @@ import imgRua from '@/images/Casa/rua.png';
 const allPhotos = [
   { src: imgSala, alt: 'Sala de estar' },
   { src: imgMesa, alt: 'Zona de Jantar' },
-  { src: imgPrancha, alt: 'Hall de entrada' },
   { src: imgVaranda, alt: 'Varanda' },
+  { src: imgPrancha, alt: 'Hall de entrada' },
   { src: imgQuarto2, alt: 'Quarto Principal' },
   { src: imgQuarto1, alt: 'Quarto' },
   { src: imgEscritorio, alt: 'Escritório' },
@@ -135,7 +135,6 @@ export default function Accommodation() {
           <FadeInView>
             <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
               <div>
-                <p className="text-sm text-muted-foreground tracking-wider uppercase mb-2">Ericeira, Portugal</p>
                 <h1 className="font-heading text-3xl md:text-5xl font-semibold">{t('accommodation.title')}</h1>
                 <p className="text-lg text-muted-foreground mt-2">{t('accommodation.subtitle')}</p>
               </div>

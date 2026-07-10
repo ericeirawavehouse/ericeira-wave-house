@@ -39,7 +39,7 @@ const translations = {
       room3Desc: '1 Sofá-cama individual extragrande - Perfeito para trabalho ou um hóspede extra.',
       amenitiesList: {
         wifi: "Wi-Fi rápido",
-        parking: "Estacionamento privado",
+        parking: "Estacionamento",
         balcony: "Varanda",
         accessible: "Parcialmente acessível (possui rampas)",
         dining: "Área de refeições interior/exterior",
@@ -59,7 +59,7 @@ const translations = {
       rules: {
         checkIn: 'Check-in: 15:00 - 23:00',
         checkOut: 'Check-out: 12:00',
-        parking: 'Estacionamento Privativo',
+        parking: 'Estacionamento',
         parties: 'Festas proibidas',
       },
     },
@@ -165,7 +165,7 @@ const translations = {
       room3Desc: '1 Extra-large single sofa bed - Perfect for work or an extra guest.',
       amenitiesList: {
         wifi: "Fast Wi-Fi",
-        parking: "Private parking",
+        parking: "Parking",
         balcony: "Balcony",
         accessible: "Partially accessible (has ramps)",
         dining: "Indoor & outdoor dining area",
@@ -185,7 +185,7 @@ const translations = {
       rules: {
         checkIn: 'Check-in: 3:00 PM - 11:00 PM',
         checkOut: 'Check-out: 12:00 AM',
-        parking: 'Private parking',
+        parking: 'Parking',
         parties: 'Parties prohibited',
       },
     },

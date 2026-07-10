@@ -16,8 +16,10 @@ import Contact from './pages/Contact';
 import Booking from './pages/Booking';
 import CheckInForm from './pages/CheckInForm';
 import AdminLayout from './components/admin/AdminLayout';
+import ProtectedRoute from './components/admin/ProtectedRoute';
 import AdminBookings from './pages/admin/AdminBookings';
 import AdminMessages from './pages/admin/AdminMessages';
+import AdminLogin from './pages/admin/AdminLogin';
 import PageNotFound from './lib/PageNotFound';
 
 function App() {
@@ -39,8 +41,16 @@ function App() {
                 <Route path="/checkin" element={<CheckInForm />} />
               </Route>
 
-              {/* Rotas de Admin - Sem travar o resto do site */}
-              <Route path="/admin" element={<AdminLayout />}>
+              {/* Rotas de Admin - protegidas por login */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }
+              >
                 <Route index element={<AdminBookings />} />
                 <Route path="messages" element={<AdminMessages />} />
               </Route>

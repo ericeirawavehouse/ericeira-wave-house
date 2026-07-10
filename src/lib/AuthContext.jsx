@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 
 const AuthContext = createContext();
 
@@ -6,43 +7,50 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
-  const [isLoadingPublicSettings, setIsLoadingPublicSettings] = useState(false);
   const [authError, setAuthError] = useState(null);
 
   useEffect(() => {
-    // Simulamos um login automático para o Admin funcionar no Vercel
-    // No futuro, podes ligar aqui o supabase.auth.getSession()
-    const fakeAdmin = { 
-      id: '1', 
-      name: 'Admin Ericeira', 
-      role: 'admin',
-      email: 'ericeirawavehouse@gmail.com' 
-    };
-    
-    setUser(fakeAdmin);
-    setIsAuthenticated(true);
-    setIsLoadingAuth(false);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setIsAuthenticated(!!session);
+      setIsLoadingAuth(false);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setIsAuthenticated(!!session);
+    });
+
+    return () => listener.subscription.unsubscribe();
   }, []);
 
-  const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    window.location.href = '/';
+  const login = async (email, password) => {
+    setAuthError(null);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      setAuthError(error.message);
+      return { success: false, error: error.message };
+    }
+    setUser(data.user);
+    setIsAuthenticated(true);
+    return { success: true };
   };
 
-  const navigateToLogin = () => {
-    window.location.href = '/admin';
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setIsAuthenticated(false);
+    window.location.href = '/admin/login';
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      isAuthenticated, 
+    <AuthContext.Provider value={{
+      user,
+      isAuthenticated,
       isLoadingAuth,
-      isLoadingPublicSettings,
       authError,
+      login,
       logout,
-      navigateToLogin
     }}>
       {children}
     </AuthContext.Provider>

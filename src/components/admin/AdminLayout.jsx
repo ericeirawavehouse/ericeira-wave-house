@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { CalendarDays, List, MessageSquare, Home } from 'lucide-react';
+import { CalendarDays, List, MessageSquare, Home, LogOut } from 'lucide-react';
+import { useAuth } from '@/lib/AuthContext';
 
 const navItems = [
   { path: '/admin', icon: List, label: 'Reservas' },
@@ -9,6 +10,7 @@ const navItems = [
 
 export default function AdminLayout() {
   const location = useLocation();
+  const { logout } = useAuth();
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -35,6 +37,12 @@ export default function AdminLayout() {
           <Link to="/" className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted ml-2">
             <Home className="w-4 h-4" /> Site
           </Link>
+          <button
+            onClick={logout}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted"
+          >
+            <LogOut className="w-4 h-4" /> Sair
+          </button>
         </nav>
       </header>
       <main className="p-6">
