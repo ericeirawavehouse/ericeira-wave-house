@@ -43,10 +43,10 @@ export const TabsTrigger = ({ value, children, className = "" }) => {
   const { activeTab, setActiveTab } = context;
   const isActive = activeTab === value;
 
-  const baseStyles = "inline-flex items-center justify-center whitespace-nowrap transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50";
-  const activeStyles = isActive 
-    ? "bg-white text-foreground shadow-sm" 
-    : "text-muted-foreground hover:text-foreground";
+  const baseStyles = "inline-flex items-center justify-center whitespace-nowrap font-medium py-2.5 transition-all cursor-pointer focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50";
+  const activeStyles = isActive
+    ? "bg-primary text-primary-foreground shadow-md"
+    : "text-muted-foreground hover:bg-white hover:text-foreground hover:shadow-sm";
 
   return (
     <button

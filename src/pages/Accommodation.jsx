@@ -26,6 +26,8 @@ import imgRua from '@/images/Casa/rua.png';
 // Todas as fotos da casa, numa lista só, organizadas por divisão
 const allPhotos = [
   { src: imgSala, alt: 'Sala de estar' },
+  { src: imgMesa, alt: 'Zona de Jantar' },
+  { src: imgPrancha, alt: 'Hall de entrada' },
   { src: imgVaranda, alt: 'Varanda' },
   { src: imgQuarto2, alt: 'Quarto Principal' },
   { src: imgQuarto1, alt: 'Quarto' },
@@ -33,8 +35,6 @@ const allPhotos = [
   { src: imgCasaDeBanho, alt: 'Casa de Banho' },
   { src: imgCasaDeBanho2, alt: 'Casa de Banho' },
   { src: imgCozinha, alt: 'Cozinha' },
-  { src: imgMesa, alt: 'Zona de Jantar' },
-  { src: imgPrancha, alt: 'Hall de entrada' },
   { src: imgRua, alt: 'Envolvente' },
 ];
 
@@ -92,7 +92,7 @@ export default function Accommodation() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [lightboxOpen]);
 
-  const visibleCount = 6;
+  const visibleCount = 4;
   const visiblePhotos = allPhotos.slice(0, visibleCount);
   const hiddenCount = allPhotos.length - visibleCount;
 
@@ -161,7 +161,7 @@ export default function Accommodation() {
       <section className="px-6 pb-24">
         <div className="max-w-7xl mx-auto">
           <Tabs defaultValue="overview">
-            <TabsList className="bg-muted/50 p-1 rounded-full mb-12 flex-wrap h-auto">
+            <TabsList className="bg-muted p-1.5 rounded-full mb-12 flex-wrap h-auto border border-border/60">
               <TabsTrigger value="overview" className="rounded-full px-6">{t('accommodation.overview')}</TabsTrigger>
               <TabsTrigger value="rooms" className="rounded-full px-6">{t('accommodation.rooms')}</TabsTrigger>
               <TabsTrigger value="amenities" className="rounded-full px-6">{t('accommodation.amenities')}</TabsTrigger>
