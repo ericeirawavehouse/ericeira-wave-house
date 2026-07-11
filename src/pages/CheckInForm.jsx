@@ -1,14 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/lib/i18n';
-import { supabase } from '@/lib/supabaseClient'; 
+import { supabase } from '@/lib/supabaseClient';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, CheckCircle, Plus, Trash2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import FadeInView from '../components/shared/FadeInView';
+
+const arrivalTimeSlots = [];
+for (let h = 15; h <= 23; h++) {
+  for (let m = 0; m < 60; m += 15) {
+    if (h === 23 && m > 0) break;
+    arrivalTimeSlots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+  }
+}
 
 export default function CheckInForm() {
   const { lang } = useLanguage();
@@ -22,6 +31,34 @@ export default function CheckInForm() {
     address: '', phone: '', email: '', arrival_time: '', special_requests: '',
   });
   const [additionalGuests, setAdditionalGuests] = useState([]);
+
+  useEffect(() => {
+    if (!bookingId) return;
+
+    supabase
+      .from('bookings')
+      .select('guest_name, guest_email, guest_phone, guests_count')
+      .eq('id', bookingId)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error || !data) return;
+
+        setForm((f) => ({
+          ...f,
+          full_name: data.guest_name || f.full_name,
+          email: data.guest_email || f.email,
+          phone: data.guest_phone || f.phone,
+        }));
+
+        if (data.guests_count > 1) {
+          setAdditionalGuests(
+            Array.from({ length: data.guests_count - 1 }, () => ({
+              full_name: '', id_number: '', nationality: '', date_of_birth: '',
+            }))
+          );
+        }
+      });
+  }, [bookingId]);
 
   const labels = lang === 'pt' ? {
     title: 'Check-in Online',
@@ -180,7 +217,16 @@ export default function CheckInForm() {
             </div>
             <div>
               <Label className="text-sm mb-2 block">{labels.arrivalTime}</Label>
-              <Input type="time" value={form.arrival_time} onChange={(e) => setForm({ ...form, arrival_time: e.target.value })} />
+              <Select value={form.arrival_time} onValueChange={(v) => setForm({ ...form, arrival_time: v })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="15:00 - 23:00" />
+                </SelectTrigger>
+                <SelectContent>
+                  {arrivalTimeSlots.map((t) => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label className="text-sm mb-2 block">{labels.requests}</Label>
