@@ -4,8 +4,8 @@ import FadeInView from '../components/shared/FadeInView';
 import SectionHeading from '../components/shared/SectionHeading';
 
 import imagemRua from '../images/Outros/13.jpg';
-import imagemPraia from '../images/Surf/Surf_Ericeira.jpg';
-import imagemRestaurante from '../images/Outros/8.jpg';
+import imagemPraia from '../images/Surf/Surf 3.jpg';
+import imagemSpots from '../images/Outros/7.png';
 import imagemExperiencias from '../images/Outros/14.jpg';
 import imagemEriceira from '../images/Capa/3.jpg';
 
@@ -82,7 +82,7 @@ const sections = {
 
 const sectionImages = {
   beaches: imagemPraia,
-  restaurants: imagemRestaurante,
+  restaurants: imagemRua,
   spots: imagemRua,
   experiences: imagemExperiencias,
 };
