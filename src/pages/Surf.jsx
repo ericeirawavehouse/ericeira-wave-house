@@ -4,6 +4,8 @@ import { useLanguage } from '@/lib/i18n';
 import { Star } from 'lucide-react';
 import FadeInView from '../components/shared/FadeInView';
 import SectionHeading from '../components/shared/SectionHeading';
+import imgSurfHero from '../images/Surf/Surf 1.jpg';
+import imgSurfLesson from '../images/Surf/Surf 4.jpeg';
 
 const surfTestimonials = {
   pt: [
@@ -24,7 +26,7 @@ export default function Surf() {
       {/* Hero */}
       <section className="relative h-[60vh] md:h-[70vh]">
         <img
-          src="https://media.base44.com/images/public/69dff41ed1950015f453d59f/e9f3ad5e9_generated_d81fe11f.png"
+          src={imgSurfHero}
           alt="Surf Ericeira"
           className="w-full h-full object-cover"
         />
@@ -58,7 +60,7 @@ export default function Surf() {
             </FadeInView>
             <FadeInView delay={0.2}>
               <img
-                src="https://media.base44.com/images/public/69dff41ed1950015f453d59f/8561460d0_generated_bd30c536.png"
+                src={imgSurfLesson}
                 alt="Surf fun"
                 className="w-full h-[400px] object-cover rounded-2xl"
               />

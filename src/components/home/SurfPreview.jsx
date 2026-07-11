@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useLanguage } from '@/lib/i18n';
 import { ArrowRight } from 'lucide-react';
 import FadeInView from '../shared/FadeInView';
+import imgSurfCapa from '../../images/Capa/2.jpg';
 
 export default function SurfPreview() {
   const { t } = useLanguage();
@@ -11,7 +12,7 @@ export default function SurfPreview() {
     <section className="relative py-24 md:py-32 overflow-hidden">
       <div className="absolute inset-0">
         <img
-          src="https://media.base44.com/images/public/69dff41ed1950015f453d59f/e9f3ad5e9_generated_d81fe11f.png"
+          src={imgSurfCapa}
           alt="Surf lifestyle"
           className="w-full h-full object-cover"
         />

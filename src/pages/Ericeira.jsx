@@ -7,7 +7,7 @@ import imagemRua from '../images/Outros/rua_eri.jpg';
 import imagemPraia from '../images/Surf/Surf_Ericeira.jpg'; 
 import imagemRestaurante from '../images/Outros/restaurante.jpg';
 import imagemExperiencias from '../images/Outros/trilho.jpg';
-import imagemEriceira from '../images/Capa/ericeira.png';
+import imagemEriceira from '../images/Capa/3.jpg';
 
 const sections = {
   pt: {
