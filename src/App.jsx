@@ -6,6 +6,7 @@ import { LanguageProvider } from '@/lib/i18n';
 import { AuthProvider } from '@/lib/AuthContext';
 import { Toaster } from "@/components/ui/toaster";
 
+import ScrollToTop from './components/shared/ScrollToTop';
 import SiteLayout from './components/layout/SiteLayout';
 import Home from './pages/Home';
 import Accommodation from './pages/Accommodation';
@@ -28,6 +29,7 @@ function App() {
       <LanguageProvider>
         <AuthProvider>
           <Router>
+            <ScrollToTop />
             <Routes>
               {/* Rotas principais do site */}
               <Route element={<SiteLayout />}>

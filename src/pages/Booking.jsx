@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useLanguage } from '@/lib/i18n';
 import { supabase } from '@/lib/supabaseClient';
 import { useQuery } from '@tanstack/react-query';
@@ -18,7 +18,8 @@ import { pt } from 'date-fns/locale';
 
 export default function Booking() {
   const { t, lang } = useLanguage();
-  const [type, setType] = useState('accommodation');
+  const [searchParams] = useSearchParams();
+  const [type, setType] = useState(searchParams.get('type') === 'surf' ? 'surf' : 'accommodation');
   const [sending, setSending] = useState(false);
   const [success, setSuccess] = useState(false);
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });

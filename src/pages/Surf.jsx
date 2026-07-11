@@ -49,7 +49,7 @@ export default function Surf() {
                   {t('surf.description')}
                 </p>
                 <Link
-                  to="/booking"
+                  to="/booking?type=surf"
                   className="inline-block bg-primary text-primary-foreground px-10 py-3.5 text-sm font-medium tracking-wide rounded-full hover:bg-primary/90 transition-all duration-300"
                 >
                   {t('surf.bookLesson')}
