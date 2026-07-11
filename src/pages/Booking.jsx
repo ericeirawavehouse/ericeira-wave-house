@@ -51,8 +51,22 @@ export default function Booking() {
   // 3. SUBMISSÃO DA RESERVA (SUPABASE)
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (type === 'accommodation' && (!dateRange.from || !dateRange.to)) {
+      toast({ variant: 'destructive', title: 'Erro', description: 'Escolhe as datas de check-in e check-out.' });
+      return;
+    }
+    if (type === 'surf' && !surfDate) {
+      toast({ variant: 'destructive', title: 'Erro', description: 'Escolhe a data da aula.' });
+      return;
+    }
+    if (type === 'surf' && !form.surf_time) {
+      toast({ variant: 'destructive', title: 'Erro', description: 'Escolhe a hora preferida.' });
+      return;
+    }
+
     setSending(true);
-    
+
     const dataToInsert = {
       ...form,
       type,
@@ -187,7 +201,7 @@ export default function Booking() {
               {type === 'surf' && (
                 <div>
                   <Label className="text-sm mb-2 block">{t('booking.surfTime')}</Label>
-                  <Select value={form.surf_time} onValueChange={(v) => setForm({ ...form, surf_time: v })}>
+                  <Select value={form.surf_time} onValueChange={(v) => setForm({ ...form, surf_time: v })} name="surf_time" required>
                     <SelectTrigger className="rounded-lg">
                       <SelectValue />
                     </SelectTrigger>
@@ -213,11 +227,11 @@ export default function Booking() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-sm mb-2 block">{t('booking.guestPhone')}</Label>
-                  <Input value={form.guest_phone} onChange={(e) => setForm({ ...form, guest_phone: e.target.value })} className="rounded-lg" />
+                  <Input value={form.guest_phone} onChange={(e) => setForm({ ...form, guest_phone: e.target.value })} required className="rounded-lg" />
                 </div>
                 <div>
                   <Label className="text-sm mb-2 block">{t('booking.guests')}</Label>
-                  <Input type="number" min={1} max={10} value={form.guests_count} onChange={(e) => setForm({ ...form, guests_count: parseInt(e.target.value) })} className="rounded-lg" />
+                  <Input type="number" min={1} max={10} value={form.guests_count} onChange={(e) => setForm({ ...form, guests_count: parseInt(e.target.value) })} required className="rounded-lg" />
                 </div>
               </div>
               <div>

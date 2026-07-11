@@ -74,11 +74,11 @@ export default function Contact() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm mb-2 block">{t('contact.phone')}</Label>
-                    <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="rounded-lg" />
+                    <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required className="rounded-lg" />
                   </div>
                   <div>
                     <Label className="text-sm mb-2 block">{t('contact.subject')}</Label>
-                    <Input value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} className="rounded-lg" />
+                    <Input value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} required className="rounded-lg" />
                   </div>
                 </div>
                 <div>
