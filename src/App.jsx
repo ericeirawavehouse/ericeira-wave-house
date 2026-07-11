@@ -18,8 +18,10 @@ import Booking from './pages/Booking';
 import CheckInForm from './pages/CheckInForm';
 import AdminLayout from './components/admin/AdminLayout';
 import ProtectedRoute from './components/admin/ProtectedRoute';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminBookings from './pages/admin/AdminBookings';
 import AdminMessages from './pages/admin/AdminMessages';
+import AdminTrash from './pages/admin/AdminTrash';
 import AdminLogin from './pages/admin/AdminLogin';
 import PageNotFound from './lib/PageNotFound';
 
@@ -53,8 +55,10 @@ function App() {
                   </ProtectedRoute>
                 }
               >
-                <Route index element={<AdminBookings />} />
+                <Route index element={<AdminDashboard />} />
+                <Route path="bookings" element={<AdminBookings />} />
                 <Route path="messages" element={<AdminMessages />} />
+                <Route path="trash" element={<AdminTrash />} />
               </Route>
 
               <Route path="*" element={<PageNotFound />} />

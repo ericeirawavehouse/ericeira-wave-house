@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Check, X, Eye, Home, Waves, Mail, Copy, CheckCheck, Loader2 } from 'lucide-react';
+import { Check, X, Eye, Home, Waves, Mail, Copy, CheckCheck, Loader2, Trash2, Inbox } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 const statusColors = {
@@ -26,7 +26,7 @@ const rejectionReasons = [
   'Outro motivo',
 ];
 
-export default function BookingListView({ bookings, onApprove, onReject }) {
+export default function BookingListView({ bookings, onApprove, onReject, onDelete }) {
   const [selected, setSelected] = React.useState(null);
   const [checkInBooking, setCheckInBooking] = React.useState(null);
   const [copied, setCopied] = React.useState(false);
@@ -167,12 +167,24 @@ export default function BookingListView({ bookings, onApprove, onReject }) {
                     <Button size="icon" variant="ghost" onClick={() => setSelected(b)} className="h-8 w-8">
                       <Eye className="w-4 h-4" />
                     </Button>
+                    <Button size="icon" variant="ghost" onClick={() => onDelete(b)} className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-50">
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
             ))}
             {bookings.length === 0 && (
-              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-12">Sem reservas</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={6} className="py-16">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                      <Inbox className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                    <p className="text-muted-foreground text-sm">Sem reservas</p>
+                  </div>
+                </TableCell>
+              </TableRow>
             )}
           </TableBody>
         </Table>
@@ -214,6 +226,13 @@ export default function BookingListView({ bookings, onApprove, onReject }) {
                   {selected.checkin_completed ? 'Sim' : 'Não'}
                 </Badge>
               </div>
+              <Button
+                variant="ghost"
+                onClick={() => { onDelete(selected); setSelected(null); }}
+                className="text-red-500 hover:bg-red-50 hover:text-red-600 -ml-2"
+              >
+                <Trash2 className="w-4 h-4 mr-2" /> Apagar reserva
+              </Button>
             </div>
           )}
         </DialogContent>

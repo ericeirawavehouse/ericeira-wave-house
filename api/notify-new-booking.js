@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     },
   });
 
-  const adminUrl = `${req.headers.origin || 'https://ericeirawavehouse.pt'}/admin`;
+  const adminUrl = `${req.headers.origin || 'https://ericeirawavehouse.pt'}/admin/bookings`;
   const typeLabel = type === 'surf' ? 'Surf' : 'Alojamento';
 
   const text = `Nova reserva recebida!
