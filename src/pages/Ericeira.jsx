@@ -83,7 +83,7 @@ const sections = {
 const sectionImages = {
   beaches: imagemPraia,
   restaurants: imagemRua,
-  spots: imagemRua,
+  spots: imagemSpots,
   experiences: imagemExperiencias,
 };
 
