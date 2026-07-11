@@ -12,10 +12,12 @@ export default async function handler(req, res) {
   }
 
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp-pt.securemail.pro',
+    port: 465,
+    secure: true,
     auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_APP_PASSWORD,
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASSWORD,
     },
   });
 
@@ -51,9 +53,9 @@ Ericeira, Portugal`;
 
   try {
     await transporter.sendMail({
-      from: `"Ericeira Wave House" <${process.env.GMAIL_USER}>`,
+      from: `"Ericeira Wave House" <${process.env.SMTP_USER}>`,
       to,
-      replyTo: process.env.GMAIL_USER,
+      replyTo: 'ericeirawavehouse@gmail.com',
       subject: 'O teu check-in para a Ericeira Wave House',
       text,
       html,
