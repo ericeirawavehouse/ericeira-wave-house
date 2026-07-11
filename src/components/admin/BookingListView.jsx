@@ -1,5 +1,7 @@
 import React from 'react';
 import { format } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabaseClient';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +37,20 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
   const [rejectReason, setRejectReason] = React.useState(rejectionReasons[0]);
   const [customReason, setCustomReason] = React.useState('');
   const [sendingRejection, setSendingRejection] = React.useState(false);
+
+  const { data: checkInData, isLoading: loadingCheckIn } = useQuery({
+    queryKey: ['checkin-data', selected?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('check_ins')
+        .select('*')
+        .eq('booking_id', selected.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selected?.checkin_completed,
+  });
 
   const openRejectModal = (booking) => {
     setRejectBooking(booking);
@@ -226,6 +242,49 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
                   {selected.checkin_completed ? 'Sim' : 'Não'}
                 </Badge>
               </div>
+
+              {selected.checkin_completed && (
+                <div className="border-t border-border pt-4">
+                  <p className="text-xs font-medium text-muted-foreground mb-3">Dados do check-in</p>
+                  {loadingCheckIn ? (
+                    <div className="flex items-center justify-center py-6">
+                      <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : checkInData ? (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div><p className="text-muted-foreground text-xs">Nome completo</p><p className="font-medium">{checkInData.full_name || '-'}</p></div>
+                        <div><p className="text-muted-foreground text-xs">Nº documento</p><p>{checkInData.id_number || '-'}</p></div>
+                        <div><p className="text-muted-foreground text-xs">Nacionalidade</p><p>{checkInData.nationality || '-'}</p></div>
+                        <div><p className="text-muted-foreground text-xs">Data de nascimento</p><p>{checkInData.date_of_birth ? format(new Date(checkInData.date_of_birth), 'dd/MM/yyyy') : '-'}</p></div>
+                        <div><p className="text-muted-foreground text-xs">Morada</p><p>{checkInData.address || '-'}</p></div>
+                        <div><p className="text-muted-foreground text-xs">Telefone</p><p>{checkInData.phone || '-'}</p></div>
+                        <div><p className="text-muted-foreground text-xs">Email</p><p>{checkInData.email || '-'}</p></div>
+                        <div><p className="text-muted-foreground text-xs">Hora de chegada</p><p>{checkInData.arrival_time || '-'}</p></div>
+                      </div>
+                      {checkInData.special_requests && (
+                        <div><p className="text-muted-foreground text-xs mb-1">Pedidos especiais</p><p className="bg-muted p-3 rounded-lg">{checkInData.special_requests}</p></div>
+                      )}
+                      {Array.isArray(checkInData.additional_guests) && checkInData.additional_guests.length > 0 && (
+                        <div>
+                          <p className="text-muted-foreground text-xs mb-2">Hóspedes adicionais</p>
+                          <div className="space-y-2">
+                            {checkInData.additional_guests.map((guest, i) => (
+                              <div key={i} className="bg-muted p-3 rounded-lg text-xs">
+                                <p className="font-medium">{guest.full_name || '-'}</p>
+                                <p className="text-muted-foreground">{guest.id_number || '-'} · {guest.nationality || '-'}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-xs">Sem dados de check-in encontrados.</p>
+                  )}
+                </div>
+              )}
+
               <Button
                 variant="ghost"
                 onClick={() => { onDelete(selected); setSelected(null); }}
