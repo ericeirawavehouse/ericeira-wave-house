@@ -6,8 +6,8 @@ import FadeInView from '../shared/FadeInView';
 import SectionHeading from '../shared/SectionHeading';
 
 
-import imagemPraia from '../../images/Surf/Surf_Ericeira.jpg'; 
-import imagemRestaurante from '../../images/Outros/restaurante.jpg';
+import imagemPraia from '../../images/Surf/Surf_Ericeira.jpg';
+import imagemRestaurante from '../../images/Outros/8.jpg';
 import imagemSpots from '../../images/Outros/a_fazer.webp';
 
 

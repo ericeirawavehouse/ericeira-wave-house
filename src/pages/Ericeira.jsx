@@ -3,10 +3,10 @@ import { useLanguage } from '@/lib/i18n';
 import FadeInView from '../components/shared/FadeInView';
 import SectionHeading from '../components/shared/SectionHeading';
 
-import imagemRua from '../images/Outros/rua_eri.jpg';
-import imagemPraia from '../images/Surf/Surf_Ericeira.jpg'; 
-import imagemRestaurante from '../images/Outros/restaurante.jpg';
-import imagemExperiencias from '../images/Outros/trilho.jpg';
+import imagemRua from '../images/Outros/13.jpg';
+import imagemPraia from '../images/Surf/Surf_Ericeira.jpg';
+import imagemRestaurante from '../images/Outros/8.jpg';
+import imagemExperiencias from '../images/Outros/14.jpg';
 import imagemEriceira from '../images/Capa/3.jpg';
 
 const sections = {
