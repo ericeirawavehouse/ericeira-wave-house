@@ -19,13 +19,44 @@ export default async function handler(req, res) {
     },
   });
 
+  const firstName = (guestName || '').split(' ')[0] || 'olá';
+
+  const text = `Olá ${firstName},
+
+Estamos a preparar tudo para a tua estadia na Ericeira Wave House e falta só um passo: o check-in online.
+
+Preenche os teus dados através deste link, para agilizarmos a tua chegada:
+${checkInUrl}
+
+Demora menos de 2 minutos. Qualquer dúvida, basta responderes a este email ou contactar-nos pelo telefone +351 960 461 100.
+
+Até breve,
+Equipa Ericeira Wave House
+ericeirawavehouse@gmail.com
+Ericeira, Portugal`;
+
+  const html = `
+    <div style="font-family: -apple-system, Arial, sans-serif; color: #1c1c1c; max-width: 480px;">
+      <p>Olá ${firstName},</p>
+      <p>Estamos a preparar tudo para a tua estadia na <strong>Ericeira Wave House</strong> e falta só um passo: o check-in online.</p>
+      <p>Preenche os teus dados através deste link, para agilizarmos a tua chegada:</p>
+      <p><a href="${checkInUrl}" style="color: #1c4a63;">${checkInUrl}</a></p>
+      <p>Demora menos de 2 minutos. Qualquer dúvida, basta responderes a este email ou contactar-nos pelo telefone <a href="tel:+351960461100">+351 960 461 100</a>.</p>
+      <p>Até breve,<br/>
+      Equipa Ericeira Wave House<br/>
+      ericeirawavehouse@gmail.com<br/>
+      Ericeira, Portugal</p>
+    </div>
+  `;
+
   try {
     await transporter.sendMail({
       from: `"Ericeira Wave House" <${process.env.GMAIL_USER}>`,
       to,
-      subject: 'Check-in Ericeira Wave House',
-      text: `Olá ${guestName || ''},\n\nPor favor preenche o teu check-in através deste link:\n${checkInUrl}\n\nAté breve!`,
-      html: `<p>Olá ${guestName || ''},</p><p>Por favor preenche o teu check-in através deste link:</p><p><a href="${checkInUrl}">${checkInUrl}</a></p><p>Até breve!</p>`,
+      replyTo: process.env.GMAIL_USER,
+      subject: 'O teu check-in para a Ericeira Wave House',
+      text,
+      html,
     });
 
     return res.status(200).json({ success: true });
