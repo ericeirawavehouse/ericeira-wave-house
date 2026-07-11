@@ -79,6 +79,16 @@ export default function Booking() {
     } else {
       setSuccess(true);
       toast({ title: t('booking.success') });
+
+      const dates = type === 'accommodation'
+        ? `${dataToInsert.check_in || '?'} → ${dataToInsert.check_out || '?'}`
+        : `${dataToInsert.surf_date || '?'}${form.surf_time ? ` (${form.surf_time})` : ''}`;
+
+      fetch('/api/notify-new-booking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guestName: form.guest_name, type, dates }),
+      }).catch((err) => console.error('Erro ao notificar nova reserva:', err));
     }
   };
 

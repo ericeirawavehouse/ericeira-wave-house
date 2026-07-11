@@ -3,6 +3,9 @@ import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Check, X, Eye, Home, Waves, Mail, Copy, CheckCheck, Loader2 } from 'lucide-react';
@@ -16,11 +19,58 @@ const statusColors = {
 
 const statusLabels = { pending: 'Pendente', confirmed: 'Confirmada', rejected: 'Rejeitada' };
 
+const rejectionReasons = [
+  'As datas pedidas já não estão disponíveis',
+  'A casa está em manutenção nesse período',
+  'Não cumpre os requisitos mínimos (nº de hóspedes/estadia mínima)',
+  'Outro motivo',
+];
+
 export default function BookingListView({ bookings, onApprove, onReject }) {
   const [selected, setSelected] = React.useState(null);
   const [checkInBooking, setCheckInBooking] = React.useState(null);
   const [copied, setCopied] = React.useState(false);
   const [sendingEmail, setSendingEmail] = React.useState(false);
+  const [rejectBooking, setRejectBooking] = React.useState(null);
+  const [rejectReason, setRejectReason] = React.useState(rejectionReasons[0]);
+  const [customReason, setCustomReason] = React.useState('');
+  const [sendingRejection, setSendingRejection] = React.useState(false);
+
+  const openRejectModal = (booking) => {
+    setRejectBooking(booking);
+    setRejectReason(rejectionReasons[0]);
+    setCustomReason('');
+  };
+
+  const handleConfirmReject = async () => {
+    const finalReason = rejectReason === 'Outro motivo' ? customReason.trim() : rejectReason;
+    if (!finalReason) {
+      toast({ variant: 'destructive', title: 'Erro', description: 'Escreve o motivo antes de continuar.' });
+      return;
+    }
+
+    setSendingRejection(true);
+    try {
+      onReject(rejectBooking);
+      const res = await fetch('/api/send-rejection-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: rejectBooking.guest_email,
+          guestName: rejectBooking.guest_name,
+          reason: finalReason,
+        }),
+      });
+      if (!res.ok) throw new Error('Falha no envio');
+      toast({ title: 'Reserva rejeitada e hóspede notificado.' });
+      setRejectBooking(null);
+    } catch (error) {
+      console.error('Erro ao enviar email de rejeição:', error);
+      toast({ variant: 'destructive', title: 'Erro', description: 'Reserva rejeitada, mas não foi possível enviar o email ao hóspede.' });
+    } finally {
+      setSendingRejection(false);
+    }
+  };
 
   const checkInUrl = checkInBooking
     ? `${window.location.origin}/checkin?booking=${checkInBooking.id}`
@@ -104,7 +154,7 @@ export default function BookingListView({ bookings, onApprove, onReject }) {
                         <Button size="icon" variant="ghost" onClick={() => onApprove(b)} className="h-8 w-8 text-emerald-600 hover:bg-emerald-50">
                           <Check className="w-4 h-4" />
                         </Button>
-                        <Button size="icon" variant="ghost" onClick={() => onReject(b)} className="h-8 w-8 text-red-500 hover:bg-red-50">
+                        <Button size="icon" variant="ghost" onClick={() => openRejectModal(b)} className="h-8 w-8 text-red-500 hover:bg-red-50">
                           <X className="w-4 h-4" />
                         </Button>
                       </>
@@ -194,6 +244,51 @@ export default function BookingListView({ bookings, onApprove, onReject }) {
                   </Button>
                 </div>
               </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!rejectBooking} onOpenChange={(open) => !open && setRejectBooking(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Rejeitar Reserva</DialogTitle>
+          </DialogHeader>
+          {rejectBooking && (
+            <div className="space-y-5 text-sm">
+              <p className="text-muted-foreground">
+                Para <span className="font-medium text-foreground">{rejectBooking.guest_name}</span> ({rejectBooking.guest_email})
+              </p>
+
+              <div className="space-y-3">
+                <Label className="text-xs text-muted-foreground">Motivo da rejeição</Label>
+                <RadioGroup value={rejectReason} onValueChange={setRejectReason}>
+                  {rejectionReasons.map((reason) => (
+                    <div key={reason} className="flex items-center gap-2">
+                      <RadioGroupItem value={reason} id={reason} />
+                      <Label htmlFor={reason} className="font-normal cursor-pointer">{reason}</Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+                {rejectReason === 'Outro motivo' && (
+                  <Textarea
+                    placeholder="Escreve o motivo..."
+                    value={customReason}
+                    onChange={(e) => setCustomReason(e.target.value)}
+                    rows={3}
+                  />
+                )}
+              </div>
+
+              <Button
+                variant="destructive"
+                className="w-full"
+                onClick={handleConfirmReject}
+                disabled={sendingRejection}
+              >
+                {sendingRejection ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <X className="w-4 h-4 mr-2" />}
+                Rejeitar e notificar hóspede
+              </Button>
             </div>
           )}
         </DialogContent>
