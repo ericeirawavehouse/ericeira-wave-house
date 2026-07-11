@@ -5,7 +5,7 @@ import SectionHeading from '../components/shared/SectionHeading';
 
 import imagemRua from '../images/Outros/13.jpg';
 import imagemPraia from '../images/Surf/Surf 3.jpg';
-import imagemSpots from '../images/Outros/7.png';
+import imagemSpots from '../images/Outros/9.jpg';
 import imagemExperiencias from '../images/Outros/14.jpg';
 import imagemEriceira from '../images/Capa/3.jpg';
 
