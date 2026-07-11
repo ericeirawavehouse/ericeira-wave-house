@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Check, X, Eye, Home, Waves, Mail, Copy, CheckCheck } from 'lucide-react';
+import { Check, X, Eye, Home, Waves, Mail, Copy, CheckCheck, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 const statusColors = {
@@ -20,6 +20,7 @@ export default function BookingListView({ bookings, onApprove, onReject }) {
   const [selected, setSelected] = React.useState(null);
   const [checkInBooking, setCheckInBooking] = React.useState(null);
   const [copied, setCopied] = React.useState(false);
+  const [sendingEmail, setSendingEmail] = React.useState(false);
 
   const checkInUrl = checkInBooking
     ? `${window.location.origin}/checkin?booking=${checkInBooking.id}`
@@ -32,9 +33,28 @@ export default function BookingListView({ bookings, onApprove, onReject }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const mailtoHref = checkInBooking
-    ? `mailto:${checkInBooking.guest_email}?subject=${encodeURIComponent('Check-in Ericeira Wave House')}&body=${encodeURIComponent(`Olá ${checkInBooking.guest_name},\n\nPor favor preenche o teu check-in através deste link:\n${checkInUrl}\n\nAté breve!`)}`
-    : '';
+  const handleSendEmail = async () => {
+    setSendingEmail(true);
+    try {
+      const res = await fetch('/api/send-checkin-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: checkInBooking.guest_email,
+          guestName: checkInBooking.guest_name,
+          checkInUrl,
+        }),
+      });
+      if (!res.ok) throw new Error('Falha no envio');
+      toast({ title: 'Email enviado com sucesso!' });
+      setCheckInBooking(null);
+    } catch (error) {
+      console.error('Erro ao enviar email:', error);
+      toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível enviar o email.' });
+    } finally {
+      setSendingEmail(false);
+    }
+  };
 
   return (
     <>
@@ -160,11 +180,10 @@ export default function BookingListView({ bookings, onApprove, onReject }) {
                 Para <span className="font-medium text-foreground">{checkInBooking.guest_name}</span> ({checkInBooking.guest_email})
               </p>
 
-              <a href={mailtoHref}>
-                <Button className="w-full">
-                  <Mail className="w-4 h-4 mr-2" /> Enviar por email
-                </Button>
-              </a>
+              <Button className="w-full" onClick={handleSendEmail} disabled={sendingEmail}>
+                {sendingEmail ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mail className="w-4 h-4 mr-2" />}
+                Enviar por email
+              </Button>
 
               <div className="space-y-1.5">
                 <p className="text-muted-foreground text-xs">Ou copia o link diretamente</p>
