@@ -95,6 +95,12 @@ export default function CheckInForm() {
 
       setDone(true);
       toast({ title: lang === 'pt' ? 'Check-in concluído!' : 'Check-in completed!' });
+
+      fetch('/api/notify-checkin-completed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guestName: form.full_name }),
+      }).catch((err) => console.error('Erro ao notificar check-in concluído:', err));
     } catch (error) {
       console.error('Erro no check-in:', error);
       toast({ 
