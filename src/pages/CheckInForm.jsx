@@ -11,6 +11,8 @@ import { Loader2, CheckCircle, Plus, Trash2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import FadeInView from '../components/shared/FadeInView';
 
+const MAX_ADDITIONAL_GUESTS = 4;
+
 const arrivalTimeSlots = [];
 for (let h = 15; h <= 23; h++) {
   for (let m = 0; m < 60; m += 15) {
@@ -52,7 +54,7 @@ export default function CheckInForm() {
 
         if (data.guests_count > 1) {
           setAdditionalGuests(
-            Array.from({ length: data.guests_count - 1 }, () => ({
+            Array.from({ length: Math.min(data.guests_count - 1, MAX_ADDITIONAL_GUESTS) }, () => ({
               full_name: '', id_number: '', nationality: '', date_of_birth: '',
             }))
           );
@@ -93,6 +95,7 @@ export default function CheckInForm() {
   };
 
   const addGuest = () => {
+    if (additionalGuests.length >= MAX_ADDITIONAL_GUESTS) return;
     setAdditionalGuests([...additionalGuests, { full_name: '', id_number: '', nationality: '', date_of_birth: '' }]);
   };
 
@@ -193,31 +196,31 @@ export default function CheckInForm() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm mb-2 block">{labels.nationality}</Label>
-                <Input value={form.nationality} onChange={(e) => setForm({ ...form, nationality: e.target.value })} />
+                <Label className="text-sm mb-2 block">{labels.nationality} *</Label>
+                <Input value={form.nationality} onChange={(e) => setForm({ ...form, nationality: e.target.value })} required />
               </div>
               <div>
-                <Label className="text-sm mb-2 block">{labels.dob}</Label>
-                <Input type="date" value={form.date_of_birth} onChange={(e) => setForm({ ...form, date_of_birth: e.target.value })} />
+                <Label className="text-sm mb-2 block">{labels.dob} *</Label>
+                <Input type="date" value={form.date_of_birth} onChange={(e) => setForm({ ...form, date_of_birth: e.target.value })} required />
               </div>
             </div>
             <div>
-              <Label className="text-sm mb-2 block">{labels.address}</Label>
-              <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+              <Label className="text-sm mb-2 block">{labels.address} *</Label>
+              <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} required />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm mb-2 block">{labels.phone}</Label>
-                <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                <Label className="text-sm mb-2 block">{labels.phone} *</Label>
+                <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
               </div>
               <div>
-                <Label className="text-sm mb-2 block">{labels.email}</Label>
-                <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                <Label className="text-sm mb-2 block">{labels.email} *</Label>
+                <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
               </div>
             </div>
             <div>
-              <Label className="text-sm mb-2 block">{labels.arrivalTime}</Label>
-              <Select value={form.arrival_time} onValueChange={(v) => setForm({ ...form, arrival_time: v })}>
+              <Label className="text-sm mb-2 block">{labels.arrivalTime} *</Label>
+              <Select value={form.arrival_time} onValueChange={(v) => setForm({ ...form, arrival_time: v })} name="arrival_time" required>
                 <SelectTrigger>
                   <SelectValue placeholder="15:00 - 23:00" />
                 </SelectTrigger>
@@ -236,18 +239,30 @@ export default function CheckInForm() {
             {/* Additional guests */}
             <div className="border-t pt-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-medium text-sm">{lang === 'pt' ? 'Hóspedes adicionais' : 'Additional guests'}</h3>
-                <Button type="button" variant="outline" size="sm" onClick={addGuest} className="rounded-full">
+                <div>
+                  <h3 className="font-medium text-sm">{lang === 'pt' ? 'Hóspedes adicionais' : 'Additional guests'}</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {lang === 'pt' ? `Máximo ${MAX_ADDITIONAL_GUESTS} (além do hóspede principal)` : `Max ${MAX_ADDITIONAL_GUESTS} (besides the main guest)`}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addGuest}
+                  disabled={additionalGuests.length >= MAX_ADDITIONAL_GUESTS}
+                  className="rounded-full"
+                >
                   <Plus className="w-3 h-3 mr-1" /> {labels.addGuest}
                 </Button>
               </div>
               {additionalGuests.map((guest, i) => (
                 <div key={i} className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4 p-4 bg-muted rounded-xl relative">
-                  <Input placeholder={labels.fullName} value={guest.full_name} onChange={(e) => updateGuest(i, 'full_name', e.target.value)} />
-                  <Input placeholder={labels.idNumber} value={guest.id_number} onChange={(e) => updateGuest(i, 'id_number', e.target.value)} />
-                  <Input placeholder={labels.nationality} value={guest.nationality} onChange={(e) => updateGuest(i, 'nationality', e.target.value)} />
+                  <Input placeholder={`${labels.fullName} *`} value={guest.full_name} onChange={(e) => updateGuest(i, 'full_name', e.target.value)} required />
+                  <Input placeholder={`${labels.idNumber} *`} value={guest.id_number} onChange={(e) => updateGuest(i, 'id_number', e.target.value)} required />
+                  <Input placeholder={`${labels.nationality} *`} value={guest.nationality} onChange={(e) => updateGuest(i, 'nationality', e.target.value)} required />
                   <div className="flex gap-2">
-                    <Input type="date" value={guest.date_of_birth} onChange={(e) => updateGuest(i, 'date_of_birth', e.target.value)} />
+                    <Input type="date" value={guest.date_of_birth} onChange={(e) => updateGuest(i, 'date_of_birth', e.target.value)} required />
                     <Button type="button" variant="ghost" size="icon" onClick={() => removeGuest(i)} className="shrink-0">
                       <Trash2 className="w-4 h-4 text-destructive" />
                     </Button>
