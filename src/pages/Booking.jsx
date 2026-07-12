@@ -64,7 +64,7 @@ export default function Booking() {
     },
   });
 
-  // Períodos de preço especial (época alta/baixa, etc.), tal como no Airbnb
+  // Períodos de preço especial (época alta/baixa, etc.)
   const { data: pricingPeriods = [] } = useQuery({
     queryKey: ['pricing-periods'],
     queryFn: async () => {
@@ -77,13 +77,15 @@ export default function Booking() {
   });
 
   const nights = dateRange.from && dateRange.to ? differenceInCalendarDays(dateRange.to, dateRange.from) : 0;
-  const surfTotal = pricing?.surf_lesson_price || 0;
+  const surfGuests = form.guests_count || 1;
+  const surfPricePerPerson = pricing?.surf_lesson_price || 0;
+  const surfTotal = surfPricePerPerson * surfGuests;
   const minNights = pricing?.min_nights || 1;
   const maxNights = pricing?.max_nights || 30;
   const advanceNoticeDays = pricing?.advance_notice_days || 0;
   const earliestSelectableDate = addDays(new Date(), advanceNoticeDays);
 
-  // Agrupa noites consecutivas com o mesmo preço, para mostrar como no Airbnb
+  // Agrupa noites consecutivas com o mesmo preço
   const priceBreakdown = [];
   if (dateRange.from && dateRange.to && nights > 0 && pricing) {
     const stayNights = eachDayOfInterval({ start: dateRange.from, end: subDays(dateRange.to, 1) });
@@ -237,7 +239,7 @@ export default function Booking() {
                     <Calendar
                       mode="range"
                       selected={dateRange}
-                      onSelect={setDateRange}
+                      onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })}
                       numberOfMonths={2}
                       disabled={(date) =>
                         date < earliestSelectableDate ||
@@ -262,7 +264,7 @@ export default function Booking() {
                 )}
               </div>
 
-              {/* Resumo de preço, estilo Airbnb */}
+              {/* Resumo de preço*/}
               {type === 'accommodation' && nights > 0 && pricing && (
                 <div className="border-t border-border pt-6 space-y-4">
                   {discountPercent > 0 && (
@@ -305,7 +307,11 @@ export default function Booking() {
               )}
               {type === 'surf' && surfDate && pricing && (
                 <div className="border-t border-border pt-6 space-y-2">
-                  <div className="flex items-center justify-between font-semibold">
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span>€{surfPricePerPerson} x {surfGuests} {surfGuests === 1 ? 'pessoa' : 'pessoas'}</span>
+                    <span>€{surfTotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center justify-between font-semibold pt-2 border-t border-border">
                     <span>Total</span>
                     <span>€{surfTotal.toFixed(2)}</span>
                   </div>

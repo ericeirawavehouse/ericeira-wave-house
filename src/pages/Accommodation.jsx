@@ -333,7 +333,7 @@ export default function Accommodation() {
           )}
 
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/80 text-sm">
-            {allPhotos[lightboxIndex]?.alt} — {lightboxIndex + 1} / {allPhotos.length}
+            {allPhotos[lightboxIndex]?.alt} - {lightboxIndex + 1} / {allPhotos.length}
           </div>
         </DialogContent>
       </Dialog>

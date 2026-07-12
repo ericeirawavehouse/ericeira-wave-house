@@ -162,9 +162,6 @@ export default function AdminPricing() {
         </TabsList>
 
         <TabsContent value="calendar">
-          <p className="text-sm text-muted-foreground mb-6">
-            Vê o preço de cada dia de um relance. Clica num dia para o alterar manualmente.
-          </p>
           <PricingCalendar settings={data} periods={periods} />
         </TabsContent>
 
@@ -175,7 +172,7 @@ export default function AdminPricing() {
             <Home className="w-5 h-5 text-primary" />
           </div>
           <div className="flex-1">
-            <Label className="text-sm mb-2 block">Preço base por noite — Alojamento (€)</Label>
+            <Label className="text-sm mb-2 block">Preço base por noite - Alojamento (€)</Label>
             <p className="text-xs text-muted-foreground mb-2">Usado em qualquer noite que não esteja dentro de um período especial definido em baixo.</p>
             <Input
               type="number"
@@ -192,7 +189,7 @@ export default function AdminPricing() {
             <CalendarDays className="w-5 h-5 text-primary" />
           </div>
           <div className="flex-1">
-            <Label className="text-sm mb-2 block">Preço de fim de semana — Alojamento (€)</Label>
+            <Label className="text-sm mb-2 block">Preço de fim de semana - Alojamento (€)</Label>
             <p className="text-xs text-muted-foreground mb-2">Aplicado a sexta e sábado à noite. Deixa em branco para usar sempre o preço base.</p>
             <Input
               type="number"
@@ -210,7 +207,7 @@ export default function AdminPricing() {
             <Waves className="w-5 h-5 text-primary" />
           </div>
           <div className="flex-1">
-            <Label className="text-sm mb-2 block">Preço por aula — Surf (€)</Label>
+            <Label className="text-sm mb-2 block">Preço por aula - Surf (€)</Label>
             <Input
               type="number"
               min="0"
@@ -235,7 +232,7 @@ export default function AdminPricing() {
         <TabsContent value="periods">
       <div className="max-w-2xl">
         <p className="text-sm text-muted-foreground mb-6">
-          Define preços diferentes por intervalo de datas (ex: época alta, Natal, Ano Novo) — tal como no Airbnb. Tem sempre prioridade sobre o preço base.
+          Define preços diferentes por intervalo de datas (ex: época alta, Natal, Ano Novo). Tem sempre prioridade sobre o preço base.
         </p>
 
         <div className="bg-card border border-border rounded-2xl p-6 space-y-4 mb-6">
@@ -289,7 +286,7 @@ export default function AdminPricing() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{p.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {format(new Date(p.start_date), 'dd/MM/yyyy')} — {format(new Date(p.end_date), 'dd/MM/yyyy')}
+                    {format(new Date(p.start_date), 'dd/MM/yyyy')} - {format(new Date(p.end_date), 'dd/MM/yyyy')}
                   </p>
                 </div>
                 <p className="text-sm font-semibold shrink-0">€{p.price_per_night}/noite</p>
@@ -320,7 +317,7 @@ export default function AdminPricing() {
               <Percent className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1">
-              <Label className="text-sm mb-2 block">Desconto semanal (%) — para 7 ou mais noites</Label>
+              <Label className="text-sm mb-2 block">Desconto semanal (%) - para 7 ou mais noites</Label>
               <Input type="number" min="0" max="100" step="1" value={weeklyDiscount} onChange={(e) => setWeeklyDiscount(e.target.value)} />
             </div>
           </div>
@@ -329,7 +326,7 @@ export default function AdminPricing() {
               <Percent className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1">
-              <Label className="text-sm mb-2 block">Desconto mensal (%) — para 28 ou mais noites</Label>
+              <Label className="text-sm mb-2 block">Desconto mensal (%) - para 28 ou mais noites</Label>
               <Input type="number" min="0" max="100" step="1" value={monthlyDiscount} onChange={(e) => setMonthlyDiscount(e.target.value)} />
             </div>
           </div>
