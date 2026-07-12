@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Home, Waves, Plus, Trash2, CalendarRange, CalendarDays, Percent, Clock } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
+import PricingCalendar from '@/components/admin/PricingCalendar';
 
 export default function AdminPricing() {
   const queryClient = useQueryClient();
@@ -139,13 +140,21 @@ export default function AdminPricing() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <h1 className="font-heading text-2xl font-semibold mb-1">Preços</h1>
       <p className="text-sm text-muted-foreground mb-8">
         Estes valores aparecem automaticamente no site quando alguém escolhe datas na página de Reservar.
       </p>
 
-      <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
+      <div className="mb-10">
+        <h2 className="font-heading text-xl font-semibold mb-1">Calendário de preços</h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          Vê o preço de cada dia de um relance. Clica num dia para o alterar manualmente.
+        </p>
+        <PricingCalendar settings={data} periods={periods} />
+      </div>
+
+      <div className="max-w-2xl bg-card border border-border rounded-2xl p-6 space-y-6">
         <div className="flex items-start gap-4">
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
             <Home className="w-5 h-5 text-primary" />
@@ -207,7 +216,7 @@ export default function AdminPricing() {
         </Button>
       </div>
 
-      <div className="mt-10">
+      <div className="mt-10 max-w-2xl">
         <h2 className="font-heading text-xl font-semibold mb-1">Períodos especiais</h2>
         <p className="text-sm text-muted-foreground mb-6">
           Define preços diferentes por intervalo de datas (ex: época alta, Natal, Ano Novo) — tal como no Airbnb. Tem sempre prioridade sobre o preço base.
@@ -282,7 +291,7 @@ export default function AdminPricing() {
         )}
       </div>
 
-      <div className="mt-10">
+      <div className="mt-10 max-w-2xl">
         <h2 className="font-heading text-xl font-semibold mb-1">Descontos</h2>
         <p className="text-sm text-muted-foreground mb-6">
           Descontos automáticos por duração da estadia, aplicados ao total do Alojamento.
@@ -314,7 +323,7 @@ export default function AdminPricing() {
         </div>
       </div>
 
-      <div className="mt-10">
+      <div className="mt-10 max-w-2xl">
         <h2 className="font-heading text-xl font-semibold mb-1">Disponibilidade</h2>
         <p className="text-sm text-muted-foreground mb-6">
           Regras aplicadas a todas as reservas de Alojamento.

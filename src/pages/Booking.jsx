@@ -9,12 +9,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
-import { Home, Waves, Loader2, CheckCircle } from 'lucide-react';
+import { Home, Waves, Loader2, CheckCircle, Tag } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import FadeInView from '../components/shared/FadeInView';
 import SectionHeading from '../components/shared/SectionHeading';
-import { format, eachDayOfInterval, parseISO, differenceInCalendarDays, subDays, addDays, getDay } from 'date-fns';
+import { format, eachDayOfInterval, parseISO, differenceInCalendarDays, subDays, addDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { priceForDate } from '@/lib/pricing';
 
 export default function Booking() {
   const { t, lang } = useLanguage();
@@ -81,24 +82,12 @@ export default function Booking() {
   const advanceNoticeDays = pricing?.advance_notice_days || 0;
   const earliestSelectableDate = addDays(new Date(), advanceNoticeDays);
 
-  const priceForNight = (date) => {
-    const dateStr = format(date, 'yyyy-MM-dd');
-    const period = pricingPeriods.find((p) => dateStr >= p.start_date && dateStr <= p.end_date);
-    if (period) return Number(period.price_per_night);
-
-    const isWeekend = [5, 6].includes(getDay(date)); // sexta ou sábado
-    if (isWeekend && pricing?.weekend_price_per_night != null) {
-      return Number(pricing.weekend_price_per_night);
-    }
-    return Number(pricing?.accommodation_price_per_night || 0);
-  };
-
   // Agrupa noites consecutivas com o mesmo preço, para mostrar como no Airbnb
   const priceBreakdown = [];
   if (dateRange.from && dateRange.to && pricing) {
     const stayNights = eachDayOfInterval({ start: dateRange.from, end: subDays(dateRange.to, 1) });
     stayNights.forEach((night) => {
-      const price = priceForNight(night);
+      const price = priceForDate(night, pricing, pricingPeriods);
       const last = priceBreakdown[priceBreakdown.length - 1];
       if (last && last.price === price) {
         last.count += 1;
@@ -274,25 +263,40 @@ export default function Booking() {
 
               {/* Resumo de preço, estilo Airbnb */}
               {type === 'accommodation' && nights > 0 && pricing && (
-                <div className="border-t border-border pt-6 space-y-2">
-                  {priceBreakdown.map((seg, i) => (
-                    <div key={i} className="flex items-center justify-between text-sm text-muted-foreground">
-                      <span>€{seg.price} x {seg.count} {seg.count === 1 ? 'noite' : 'noites'}</span>
-                      <span>€{(seg.price * seg.count).toFixed(2)}</span>
-                    </div>
-                  ))}
+                <div className="border-t border-border pt-6 space-y-4">
                   {discountPercent > 0 && (
-                    <div className="flex items-center justify-between text-sm text-emerald-600">
-                      <span>{discountLabel} ({discountPercent}%)</span>
-                      <span>-€{discountAmount.toFixed(2)}</span>
+                    <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 text-sm px-4 py-3 rounded-xl">
+                      <Tag className="w-4 h-4 shrink-0" />
+                      <span>Esta estadia tem um {discountLabel.toLowerCase()} de {discountPercent}%</span>
                     </div>
                   )}
-                  <div className="flex items-center justify-between font-semibold pt-2 border-t border-border">
-                    <span>Total</span>
-                    <span>€{accommodationTotal.toFixed(2)}</span>
+                  <div className="space-y-2">
+                    {priceBreakdown.map((seg, i) => (
+                      <div key={i} className="flex items-center justify-between text-sm text-muted-foreground">
+                        <span>€{seg.price} x {seg.count} {seg.count === 1 ? 'noite' : 'noites'}</span>
+                        <span>€{(seg.price * seg.count).toFixed(2)}</span>
+                      </div>
+                    ))}
+                    {discountPercent > 0 && (
+                      <div className="flex items-center justify-between text-sm text-emerald-600">
+                        <span>{discountLabel} ({discountPercent}%)</span>
+                        <span>-€{discountAmount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between font-semibold pt-2 border-t border-border">
+                      <span>Total</span>
+                      {discountPercent > 0 ? (
+                        <span className="flex items-center gap-2">
+                          <span className="text-muted-foreground line-through font-normal text-sm">€{accommodationSubtotal.toFixed(2)}</span>
+                          <span>€{accommodationTotal.toFixed(2)}</span>
+                        </span>
+                      ) : (
+                        <span>€{accommodationTotal.toFixed(2)}</span>
+                      )}
+                    </div>
                   </div>
                   {(nights < minNights || nights > maxNights) && (
-                    <p className="text-xs text-destructive pt-1">
+                    <p className="text-xs text-destructive">
                       Esta estadia precisa de ser entre {minNights} e {maxNights} noites.
                     </p>
                   )}
