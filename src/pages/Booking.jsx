@@ -13,7 +13,7 @@ import { Home, Waves, Loader2, CheckCircle } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import FadeInView from '../components/shared/FadeInView';
 import SectionHeading from '../components/shared/SectionHeading';
-import { format, eachDayOfInterval, parseISO, differenceInCalendarDays } from 'date-fns';
+import { format, eachDayOfInterval, parseISO, differenceInCalendarDays, subDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
 
 export default function Booking() {
@@ -62,9 +62,42 @@ export default function Booking() {
     },
   });
 
+  // Períodos de preço especial (época alta/baixa, etc.), tal como no Airbnb
+  const { data: pricingPeriods = [] } = useQuery({
+    queryKey: ['pricing-periods'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('pricing_periods')
+        .select('*');
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const nights = dateRange.from && dateRange.to ? differenceInCalendarDays(dateRange.to, dateRange.from) : 0;
-  const accommodationTotal = (pricing?.accommodation_price_per_night || 0) * nights;
   const surfTotal = pricing?.surf_lesson_price || 0;
+
+  const priceForNight = (date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const period = pricingPeriods.find((p) => dateStr >= p.start_date && dateStr <= p.end_date);
+    return period ? Number(period.price_per_night) : Number(pricing?.accommodation_price_per_night || 0);
+  };
+
+  // Agrupa noites consecutivas com o mesmo preço, para mostrar como no Airbnb
+  const priceBreakdown = [];
+  if (dateRange.from && dateRange.to && pricing) {
+    const stayNights = eachDayOfInterval({ start: dateRange.from, end: subDays(dateRange.to, 1) });
+    stayNights.forEach((night) => {
+      const price = priceForNight(night);
+      const last = priceBreakdown[priceBreakdown.length - 1];
+      if (last && last.price === price) {
+        last.count += 1;
+      } else {
+        priceBreakdown.push({ price, count: 1 });
+      }
+    });
+  }
+  const accommodationTotal = priceBreakdown.reduce((sum, seg) => sum + seg.price * seg.count, 0);
 
   // 3. SUBMISSÃO DA RESERVA (SUPABASE)
   const handleSubmit = async (e) => {
@@ -219,10 +252,12 @@ export default function Booking() {
               {/* Resumo de preço, estilo Airbnb */}
               {type === 'accommodation' && nights > 0 && pricing && (
                 <div className="border-t border-border pt-6 space-y-2">
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>€{pricing.accommodation_price_per_night} x {nights} {nights === 1 ? 'noite' : 'noites'}</span>
-                    <span>€{accommodationTotal.toFixed(2)}</span>
-                  </div>
+                  {priceBreakdown.map((seg, i) => (
+                    <div key={i} className="flex items-center justify-between text-sm text-muted-foreground">
+                      <span>€{seg.price} x {seg.count} {seg.count === 1 ? 'noite' : 'noites'}</span>
+                      <span>€{(seg.price * seg.count).toFixed(2)}</span>
+                    </div>
+                  ))}
                   <div className="flex items-center justify-between font-semibold pt-2 border-t border-border">
                     <span>Total</span>
                     <span>€{accommodationTotal.toFixed(2)}</span>
