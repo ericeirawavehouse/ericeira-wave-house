@@ -26,8 +26,8 @@ export default function AdminLayout() {
     { path: '/admin', icon: LayoutDashboard, label: 'Visão Geral', exact: true },
     { path: '/admin/bookings', icon: CalendarCheck, label: 'Reservas', badge: counts?.pending },
     { path: '/admin/messages', icon: MessageSquare, label: 'Mensagens', badge: counts?.unread },
-    { path: '/admin/trash', icon: Trash2, label: 'Lixo' },
     { path: '/admin/pricing', icon: Euro, label: 'Preços' },
+    { path: '/admin/trash', icon: Trash2, label: 'Lixo' },
   ];
 
   const isActive = (item) => (item.exact ? location.pathname === item.path : location.pathname.startsWith(item.path));

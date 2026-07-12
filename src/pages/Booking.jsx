@@ -37,8 +37,9 @@ export default function Booking() {
         .from('bookings')
         .select('check_in, check_out')
         .eq('type', 'accommodation')
-        .eq('status', 'confirmed');
-      
+        .eq('status', 'confirmed')
+        .is('deleted_at', null);
+
       if (error) throw error;
       return data;
     },
@@ -84,7 +85,7 @@ export default function Booking() {
 
   // Agrupa noites consecutivas com o mesmo preço, para mostrar como no Airbnb
   const priceBreakdown = [];
-  if (dateRange.from && dateRange.to && pricing) {
+  if (dateRange.from && dateRange.to && nights > 0 && pricing) {
     const stayNights = eachDayOfInterval({ start: dateRange.from, end: subDays(dateRange.to, 1) });
     stayNights.forEach((night) => {
       const price = priceForDate(night, pricing, pricingPeriods);
