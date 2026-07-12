@@ -393,7 +393,7 @@ export default function Booking() {
                   <Input value={form.guest_phone} onChange={(e) => setForm({ ...form, guest_phone: e.target.value })} required className="rounded-lg" />
                 </div>
                 <div>
-                  <Label className="text-sm mb-2 block">{t('booking.guests')}</Label>
+                  <Label className="text-sm mb-2 block">{type === 'surf' ? 'Número de pessoas' : t('booking.guests')}</Label>
                   <Input
                     type="number"
                     min={type === 'surf' ? surfMinPeople : 1}

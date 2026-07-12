@@ -41,7 +41,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <Link to="/" className={`flex items-center gap-2 font-heading text-2xl font-semibold tracking-wide transition-colors duration-300 ${textClass}`}>
           <img src="/favicon_sem_fundo.png" alt="" className="w-9 h-9 object-contain" />
-          Ericeira Wave House
+          <span translate="no" className="notranslate">Ericeira Wave House</span>
         </Link>
 
         {/* Desktop Nav */}

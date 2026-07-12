@@ -1,14 +1,14 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Ericeira Wave House",
+  "name": "Ericeira Wave House - Alojamento & Surf",
   "icons": [
     {
-      "src": "favicon_sem_fundo.jpg",
+      "src": "favicon_sem_fundo.png",
       "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/jpeg"
+      "type": "image/png"
     },
     {
-      "src": "favicon_sem_fundo.jpg",
+      "src": "favicon_sem_fundo.png",
       "type": "image/png",
       "sizes": "192x192"
     },

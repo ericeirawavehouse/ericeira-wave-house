@@ -11,7 +11,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           <div>
-            <h3 className="font-heading text-2xl font-semibold text-background mb-4">Ericeira Wave House</h3>
+            <h3 translate="no" className="notranslate font-heading text-2xl font-semibold text-background mb-4">Ericeira Wave House</h3>
             <p className="text-sm leading-relaxed opacity-70 max-w-xs">
               {t('hero.subtitle')}
             </p>
@@ -41,7 +41,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="border-t border-background/10 mt-12 pt-8 text-center">
-          <p className="text-xs opacity-50">© {new Date().getFullYear()} Ericeira Wave House. {t('footer.rights')}</p>
+          <p className="text-xs opacity-50">© {new Date().getFullYear()} <span translate="no" className="notranslate">Ericeira Wave House</span>. {t('footer.rights')}</p>
         </div>
       </div>
     </footer>
