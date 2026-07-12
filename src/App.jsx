@@ -22,6 +22,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminBookings from './pages/admin/AdminBookings';
 import AdminMessages from './pages/admin/AdminMessages';
 import AdminTrash from './pages/admin/AdminTrash';
+import AdminPricing from './pages/admin/AdminPricing';
 import AdminLogin from './pages/admin/AdminLogin';
 import PageNotFound from './lib/PageNotFound';
 
@@ -59,6 +60,7 @@ function App() {
                 <Route path="bookings" element={<AdminBookings />} />
                 <Route path="messages" element={<AdminMessages />} />
                 <Route path="trash" element={<AdminTrash />} />
+                <Route path="pricing" element={<AdminPricing />} />
               </Route>
 
               <Route path="*" element={<PageNotFound />} />

@@ -13,7 +13,7 @@ import { Home, Waves, Loader2, CheckCircle } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import FadeInView from '../components/shared/FadeInView';
 import SectionHeading from '../components/shared/SectionHeading';
-import { format, eachDayOfInterval, parseISO } from 'date-fns';
+import { format, eachDayOfInterval, parseISO, differenceInCalendarDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
 
 export default function Booking() {
@@ -47,6 +47,24 @@ export default function Booking() {
     if (!b.check_in || !b.check_out) return [];
     return eachDayOfInterval({ start: parseISO(b.check_in), end: parseISO(b.check_out) });
   });
+
+  // Preços definidos no admin
+  const { data: pricing } = useQuery({
+    queryKey: ['site-settings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('accommodation_price_per_night, surf_lesson_price')
+        .eq('id', 1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const nights = dateRange.from && dateRange.to ? differenceInCalendarDays(dateRange.to, dateRange.from) : 0;
+  const accommodationTotal = (pricing?.accommodation_price_per_night || 0) * nights;
+  const surfTotal = pricing?.surf_lesson_price || 0;
 
   // 3. SUBMISSÃO DA RESERVA (SUPABASE)
   const handleSubmit = async (e) => {
@@ -197,6 +215,28 @@ export default function Booking() {
                   </div>
                 )}
               </div>
+
+              {/* Resumo de preço, estilo Airbnb */}
+              {type === 'accommodation' && nights > 0 && pricing && (
+                <div className="border-t border-border pt-6 space-y-2">
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span>€{pricing.accommodation_price_per_night} x {nights} {nights === 1 ? 'noite' : 'noites'}</span>
+                    <span>€{accommodationTotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center justify-between font-semibold pt-2 border-t border-border">
+                    <span>Total</span>
+                    <span>€{accommodationTotal.toFixed(2)}</span>
+                  </div>
+                </div>
+              )}
+              {type === 'surf' && surfDate && pricing && (
+                <div className="border-t border-border pt-6 space-y-2">
+                  <div className="flex items-center justify-between font-semibold">
+                    <span>Total</span>
+                    <span>€{surfTotal.toFixed(2)}</span>
+                  </div>
+                </div>
+              )}
 
               {type === 'surf' && (
                 <div>

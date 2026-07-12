@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
-import { LayoutDashboard, CalendarCheck, MessageSquare, Trash2, Home, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, CalendarCheck, MessageSquare, Trash2, Home, LogOut, Menu, X, Euro } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 
 export default function AdminLayout() {
@@ -27,6 +27,7 @@ export default function AdminLayout() {
     { path: '/admin/bookings', icon: CalendarCheck, label: 'Reservas', badge: counts?.pending },
     { path: '/admin/messages', icon: MessageSquare, label: 'Mensagens', badge: counts?.unread },
     { path: '/admin/trash', icon: Trash2, label: 'Lixo' },
+    { path: '/admin/pricing', icon: Euro, label: 'Preços' },
   ];
 
   const isActive = (item) => (item.exact ? location.pathname === item.path : location.pathname.startsWith(item.path));
