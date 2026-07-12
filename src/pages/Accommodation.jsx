@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/lib/i18n';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -81,6 +81,19 @@ export default function Accommodation() {
 
   const showPrev = () => setLightboxIndex((i) => (i - 1 + allPhotos.length) % allPhotos.length);
   const showNext = () => setLightboxIndex((i) => (i + 1) % allPhotos.length);
+
+  const touchStartX = useRef(null);
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = (e) => {
+    if (touchStartX.current === null) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+    const threshold = 50;
+    if (deltaX > threshold) showPrev();
+    else if (deltaX < -threshold) showNext();
+    touchStartX.current = null;
+  };
 
   useEffect(() => {
     if (!lightboxOpen) return;
@@ -302,7 +315,11 @@ export default function Accommodation() {
 
       {/* Lightbox de fotos */}
       <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
-        <DialogContent className="max-w-[100vw] w-screen h-screen sm:rounded-none border-0 bg-black/95 p-0 flex items-center justify-center [&>button]:text-white [&>button]:z-20 [&>button]:opacity-80 [&>button]:hover:opacity-100">
+        <DialogContent
+          className="max-w-[100vw] w-screen h-screen sm:rounded-none border-0 bg-black/95 p-0 flex items-center justify-center [&>button]:text-white [&>button]:z-20 [&>button]:opacity-80 [&>button]:hover:opacity-100"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <DialogTitle className="sr-only">
             {allPhotos[lightboxIndex]?.alt}
           </DialogTitle>
