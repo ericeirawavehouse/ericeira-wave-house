@@ -119,6 +119,26 @@ const translations = {
       success: 'Pedido enviado! Entraremos em contacto brevemente.',
       morning: 'Manhã (9h-12h)',
       afternoon: 'Tarde (14h-17h)',
+      backToHome: 'Voltar à página principal',
+      errorTitle: 'Erro',
+      selectDatesError: 'Escolhe as datas de check-in e check-out.',
+      nightsRangeError: 'Esta estadia precisa de ser entre {{min}} e {{max}} noites.',
+      selectSurfDateError: 'Escolhe a data da aula.',
+      selectSurfTimeError: 'Escolhe a hora preferida.',
+      peopleRangeError: 'Esta aula precisa de ser entre {{min}} e {{max}} pessoas.',
+      submitError: 'Não foi possível enviar a reserva.',
+      monthlyDiscount: 'Desconto mensal',
+      weeklyDiscount: 'Desconto semanal',
+      discountBanner: 'Esta estadia tem um {{discount}} de {{percent}}%',
+      night: 'noite',
+      nights_label: 'noites',
+      total: 'Total',
+      surfGroupDiscountBanner: 'Este grupo tem um desconto de {{percent}}%',
+      person: 'pessoa',
+      people: 'pessoas',
+      groupDiscountLabel: 'Desconto de grupo ({{percent}}%)',
+      numberOfPeople: 'Número de pessoas',
+      peopleHint: 'Entre {{min}} e {{max}} pessoas por aula.',
     },
     testimonials: {
       title: 'O que dizem os nossos hóspedes',
@@ -242,6 +262,26 @@ const translations = {
       success: 'Request sent! We\'ll be in touch shortly.',
       morning: 'Morning (9am-12pm)',
       afternoon: 'Afternoon (2pm-5pm)',
+      backToHome: 'Back to home',
+      errorTitle: 'Error',
+      selectDatesError: 'Choose the check-in and check-out dates.',
+      nightsRangeError: 'This stay needs to be between {{min}} and {{max}} nights.',
+      selectSurfDateError: 'Choose the lesson date.',
+      selectSurfTimeError: 'Choose the preferred time.',
+      peopleRangeError: 'This lesson needs to be between {{min}} and {{max}} people.',
+      submitError: 'Could not send the booking.',
+      monthlyDiscount: 'Monthly discount',
+      weeklyDiscount: 'Weekly discount',
+      discountBanner: 'This stay has a {{discount}} of {{percent}}%',
+      night: 'night',
+      nights_label: 'nights',
+      total: 'Total',
+      surfGroupDiscountBanner: 'This group has a {{percent}}% discount',
+      person: 'person',
+      people: 'people',
+      groupDiscountLabel: 'Group discount ({{percent}}%)',
+      numberOfPeople: 'Number of people',
+      peopleHint: 'Between {{min}} and {{max}} people per lesson.',
     },
     testimonials: {
       title: 'What our guests say',
@@ -269,15 +309,21 @@ export function LanguageProvider({ children }) {
     localStorage.setItem('lang', lang);
   }, [lang]);
 
-  /** @param {string} path */
-  const t = (path) => {
+  /** @param {string} path @param {Record<string,string|number>} [vars] */
+  const t = (path, vars) => {
     const keys = path.split('.');
-    let result = translations[lang] || translations['pt']; 
-    
+    let result = translations[lang] || translations['pt'];
+
     for (const key of keys) {
       result = result?.[key];
     }
-    return result || path;
+    let str = result || path;
+    if (vars && typeof str === 'string') {
+      Object.entries(vars).forEach(([key, value]) => {
+        str = str.replace(new RegExp(`{{${key}}}`, 'g'), value);
+      });
+    }
+    return str;
   };
 
   return (

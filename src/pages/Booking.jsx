@@ -119,7 +119,7 @@ export default function Booking() {
     : nights >= 7
       ? (pricing?.weekly_discount_percent || 0)
       : 0;
-  const discountLabel = nights >= 28 ? 'Desconto mensal' : nights >= 7 ? 'Desconto semanal' : '';
+  const discountLabel = nights >= 28 ? t('booking.monthlyDiscount') : nights >= 7 ? t('booking.weeklyDiscount') : '';
   const discountAmount = accommodationSubtotal * (discountPercent / 100);
   const accommodationTotal = accommodationSubtotal - discountAmount;
 
@@ -128,23 +128,23 @@ export default function Booking() {
     e.preventDefault();
 
     if (type === 'accommodation' && (!dateRange.from || !dateRange.to)) {
-      toast({ variant: 'destructive', title: 'Erro', description: 'Escolhe as datas de check-in e check-out.' });
+      toast({ variant: 'destructive', title: t('booking.errorTitle'), description: t('booking.selectDatesError') });
       return;
     }
     if (type === 'accommodation' && (nights < minNights || nights > maxNights)) {
-      toast({ variant: 'destructive', title: 'Erro', description: `Esta estadia precisa de ser entre ${minNights} e ${maxNights} noites.` });
+      toast({ variant: 'destructive', title: t('booking.errorTitle'), description: t('booking.nightsRangeError', { min: minNights, max: maxNights }) });
       return;
     }
     if (type === 'surf' && !surfDate) {
-      toast({ variant: 'destructive', title: 'Erro', description: 'Escolhe a data da aula.' });
+      toast({ variant: 'destructive', title: t('booking.errorTitle'), description: t('booking.selectSurfDateError') });
       return;
     }
     if (type === 'surf' && !form.surf_time) {
-      toast({ variant: 'destructive', title: 'Erro', description: 'Escolhe a hora preferida.' });
+      toast({ variant: 'destructive', title: t('booking.errorTitle'), description: t('booking.selectSurfTimeError') });
       return;
     }
     if (type === 'surf' && (surfGuests < surfMinPeople || surfGuests > surfMaxPeople)) {
-      toast({ variant: 'destructive', title: 'Erro', description: `Esta aula precisa de ser entre ${surfMinPeople} e ${surfMaxPeople} pessoas.` });
+      toast({ variant: 'destructive', title: t('booking.errorTitle'), description: t('booking.peopleRangeError', { min: surfMinPeople, max: surfMaxPeople }) });
       return;
     }
 
@@ -173,7 +173,7 @@ export default function Booking() {
     
     if (error) {
       console.error(error);
-      toast({ variant: "destructive", title: "Erro", description: "Não foi possível enviar a reserva." });
+      toast({ variant: "destructive", title: t('booking.errorTitle'), description: t('booking.submitError') });
     } else {
       setSuccess(true);
       toast({ title: t('booking.success') });
@@ -203,7 +203,7 @@ export default function Booking() {
               to="/"
               className="inline-block bg-primary text-primary-foreground px-8 py-3 text-sm font-medium tracking-wide rounded-full hover:bg-primary/90 transition-all duration-300 mt-2"
             >
-              {lang === 'pt' ? 'Voltar à página principal' : 'Back to home'}
+              {t('booking.backToHome')}
             </Link>
           </div>
         </FadeInView>
@@ -287,13 +287,13 @@ export default function Booking() {
                   {discountPercent > 0 && (
                     <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 text-sm px-4 py-3 rounded-xl">
                       <Tag className="w-4 h-4 shrink-0" />
-                      <span>Esta estadia tem um {discountLabel.toLowerCase()} de {discountPercent}%</span>
+                      <span>{t('booking.discountBanner', { discount: discountLabel.toLowerCase(), percent: discountPercent })}</span>
                     </div>
                   )}
                   <div className="space-y-2">
                     {priceBreakdown.map((seg, i) => (
                       <div key={i} className="flex items-center justify-between text-sm text-muted-foreground">
-                        <span>€{seg.price} x {seg.count} {seg.count === 1 ? 'noite' : 'noites'}</span>
+                        <span>€{seg.price} x {seg.count} {seg.count === 1 ? t('booking.night') : t('booking.nights_label')}</span>
                         <span>€{(seg.price * seg.count).toFixed(2)}</span>
                       </div>
                     ))}
@@ -304,7 +304,7 @@ export default function Booking() {
                       </div>
                     )}
                     <div className="flex items-center justify-between font-semibold pt-2 border-t border-border">
-                      <span>Total</span>
+                      <span>{t('booking.total')}</span>
                       {discountPercent > 0 ? (
                         <span className="flex items-center gap-2">
                           <span className="text-muted-foreground line-through font-normal text-sm">€{accommodationSubtotal.toFixed(2)}</span>
@@ -317,7 +317,7 @@ export default function Booking() {
                   </div>
                   {(nights < minNights || nights > maxNights) && (
                     <p className="text-xs text-destructive">
-                      Esta estadia precisa de ser entre {minNights} e {maxNights} noites.
+                      {t('booking.nightsRangeError', { min: minNights, max: maxNights })}
                     </p>
                   )}
                 </div>
@@ -327,22 +327,22 @@ export default function Booking() {
                   {surfDiscountPercent > 0 && (
                     <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 text-sm px-4 py-3 rounded-xl">
                       <Tag className="w-4 h-4 shrink-0" />
-                      <span>Este grupo tem um desconto de {surfDiscountPercent}%</span>
+                      <span>{t('booking.surfGroupDiscountBanner', { percent: surfDiscountPercent })}</span>
                     </div>
                   )}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
-                      <span>€{surfPricePerPerson} x {surfGuests} {surfGuests === 1 ? 'pessoa' : 'pessoas'}</span>
+                      <span>€{surfPricePerPerson} x {surfGuests} {surfGuests === 1 ? t('booking.person') : t('booking.people')}</span>
                       <span>€{surfSubtotal.toFixed(2)}</span>
                     </div>
                     {surfDiscountPercent > 0 && (
                       <div className="flex items-center justify-between text-sm text-emerald-600">
-                        <span>Desconto de grupo ({surfDiscountPercent}%)</span>
+                        <span>{t('booking.groupDiscountLabel', { percent: surfDiscountPercent })}</span>
                         <span>-€{surfDiscountAmount.toFixed(2)}</span>
                       </div>
                     )}
                     <div className="flex items-center justify-between font-semibold pt-2 border-t border-border">
-                      <span>Total</span>
+                      <span>{t('booking.total')}</span>
                       {surfDiscountPercent > 0 ? (
                         <span className="flex items-center gap-2">
                           <span className="text-muted-foreground line-through font-normal text-sm">€{surfSubtotal.toFixed(2)}</span>
@@ -355,7 +355,7 @@ export default function Booking() {
                   </div>
                   {(surfGuests < surfMinPeople || surfGuests > surfMaxPeople) && (
                     <p className="text-xs text-destructive">
-                      Esta aula precisa de ser entre {surfMinPeople} e {surfMaxPeople} pessoas.
+                      {t('booking.peopleRangeError', { min: surfMinPeople, max: surfMaxPeople })}
                     </p>
                   )}
                 </div>
@@ -393,7 +393,7 @@ export default function Booking() {
                   <Input value={form.guest_phone} onChange={(e) => setForm({ ...form, guest_phone: e.target.value })} required className="rounded-lg" />
                 </div>
                 <div>
-                  <Label className="text-sm mb-2 block">{type === 'surf' ? 'Número de pessoas' : t('booking.guests')}</Label>
+                  <Label className="text-sm mb-2 block">{type === 'surf' ? t('booking.numberOfPeople') : t('booking.guests')}</Label>
                   <Input
                     type="number"
                     min={type === 'surf' ? surfMinPeople : 1}
@@ -404,7 +404,7 @@ export default function Booking() {
                     className="rounded-lg"
                   />
                   {type === 'surf' && (
-                    <p className="text-xs text-muted-foreground mt-1.5">Entre {surfMinPeople} e {surfMaxPeople} pessoas por aula.</p>
+                    <p className="text-xs text-muted-foreground mt-1.5">{t('booking.peopleHint', { min: surfMinPeople, max: surfMaxPeople })}</p>
                   )}
                 </div>
               </div>
