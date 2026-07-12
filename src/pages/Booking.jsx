@@ -56,7 +56,7 @@ export default function Booking() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('site_settings')
-        .select('accommodation_price_per_night, surf_lesson_price, weekend_price_per_night, weekly_discount_percent, monthly_discount_percent, min_nights, max_nights, advance_notice_days')
+        .select('accommodation_price_per_night, surf_lesson_price, weekend_price_per_night, weekly_discount_percent, monthly_discount_percent, min_nights, max_nights, advance_notice_days, surf_group_discount_threshold, surf_group_discount_percent, surf_large_group_threshold, surf_large_group_discount_percent, surf_min_people, surf_max_people, surf_advance_notice_days')
         .eq('id', 1)
         .maybeSingle();
       if (error) throw error;
@@ -79,7 +79,20 @@ export default function Booking() {
   const nights = dateRange.from && dateRange.to ? differenceInCalendarDays(dateRange.to, dateRange.from) : 0;
   const surfGuests = form.guests_count || 1;
   const surfPricePerPerson = pricing?.surf_lesson_price || 0;
-  const surfTotal = surfPricePerPerson * surfGuests;
+  const surfMinPeople = pricing?.surf_min_people || 1;
+  const surfMaxPeople = pricing?.surf_max_people || 10;
+  const surfAdvanceNoticeDays = pricing?.surf_advance_notice_days || 0;
+  const surfEarliestSelectableDate = addDays(new Date(), surfAdvanceNoticeDays);
+  const surfLargeGroupThreshold = pricing?.surf_large_group_threshold || 0;
+  const surfGroupThreshold = pricing?.surf_group_discount_threshold || 0;
+  const surfDiscountPercent = (surfLargeGroupThreshold > 0 && surfGuests >= surfLargeGroupThreshold)
+    ? (pricing?.surf_large_group_discount_percent || 0)
+    : (surfGroupThreshold > 0 && surfGuests >= surfGroupThreshold)
+      ? (pricing?.surf_group_discount_percent || 0)
+      : 0;
+  const surfSubtotal = surfPricePerPerson * surfGuests;
+  const surfDiscountAmount = surfSubtotal * (surfDiscountPercent / 100);
+  const surfTotal = surfSubtotal - surfDiscountAmount;
   const minNights = pricing?.min_nights || 1;
   const maxNights = pricing?.max_nights || 30;
   const advanceNoticeDays = pricing?.advance_notice_days || 0;
@@ -128,6 +141,10 @@ export default function Booking() {
     }
     if (type === 'surf' && !form.surf_time) {
       toast({ variant: 'destructive', title: 'Erro', description: 'Escolhe a hora preferida.' });
+      return;
+    }
+    if (type === 'surf' && (surfGuests < surfMinPeople || surfGuests > surfMaxPeople)) {
+      toast({ variant: 'destructive', title: 'Erro', description: `Esta aula precisa de ser entre ${surfMinPeople} e ${surfMaxPeople} pessoas.` });
       return;
     }
 
@@ -256,7 +273,7 @@ export default function Booking() {
                       mode="single"
                       selected={surfDate}
                       onSelect={setSurfDate}
-                      disabled={(date) => date < new Date()}
+                      disabled={(date) => date < surfEarliestSelectableDate}
                       locale={lang === 'pt' ? pt : undefined}
                       className="rounded-xl"
                     />
@@ -306,15 +323,41 @@ export default function Booking() {
                 </div>
               )}
               {type === 'surf' && surfDate && pricing && (
-                <div className="border-t border-border pt-6 space-y-2">
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>€{surfPricePerPerson} x {surfGuests} {surfGuests === 1 ? 'pessoa' : 'pessoas'}</span>
-                    <span>€{surfTotal.toFixed(2)}</span>
+                <div className="border-t border-border pt-6 space-y-4">
+                  {surfDiscountPercent > 0 && (
+                    <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 text-sm px-4 py-3 rounded-xl">
+                      <Tag className="w-4 h-4 shrink-0" />
+                      <span>Este grupo tem um desconto de {surfDiscountPercent}%</span>
+                    </div>
+                  )}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <span>€{surfPricePerPerson} x {surfGuests} {surfGuests === 1 ? 'pessoa' : 'pessoas'}</span>
+                      <span>€{surfSubtotal.toFixed(2)}</span>
+                    </div>
+                    {surfDiscountPercent > 0 && (
+                      <div className="flex items-center justify-between text-sm text-emerald-600">
+                        <span>Desconto de grupo ({surfDiscountPercent}%)</span>
+                        <span>-€{surfDiscountAmount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between font-semibold pt-2 border-t border-border">
+                      <span>Total</span>
+                      {surfDiscountPercent > 0 ? (
+                        <span className="flex items-center gap-2">
+                          <span className="text-muted-foreground line-through font-normal text-sm">€{surfSubtotal.toFixed(2)}</span>
+                          <span>€{surfTotal.toFixed(2)}</span>
+                        </span>
+                      ) : (
+                        <span>€{surfTotal.toFixed(2)}</span>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between font-semibold pt-2 border-t border-border">
-                    <span>Total</span>
-                    <span>€{surfTotal.toFixed(2)}</span>
-                  </div>
+                  {(surfGuests < surfMinPeople || surfGuests > surfMaxPeople) && (
+                    <p className="text-xs text-destructive">
+                      Esta aula precisa de ser entre {surfMinPeople} e {surfMaxPeople} pessoas.
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -351,7 +394,18 @@ export default function Booking() {
                 </div>
                 <div>
                   <Label className="text-sm mb-2 block">{t('booking.guests')}</Label>
-                  <Input type="number" min={1} max={10} value={form.guests_count} onChange={(e) => setForm({ ...form, guests_count: parseInt(e.target.value) })} required className="rounded-lg" />
+                  <Input
+                    type="number"
+                    min={type === 'surf' ? surfMinPeople : 1}
+                    max={type === 'surf' ? surfMaxPeople : 10}
+                    value={form.guests_count}
+                    onChange={(e) => setForm({ ...form, guests_count: parseInt(e.target.value) })}
+                    required
+                    className="rounded-lg"
+                  />
+                  {type === 'surf' && (
+                    <p className="text-xs text-muted-foreground mt-1.5">Entre {surfMinPeople} e {surfMaxPeople} pessoas por aula.</p>
+                  )}
                 </div>
               </div>
               <div>

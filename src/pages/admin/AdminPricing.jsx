@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Loader2, Home, Waves, Plus, Trash2, CalendarRange, CalendarDays, Percent, Clock } from 'lucide-react';
+import { Loader2, Home, Waves, Plus, Trash2, CalendarRange, CalendarDays, Percent, Clock, Users } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
 import PricingCalendar from '@/components/admin/PricingCalendar';
@@ -20,6 +20,13 @@ export default function AdminPricing() {
   const [minNights, setMinNights] = useState('');
   const [maxNights, setMaxNights] = useState('');
   const [advanceNoticeDays, setAdvanceNoticeDays] = useState('');
+  const [surfGroupThreshold, setSurfGroupThreshold] = useState('');
+  const [surfGroupDiscount, setSurfGroupDiscount] = useState('');
+  const [surfLargeGroupThreshold, setSurfLargeGroupThreshold] = useState('');
+  const [surfLargeGroupDiscount, setSurfLargeGroupDiscount] = useState('');
+  const [surfMinPeople, setSurfMinPeople] = useState('');
+  const [surfMaxPeople, setSurfMaxPeople] = useState('');
+  const [surfAdvanceNoticeDays, setSurfAdvanceNoticeDays] = useState('');
   const [newPeriod, setNewPeriod] = useState({ name: '', start_date: '', end_date: '', price_per_night: '' });
 
   const { data, isLoading } = useQuery({
@@ -62,6 +69,13 @@ export default function AdminPricing() {
       setMinNights(String(data.min_nights ?? 1));
       setMaxNights(String(data.max_nights ?? 30));
       setAdvanceNoticeDays(String(data.advance_notice_days ?? 0));
+      setSurfGroupThreshold(String(data.surf_group_discount_threshold ?? 0));
+      setSurfGroupDiscount(String(data.surf_group_discount_percent ?? 0));
+      setSurfLargeGroupThreshold(String(data.surf_large_group_threshold ?? 0));
+      setSurfLargeGroupDiscount(String(data.surf_large_group_discount_percent ?? 0));
+      setSurfMinPeople(String(data.surf_min_people ?? 1));
+      setSurfMaxPeople(String(data.surf_max_people ?? 10));
+      setSurfAdvanceNoticeDays(String(data.surf_advance_notice_days ?? 0));
     }
   }, [data]);
 
@@ -78,6 +92,13 @@ export default function AdminPricing() {
           min_nights: parseInt(minNights) || 1,
           max_nights: parseInt(maxNights) || 30,
           advance_notice_days: parseInt(advanceNoticeDays) || 0,
+          surf_group_discount_threshold: parseInt(surfGroupThreshold) || 0,
+          surf_group_discount_percent: parseFloat(surfGroupDiscount) || 0,
+          surf_large_group_threshold: parseInt(surfLargeGroupThreshold) || 0,
+          surf_large_group_discount_percent: parseFloat(surfLargeGroupDiscount) || 0,
+          surf_min_people: parseInt(surfMinPeople) || 1,
+          surf_max_people: parseInt(surfMaxPeople) || 10,
+          surf_advance_notice_days: parseInt(surfAdvanceNoticeDays) || 0,
           updated_at: new Date().toISOString(),
         })
         .eq('id', 1);
@@ -148,10 +169,7 @@ export default function AdminPricing() {
   return (
     <div className="max-w-4xl mx-auto">
       <h1 className="font-heading text-2xl font-semibold mb-1">Preços</h1>
-      <p className="text-sm text-muted-foreground mb-8">
-        Estes valores aparecem automaticamente no site quando alguém escolhe datas na página de Reservar.
-      </p>
-
+      
       <Tabs defaultValue="calendar">
         <TabsList className="bg-muted p-1.5 rounded-full mb-8 flex-wrap h-auto border border-border/60 inline-flex w-auto">
           <TabsTrigger value="calendar" className="rounded-full px-6">Calendário</TabsTrigger>
@@ -159,6 +177,7 @@ export default function AdminPricing() {
           <TabsTrigger value="periods" className="rounded-full px-6">Períodos</TabsTrigger>
           <TabsTrigger value="discounts" className="rounded-full px-6">Descontos</TabsTrigger>
           <TabsTrigger value="availability" className="rounded-full px-6">Disponibilidade</TabsTrigger>
+          <TabsTrigger value="surf" className="rounded-full px-6">Surf</TabsTrigger>
         </TabsList>
 
         <TabsContent value="calendar">
@@ -198,22 +217,6 @@ export default function AdminPricing() {
               placeholder="Igual ao preço base"
               value={weekendPrice}
               onChange={(e) => setWeekendPrice(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <Waves className="w-5 h-5 text-primary" />
-          </div>
-          <div className="flex-1">
-            <Label className="text-sm mb-2 block">Preço por aula - Surf (€)</Label>
-            <Input
-              type="number"
-              min="0"
-              step="0.01"
-              value={surfPrice}
-              onChange={(e) => setSurfPrice(e.target.value)}
             />
           </div>
         </div>
@@ -377,6 +380,117 @@ export default function AdminPricing() {
             {saveMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
             Guardar preços
           </Button>
+        </div>
+      </div>
+        </TabsContent>
+
+        <TabsContent value="surf">
+      <div className="max-w-2xl space-y-10">
+        <div>
+          <p className="text-sm text-muted-foreground mb-6">
+            Preço base das aulas de surf, por pessoa.
+          </p>
+          <div className="bg-card border border-border rounded-2xl p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <Waves className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <Label className="text-sm mb-2 block">Preço por pessoa - Surf (€)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={surfPrice}
+                  onChange={(e) => setSurfPrice(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h2 className="font-heading text-lg font-semibold mb-1">Desconto de grupo</h2>
+          <p className="text-sm text-muted-foreground mb-6">
+            Aplica um desconto automático quando o grupo tem um certo número de pessoas. O desconto de grupo grande substitui o normal quando ambos se aplicam.
+          </p>
+          <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <Users className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1 grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">A partir de (pessoas)</Label>
+                  <Input type="number" min="0" step="1" value={surfGroupThreshold} onChange={(e) => setSurfGroupThreshold(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">Desconto (%)</Label>
+                  <Input type="number" min="0" max="100" step="1" value={surfGroupDiscount} onChange={(e) => setSurfGroupDiscount(e.target.value)} />
+                </div>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <Users className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1 grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">Grupo grande a partir de (pessoas)</Label>
+                  <Input type="number" min="0" step="1" value={surfLargeGroupThreshold} onChange={(e) => setSurfLargeGroupThreshold(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">Desconto (%)</Label>
+                  <Input type="number" min="0" max="100" step="1" value={surfLargeGroupDiscount} onChange={(e) => setSurfLargeGroupDiscount(e.target.value)} />
+                </div>
+              </div>
+            </div>
+            <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="w-full rounded-full">
+              {saveMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+              Guardar preços
+            </Button>
+          </div>
+        </div>
+
+        <div>
+          <h2 className="font-heading text-lg font-semibold mb-1">Regras da aula</h2>
+          <p className="text-sm text-muted-foreground mb-6">
+            Limites de pessoas por aula e aviso prévio mínimo, só para aulas de Surf.
+          </p>
+          <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <Users className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <Label className="text-sm mb-2 block">Mínimo de pessoas por aula</Label>
+                <Input type="number" min="1" step="1" value={surfMinPeople} onChange={(e) => setSurfMinPeople(e.target.value)} />
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <Users className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <Label className="text-sm mb-2 block">Máximo de pessoas por aula</Label>
+                <Input type="number" min="1" step="1" value={surfMaxPeople} onChange={(e) => setSurfMaxPeople(e.target.value)} />
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <Clock className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <Label className="text-sm mb-2 block">Aviso prévio (dias)</Label>
+                <p className="text-xs text-muted-foreground mb-2">Não permite marcar aulas para menos do que este número de dias a partir de hoje.</p>
+                <Input type="number" min="0" step="1" value={surfAdvanceNoticeDays} onChange={(e) => setSurfAdvanceNoticeDays(e.target.value)} />
+              </div>
+            </div>
+            <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="w-full rounded-full">
+              {saveMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+              Guardar preços
+            </Button>
+          </div>
         </div>
       </div>
         </TabsContent>
