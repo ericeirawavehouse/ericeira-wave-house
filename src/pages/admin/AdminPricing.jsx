@@ -8,6 +8,7 @@ import { Loader2, Home, Waves, Plus, Trash2, CalendarRange, CalendarDays, Percen
 import { toast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
 import PricingCalendar from '@/components/admin/PricingCalendar';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 export default function AdminPricing() {
   const queryClient = useQueryClient();
@@ -151,14 +152,23 @@ export default function AdminPricing() {
         Estes valores aparecem automaticamente no site quando alguém escolhe datas na página de Reservar.
       </p>
 
-      <div className="mb-10">
-        <h2 className="font-heading text-xl font-semibold mb-1">Calendário de preços</h2>
-        <p className="text-sm text-muted-foreground mb-6">
-          Vê o preço de cada dia de um relance. Clica num dia para o alterar manualmente.
-        </p>
-        <PricingCalendar settings={data} periods={periods} />
-      </div>
+      <Tabs defaultValue="calendar">
+        <TabsList className="bg-muted p-1.5 rounded-full mb-8 flex-wrap h-auto border border-border/60 inline-flex w-auto">
+          <TabsTrigger value="calendar" className="rounded-full px-6">Calendário</TabsTrigger>
+          <TabsTrigger value="base" className="rounded-full px-6">Preços</TabsTrigger>
+          <TabsTrigger value="periods" className="rounded-full px-6">Períodos</TabsTrigger>
+          <TabsTrigger value="discounts" className="rounded-full px-6">Descontos</TabsTrigger>
+          <TabsTrigger value="availability" className="rounded-full px-6">Disponibilidade</TabsTrigger>
+        </TabsList>
 
+        <TabsContent value="calendar">
+          <p className="text-sm text-muted-foreground mb-6">
+            Vê o preço de cada dia de um relance. Clica num dia para o alterar manualmente.
+          </p>
+          <PricingCalendar settings={data} periods={periods} />
+        </TabsContent>
+
+        <TabsContent value="base">
       <div className="max-w-2xl bg-card border border-border rounded-2xl p-6 space-y-6">
         <div className="flex items-start gap-4">
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -220,9 +230,10 @@ export default function AdminPricing() {
           Guardar preços
         </Button>
       </div>
+        </TabsContent>
 
-      <div className="mt-10 max-w-2xl">
-        <h2 className="font-heading text-xl font-semibold mb-1">Períodos especiais</h2>
+        <TabsContent value="periods">
+      <div className="max-w-2xl">
         <p className="text-sm text-muted-foreground mb-6">
           Define preços diferentes por intervalo de datas (ex: época alta, Natal, Ano Novo) — tal como no Airbnb. Tem sempre prioridade sobre o preço base.
         </p>
@@ -295,9 +306,10 @@ export default function AdminPricing() {
           </div>
         )}
       </div>
+        </TabsContent>
 
-      <div className="mt-10 max-w-2xl">
-        <h2 className="font-heading text-xl font-semibold mb-1">Descontos</h2>
+        <TabsContent value="discounts">
+      <div className="max-w-2xl">
         <p className="text-sm text-muted-foreground mb-6">
           Descontos automáticos por duração da estadia, aplicados ao total do Alojamento.
         </p>
@@ -327,9 +339,10 @@ export default function AdminPricing() {
           </Button>
         </div>
       </div>
+        </TabsContent>
 
-      <div className="mt-10 max-w-2xl">
-        <h2 className="font-heading text-xl font-semibold mb-1">Disponibilidade</h2>
+        <TabsContent value="availability">
+      <div className="max-w-2xl">
         <p className="text-sm text-muted-foreground mb-6">
           Regras aplicadas a todas as reservas de Alojamento.
         </p>
@@ -369,6 +382,8 @@ export default function AdminPricing() {
           </Button>
         </div>
       </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
