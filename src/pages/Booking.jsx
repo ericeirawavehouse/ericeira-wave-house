@@ -13,7 +13,7 @@ import { Home, Waves, Loader2, CheckCircle } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import FadeInView from '../components/shared/FadeInView';
 import SectionHeading from '../components/shared/SectionHeading';
-import { format, eachDayOfInterval, parseISO, differenceInCalendarDays, subDays } from 'date-fns';
+import { format, eachDayOfInterval, parseISO, differenceInCalendarDays, subDays, addDays, getDay } from 'date-fns';
 import { pt } from 'date-fns/locale';
 
 export default function Booking() {
@@ -54,7 +54,7 @@ export default function Booking() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('site_settings')
-        .select('accommodation_price_per_night, surf_lesson_price')
+        .select('accommodation_price_per_night, surf_lesson_price, weekend_price_per_night, weekly_discount_percent, monthly_discount_percent, min_nights, max_nights, advance_notice_days')
         .eq('id', 1)
         .maybeSingle();
       if (error) throw error;
@@ -76,11 +76,21 @@ export default function Booking() {
 
   const nights = dateRange.from && dateRange.to ? differenceInCalendarDays(dateRange.to, dateRange.from) : 0;
   const surfTotal = pricing?.surf_lesson_price || 0;
+  const minNights = pricing?.min_nights || 1;
+  const maxNights = pricing?.max_nights || 30;
+  const advanceNoticeDays = pricing?.advance_notice_days || 0;
+  const earliestSelectableDate = addDays(new Date(), advanceNoticeDays);
 
   const priceForNight = (date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     const period = pricingPeriods.find((p) => dateStr >= p.start_date && dateStr <= p.end_date);
-    return period ? Number(period.price_per_night) : Number(pricing?.accommodation_price_per_night || 0);
+    if (period) return Number(period.price_per_night);
+
+    const isWeekend = [5, 6].includes(getDay(date)); // sexta ou sábado
+    if (isWeekend && pricing?.weekend_price_per_night != null) {
+      return Number(pricing.weekend_price_per_night);
+    }
+    return Number(pricing?.accommodation_price_per_night || 0);
   };
 
   // Agrupa noites consecutivas com o mesmo preço, para mostrar como no Airbnb
@@ -97,7 +107,16 @@ export default function Booking() {
       }
     });
   }
-  const accommodationTotal = priceBreakdown.reduce((sum, seg) => sum + seg.price * seg.count, 0);
+  const accommodationSubtotal = priceBreakdown.reduce((sum, seg) => sum + seg.price * seg.count, 0);
+
+  const discountPercent = nights >= 28
+    ? (pricing?.monthly_discount_percent || 0)
+    : nights >= 7
+      ? (pricing?.weekly_discount_percent || 0)
+      : 0;
+  const discountLabel = nights >= 28 ? 'Desconto mensal' : nights >= 7 ? 'Desconto semanal' : '';
+  const discountAmount = accommodationSubtotal * (discountPercent / 100);
+  const accommodationTotal = accommodationSubtotal - discountAmount;
 
   // 3. SUBMISSÃO DA RESERVA (SUPABASE)
   const handleSubmit = async (e) => {
@@ -105,6 +124,10 @@ export default function Booking() {
 
     if (type === 'accommodation' && (!dateRange.from || !dateRange.to)) {
       toast({ variant: 'destructive', title: 'Erro', description: 'Escolhe as datas de check-in e check-out.' });
+      return;
+    }
+    if (type === 'accommodation' && (nights < minNights || nights > maxNights)) {
+      toast({ variant: 'destructive', title: 'Erro', description: `Esta estadia precisa de ser entre ${minNights} e ${maxNights} noites.` });
       return;
     }
     if (type === 'surf' && !surfDate) {
@@ -227,7 +250,7 @@ export default function Booking() {
                       onSelect={setDateRange}
                       numberOfMonths={2}
                       disabled={(date) =>
-                        date < new Date() ||
+                        date < earliestSelectableDate ||
                         disabledDates.some((d) => d.toDateString() === date.toDateString())
                       }
                       locale={lang === 'pt' ? pt : undefined}
@@ -258,10 +281,21 @@ export default function Booking() {
                       <span>€{(seg.price * seg.count).toFixed(2)}</span>
                     </div>
                   ))}
+                  {discountPercent > 0 && (
+                    <div className="flex items-center justify-between text-sm text-emerald-600">
+                      <span>{discountLabel} ({discountPercent}%)</span>
+                      <span>-€{discountAmount.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between font-semibold pt-2 border-t border-border">
                     <span>Total</span>
                     <span>€{accommodationTotal.toFixed(2)}</span>
                   </div>
+                  {(nights < minNights || nights > maxNights) && (
+                    <p className="text-xs text-destructive pt-1">
+                      Esta estadia precisa de ser entre {minNights} e {maxNights} noites.
+                    </p>
+                  )}
                 </div>
               )}
               {type === 'surf' && surfDate && pricing && (

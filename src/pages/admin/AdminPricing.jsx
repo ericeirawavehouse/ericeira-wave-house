@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Loader2, Home, Waves, Plus, Trash2, CalendarRange } from 'lucide-react';
+import { Loader2, Home, Waves, Plus, Trash2, CalendarRange, CalendarDays, Percent, Clock } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
 
@@ -12,6 +12,12 @@ export default function AdminPricing() {
   const queryClient = useQueryClient();
   const [accommodationPrice, setAccommodationPrice] = useState('');
   const [surfPrice, setSurfPrice] = useState('');
+  const [weekendPrice, setWeekendPrice] = useState('');
+  const [weeklyDiscount, setWeeklyDiscount] = useState('');
+  const [monthlyDiscount, setMonthlyDiscount] = useState('');
+  const [minNights, setMinNights] = useState('');
+  const [maxNights, setMaxNights] = useState('');
+  const [advanceNoticeDays, setAdvanceNoticeDays] = useState('');
   const [newPeriod, setNewPeriod] = useState({ name: '', start_date: '', end_date: '', price_per_night: '' });
 
   const { data, isLoading } = useQuery({
@@ -43,6 +49,12 @@ export default function AdminPricing() {
     if (data) {
       setAccommodationPrice(String(data.accommodation_price_per_night ?? ''));
       setSurfPrice(String(data.surf_lesson_price ?? ''));
+      setWeekendPrice(data.weekend_price_per_night != null ? String(data.weekend_price_per_night) : '');
+      setWeeklyDiscount(String(data.weekly_discount_percent ?? 0));
+      setMonthlyDiscount(String(data.monthly_discount_percent ?? 0));
+      setMinNights(String(data.min_nights ?? 1));
+      setMaxNights(String(data.max_nights ?? 30));
+      setAdvanceNoticeDays(String(data.advance_notice_days ?? 0));
     }
   }, [data]);
 
@@ -53,6 +65,12 @@ export default function AdminPricing() {
         .update({
           accommodation_price_per_night: parseFloat(accommodationPrice) || 0,
           surf_lesson_price: parseFloat(surfPrice) || 0,
+          weekend_price_per_night: weekendPrice === '' ? null : parseFloat(weekendPrice) || 0,
+          weekly_discount_percent: parseFloat(weeklyDiscount) || 0,
+          monthly_discount_percent: parseFloat(monthlyDiscount) || 0,
+          min_nights: parseInt(minNights) || 1,
+          max_nights: parseInt(maxNights) || 30,
+          advance_notice_days: parseInt(advanceNoticeDays) || 0,
           updated_at: new Date().toISOString(),
         })
         .eq('id', 1);
@@ -141,6 +159,24 @@ export default function AdminPricing() {
               step="0.01"
               value={accommodationPrice}
               onChange={(e) => setAccommodationPrice(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="flex items-start gap-4">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <CalendarDays className="w-5 h-5 text-primary" />
+          </div>
+          <div className="flex-1">
+            <Label className="text-sm mb-2 block">Preço de fim de semana — Alojamento (€)</Label>
+            <p className="text-xs text-muted-foreground mb-2">Aplicado a sexta e sábado à noite. Deixa em branco para usar sempre o preço base.</p>
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="Igual ao preço base"
+              value={weekendPrice}
+              onChange={(e) => setWeekendPrice(e.target.value)}
             />
           </div>
         </div>
@@ -244,6 +280,80 @@ export default function AdminPricing() {
             ))}
           </div>
         )}
+      </div>
+
+      <div className="mt-10">
+        <h2 className="font-heading text-xl font-semibold mb-1">Descontos</h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          Descontos automáticos por duração da estadia, aplicados ao total do Alojamento.
+        </p>
+
+        <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Percent className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <Label className="text-sm mb-2 block">Desconto semanal (%) — para 7 ou mais noites</Label>
+              <Input type="number" min="0" max="100" step="1" value={weeklyDiscount} onChange={(e) => setWeeklyDiscount(e.target.value)} />
+            </div>
+          </div>
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Percent className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <Label className="text-sm mb-2 block">Desconto mensal (%) — para 28 ou mais noites</Label>
+              <Input type="number" min="0" max="100" step="1" value={monthlyDiscount} onChange={(e) => setMonthlyDiscount(e.target.value)} />
+            </div>
+          </div>
+          <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="w-full rounded-full">
+            {saveMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+            Guardar preços
+          </Button>
+        </div>
+      </div>
+
+      <div className="mt-10">
+        <h2 className="font-heading text-xl font-semibold mb-1">Disponibilidade</h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          Regras aplicadas a todas as reservas de Alojamento.
+        </p>
+
+        <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <CalendarRange className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <Label className="text-sm mb-2 block">Mínimo de noites</Label>
+              <Input type="number" min="1" step="1" value={minNights} onChange={(e) => setMinNights(e.target.value)} />
+            </div>
+          </div>
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <CalendarRange className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <Label className="text-sm mb-2 block">Máximo de noites</Label>
+              <Input type="number" min="1" step="1" value={maxNights} onChange={(e) => setMaxNights(e.target.value)} />
+            </div>
+          </div>
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Clock className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <Label className="text-sm mb-2 block">Aviso prévio (dias)</Label>
+              <p className="text-xs text-muted-foreground mb-2">Não permite reservas para menos do que este número de dias a partir de hoje.</p>
+              <Input type="number" min="0" step="1" value={advanceNoticeDays} onChange={(e) => setAdvanceNoticeDays(e.target.value)} />
+            </div>
+          </div>
+          <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="w-full rounded-full">
+            {saveMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+            Guardar preços
+          </Button>
+        </div>
       </div>
     </div>
   );
