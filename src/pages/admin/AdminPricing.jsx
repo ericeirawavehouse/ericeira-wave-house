@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
@@ -46,8 +46,13 @@ export default function AdminPricing() {
     },
   });
 
+  // Só sincroniza os campos com os dados do servidor na primeira vez que carregam.
+  // Isto evita que um refetch em segundo plano (ex: ao voltar à aba do browser)
+  // apague o que a pessoa está a escrever antes de guardar.
+  const hasLoadedRef = useRef(false);
   useEffect(() => {
-    if (data) {
+    if (data && !hasLoadedRef.current) {
+      hasLoadedRef.current = true;
       setAccommodationPrice(String(data.accommodation_price_per_night ?? ''));
       setSurfPrice(String(data.surf_lesson_price ?? ''));
       setWeekendPrice(data.weekend_price_per_night != null ? String(data.weekend_price_per_night) : '');
