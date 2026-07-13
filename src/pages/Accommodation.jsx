@@ -24,21 +24,19 @@ import imgEscritorio from '@/images/Casa/escritorio.jpeg';
 import imgRua from '@/images/Casa/rua.png';
 
 // Todas as fotos da casa, numa lista só, organizadas por divisão
-const allPhotos = [
-  { src: imgSala, alt: 'Sala de estar' },
-  { src: imgMesa, alt: 'Zona de Jantar' },
-  { src: imgVaranda, alt: 'Varanda' },
-  { src: imgPrancha, alt: 'Hall de entrada' },
-  { src: imgQuarto2, alt: 'Quarto Principal' },
-  { src: imgQuarto1, alt: 'Quarto' },
-  { src: imgEscritorio, alt: 'Escritório' },
-  { src: imgCasaDeBanho, alt: 'Casa de Banho' },
-  { src: imgCasaDeBanho2, alt: 'Casa de Banho' },
-  { src: imgCozinha, alt: 'Cozinha' },
-  { src: imgRua, alt: 'Envolvente' },
+const getAllPhotos = (t) => [
+  { src: imgSala, alt: t('accommodation.gallery.livingRoom') },
+  { src: imgMesa, alt: t('accommodation.gallery.diningArea') },
+  { src: imgVaranda, alt: t('accommodation.gallery.balcony') },
+  { src: imgPrancha, alt: t('accommodation.gallery.entranceHall') },
+  { src: imgQuarto2, alt: t('accommodation.gallery.masterBedroom') },
+  { src: imgQuarto1, alt: t('accommodation.gallery.bedroom') },
+  { src: imgEscritorio, alt: t('accommodation.gallery.office') },
+  { src: imgCasaDeBanho, alt: t('accommodation.gallery.bathroom') },
+  { src: imgCasaDeBanho2, alt: t('accommodation.gallery.bathroom') },
+  { src: imgCozinha, alt: t('accommodation.gallery.kitchen') },
+  { src: imgRua, alt: t('accommodation.gallery.surroundings') },
 ];
-
-const heroPhotos = allPhotos.slice(0, 5);
 
 const rooms = [
   // Trocámos a ordem das imagens aqui para o Quarto Principal (room1) ficar com a cama Queen (imgQuarto2)
@@ -70,6 +68,8 @@ const amenityIcons = {
 
 export default function Accommodation() {
   const { t } = useLanguage();
+  const allPhotos = getAllPhotos(t);
+  const heroPhotos = allPhotos.slice(0, 5);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
@@ -137,7 +137,7 @@ export default function Accommodation() {
             onClick={() => openLightbox(allPhotos[0].src)}
             className="mt-3 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors lg:hidden"
           >
-            <Expand className="w-4 h-4" /> Ver todas as fotos ({allPhotos.length})
+            <Expand className="w-4 h-4" /> {t('accommodation.seeAllPhotos', { count: allPhotos.length })}
           </button>
         </div>
       </section>
@@ -173,11 +173,11 @@ export default function Accommodation() {
       <section className="px-6 pb-24">
         <div className="max-w-7xl mx-auto">
           <Tabs defaultValue="overview">
-            <TabsList className="bg-muted p-1.5 rounded-full mb-12 flex-wrap h-auto border border-border/60">
-              <TabsTrigger value="overview" className="rounded-full px-6">{t('accommodation.overview')}</TabsTrigger>
-              <TabsTrigger value="rooms" className="rounded-full px-6">{t('accommodation.rooms')}</TabsTrigger>
-              <TabsTrigger value="amenities" className="rounded-full px-6">{t('accommodation.amenities')}</TabsTrigger>
-              <TabsTrigger value="location" className="rounded-full px-6">{t('accommodation.location')}</TabsTrigger>
+            <TabsList className="bg-muted p-1.5 rounded-full mb-12 h-auto flex-nowrap overflow-x-auto max-w-full justify-start border border-border/60">
+              <TabsTrigger value="overview" className="rounded-full px-6 shrink-0">{t('accommodation.overview')}</TabsTrigger>
+              <TabsTrigger value="rooms" className="rounded-full px-6 shrink-0">{t('accommodation.rooms')}</TabsTrigger>
+              <TabsTrigger value="amenities" className="rounded-full px-6 shrink-0">{t('accommodation.amenities')}</TabsTrigger>
+              <TabsTrigger value="location" className="rounded-full px-6 shrink-0">{t('accommodation.location')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview">
@@ -234,7 +234,7 @@ export default function Accommodation() {
                           />
                           {isLast && hiddenCount > 0 ? (
                             <div className="absolute inset-0 bg-black/55 flex items-center justify-center text-white font-medium text-lg">
-                              +{hiddenCount} fotos
+                              {t('accommodation.morePhotos', { count: hiddenCount })}
                             </div>
                           ) : (
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
@@ -327,7 +327,7 @@ export default function Accommodation() {
             <button
               onClick={(e) => { e.stopPropagation(); showPrev(); }}
               className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
-              aria-label="Foto anterior"
+              aria-label={t('accommodation.prevPhoto')}
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
@@ -343,7 +343,7 @@ export default function Accommodation() {
             <button
               onClick={(e) => { e.stopPropagation(); showNext(); }}
               className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
-              aria-label="Próxima foto"
+              aria-label={t('accommodation.nextPhoto')}
             >
               <ChevronRight className="w-6 h-6" />
             </button>
