@@ -316,7 +316,7 @@ export default function Accommodation() {
       {/* Lightbox de fotos */}
       <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
         <DialogContent
-          className="max-w-[100vw] w-screen h-screen sm:rounded-none border-0 bg-black/95 p-0 flex items-center justify-center [&>button]:text-white [&>button]:z-20 [&>button]:opacity-80 [&>button]:hover:opacity-100"
+          className="max-w-[100vw] w-screen h-dvh sm:rounded-none border-0 bg-black/95 p-0 flex items-center justify-center [&>button]:text-white [&>button]:z-20 [&>button]:opacity-80 [&>button]:hover:opacity-100 [&>button]:top-[max(1.5rem,env(safe-area-inset-top))] sm:[&>button]:top-4"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
@@ -349,7 +349,7 @@ export default function Accommodation() {
             </button>
           )}
 
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/80 text-sm">
+          <div className="absolute bottom-[max(2.5rem,calc(1rem+env(safe-area-inset-bottom)))] sm:bottom-6 left-1/2 -translate-x-1/2 text-white/80 text-sm">
             {allPhotos[lightboxIndex]?.alt} - {lightboxIndex + 1} / {allPhotos.length}
           </div>
         </DialogContent>

@@ -13,7 +13,7 @@ import { Home, Waves, Loader2, CheckCircle, Tag } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import FadeInView from '../components/shared/FadeInView';
 import SectionHeading from '../components/shared/SectionHeading';
-import { format, eachDayOfInterval, parseISO, differenceInCalendarDays, subDays, addDays } from 'date-fns';
+import { format, eachDayOfInterval, parseISO, differenceInCalendarDays, subDays, addDays, getDay } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { priceForDate } from '@/lib/pricing';
 
@@ -25,6 +25,7 @@ export default function Booking() {
   const [success, setSuccess] = useState(false);
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
   const [surfDate, setSurfDate] = useState(undefined);
+  const [selectedSlotId, setSelectedSlotId] = useState('');
   const [form, setForm] = useState({
     guest_name: '', guest_email: '', guest_phone: '', guests_count: 2, surf_time: '', notes: '',
   });
@@ -76,9 +77,28 @@ export default function Booking() {
     },
   });
 
+  // Horários de aulas de surf definidos pelo admin (dia da semana + hora)
+  const { data: surfSlots = [] } = useQuery({
+    queryKey: ['surf-slots'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('surf_slots')
+        .select('*')
+        .eq('active', true)
+        .order('start_time', { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const nights = dateRange.from && dateRange.to ? differenceInCalendarDays(dateRange.to, dateRange.from) : 0;
   const surfGuests = form.guests_count || 1;
-  const surfPricePerPerson = pricing?.surf_lesson_price || 0;
+  const hasConfiguredSlots = surfSlots.length > 0;
+  const daySlots = surfDate ? surfSlots.filter((s) => s.day_of_week === getDay(surfDate)) : [];
+  const selectedSlot = daySlots.find((s) => String(s.id) === String(selectedSlotId));
+  const surfPricePerPerson = (hasConfiguredSlots && selectedSlot && selectedSlot.price != null)
+    ? selectedSlot.price
+    : (pricing?.surf_lesson_price || 0);
   const surfMinPeople = pricing?.surf_min_people || 1;
   const surfMaxPeople = pricing?.surf_max_people || 10;
   const surfAdvanceNoticeDays = pricing?.surf_advance_notice_days || 0;
@@ -139,7 +159,11 @@ export default function Booking() {
       toast({ variant: 'destructive', title: t('booking.errorTitle'), description: t('booking.selectSurfDateError') });
       return;
     }
-    if (type === 'surf' && !form.surf_time) {
+    if (type === 'surf' && hasConfiguredSlots && !selectedSlot) {
+      toast({ variant: 'destructive', title: t('booking.errorTitle'), description: t('booking.selectSurfTimeError') });
+      return;
+    }
+    if (type === 'surf' && !hasConfiguredSlots && !form.surf_time) {
       toast({ variant: 'destructive', title: t('booking.errorTitle'), description: t('booking.selectSurfTimeError') });
       return;
     }
@@ -163,6 +187,9 @@ export default function Booking() {
 
     if (type === 'surf' && surfDate) {
       dataToInsert.surf_date = format(surfDate, 'yyyy-MM-dd');
+      if (hasConfiguredSlots && selectedSlot) {
+        dataToInsert.surf_time = `${selectedSlot.label} (${selectedSlot.start_time}-${selectedSlot.end_time})`;
+      }
     }
 
     const { error } = await supabase
@@ -180,7 +207,7 @@ export default function Booking() {
 
       const dates = type === 'accommodation'
         ? `${dataToInsert.check_in || '?'} → ${dataToInsert.check_out || '?'}`
-        : `${dataToInsert.surf_date || '?'}${form.surf_time ? ` (${form.surf_time})` : ''}`;
+        : `${dataToInsert.surf_date || '?'}${dataToInsert.surf_time ? ` (${dataToInsert.surf_time})` : ''}`;
 
       fetch('/api/notify-new-booking', {
         method: 'POST',
@@ -272,8 +299,11 @@ export default function Booking() {
                     <Calendar
                       mode="single"
                       selected={surfDate}
-                      onSelect={setSurfDate}
-                      disabled={(date) => date < surfEarliestSelectableDate}
+                      onSelect={(date) => { setSurfDate(date); setSelectedSlotId(''); }}
+                      disabled={(date) =>
+                        date < surfEarliestSelectableDate ||
+                        (hasConfiguredSlots && surfSlots.filter((s) => s.day_of_week === getDay(date)).length === 0)
+                      }
                       locale={lang === 'pt' ? pt : undefined}
                       className="rounded-xl"
                     />
@@ -361,7 +391,30 @@ export default function Booking() {
                 </div>
               )}
 
-              {type === 'surf' && (
+              {type === 'surf' && hasConfiguredSlots && (
+                <div>
+                  <Label className="text-sm mb-2 block">{t('booking.surfTime')}</Label>
+                  <Select
+                    value={selectedSlotId}
+                    onValueChange={setSelectedSlotId}
+                    name="surf_time"
+                    required
+                    disabled={!surfDate || daySlots.length === 0}
+                  >
+                    <SelectTrigger className="rounded-lg">
+                      <SelectValue placeholder={!surfDate ? t('booking.surfDate') : undefined} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {daySlots.map((slot) => (
+                        <SelectItem key={slot.id} value={String(slot.id)}>
+                          {slot.label} · {slot.start_time} - {slot.end_time}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {type === 'surf' && !hasConfiguredSlots && (
                 <div>
                   <Label className="text-sm mb-2 block">{t('booking.surfTime')}</Label>
                   <Select value={form.surf_time} onValueChange={(v) => setForm({ ...form, surf_time: v })} name="surf_time" required>

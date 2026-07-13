@@ -8,6 +8,7 @@ import { Loader2, Home, Waves, Plus, Trash2, CalendarRange, CalendarDays, Percen
 import { toast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
 import PricingCalendar from '@/components/admin/PricingCalendar';
+import SurfSlotsManager from '@/components/admin/SurfSlotsManager';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 export default function AdminPricing() {
@@ -492,6 +493,8 @@ export default function AdminPricing() {
             </Button>
           </div>
         </div>
+
+        <SurfSlotsManager />
       </div>
         </TabsContent>
       </Tabs>
