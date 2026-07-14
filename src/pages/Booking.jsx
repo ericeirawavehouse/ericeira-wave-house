@@ -13,7 +13,7 @@ import { Home, Waves, Loader2, CheckCircle, Tag } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import FadeInView from '../components/shared/FadeInView';
 import SectionHeading from '../components/shared/SectionHeading';
-import { format, eachDayOfInterval, parseISO, differenceInCalendarDays, subDays, addDays, getDay } from 'date-fns';
+import { format, eachDayOfInterval, parseISO, differenceInCalendarDays, subDays, addDays, addMonths, getDay } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { priceForDate } from '@/lib/pricing';
 
@@ -57,7 +57,7 @@ export default function Booking() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('site_settings')
-        .select('accommodation_price_per_night, surf_lesson_price, weekend_price_per_night, weekly_discount_percent, monthly_discount_percent, min_nights, max_nights, advance_notice_days, surf_group_discount_threshold, surf_group_discount_percent, surf_large_group_threshold, surf_large_group_discount_percent, surf_min_people, surf_max_people, surf_advance_notice_days')
+        .select('accommodation_price_per_night, surf_lesson_price, weekend_price_per_night, weekly_discount_percent, monthly_discount_percent, min_nights, max_nights, advance_notice_days, booking_horizon_months, surf_group_discount_threshold, surf_group_discount_percent, surf_large_group_threshold, surf_large_group_discount_percent, surf_min_people, surf_max_people, surf_advance_notice_days, surf_booking_horizon_months')
         .eq('id', 1)
         .maybeSingle();
       if (error) throw error;
@@ -91,6 +91,18 @@ export default function Booking() {
     },
   });
 
+  // Datas específicas bloqueadas para surf (ex: instrutor indisponível)
+  const { data: surfBlockedDates = [] } = useQuery({
+    queryKey: ['surf-blocked-dates'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('surf_blocked_dates')
+        .select('date');
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const nights = dateRange.from && dateRange.to ? differenceInCalendarDays(dateRange.to, dateRange.from) : 0;
   const surfGuests = form.guests_count || 1;
   const hasConfiguredSlots = surfSlots.length > 0;
@@ -103,6 +115,9 @@ export default function Booking() {
   const surfMaxPeople = pricing?.surf_max_people || 10;
   const surfAdvanceNoticeDays = pricing?.surf_advance_notice_days || 0;
   const surfEarliestSelectableDate = addDays(new Date(), surfAdvanceNoticeDays);
+  const surfBookingHorizonMonths = pricing?.surf_booking_horizon_months || 0;
+  const surfLatestSelectableDate = surfBookingHorizonMonths > 0 ? addMonths(new Date(), surfBookingHorizonMonths) : undefined;
+  const surfBlockedDateStrings = surfBlockedDates.map((b) => b.date);
   const surfLargeGroupThreshold = pricing?.surf_large_group_threshold || 0;
   const surfGroupThreshold = pricing?.surf_group_discount_threshold || 0;
   const surfDiscountPercent = (surfLargeGroupThreshold > 0 && surfGuests >= surfLargeGroupThreshold)
@@ -117,6 +132,8 @@ export default function Booking() {
   const maxNights = pricing?.max_nights || 30;
   const advanceNoticeDays = pricing?.advance_notice_days || 0;
   const earliestSelectableDate = addDays(new Date(), advanceNoticeDays);
+  const bookingHorizonMonths = pricing?.booking_horizon_months || 0;
+  const latestSelectableDate = bookingHorizonMonths > 0 ? addMonths(new Date(), bookingHorizonMonths) : undefined;
 
   // Agrupa noites consecutivas com o mesmo preço
   const priceBreakdown = [];
@@ -285,6 +302,7 @@ export default function Booking() {
                       selected={dateRange}
                       onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })}
                       numberOfMonths={2}
+                      toDate={latestSelectableDate}
                       disabled={(date) =>
                         date < earliestSelectableDate ||
                         disabledDates.some((d) => d.toDateString() === date.toDateString())
@@ -300,8 +318,10 @@ export default function Booking() {
                       mode="single"
                       selected={surfDate}
                       onSelect={(date) => { setSurfDate(date); setSelectedSlotId(''); }}
+                      toDate={surfLatestSelectableDate}
                       disabled={(date) =>
                         date < surfEarliestSelectableDate ||
+                        surfBlockedDateStrings.includes(format(date, 'yyyy-MM-dd')) ||
                         (hasConfiguredSlots && surfSlots.filter((s) => s.day_of_week === getDay(date)).length === 0)
                       }
                       locale={lang === 'pt' ? pt : undefined}

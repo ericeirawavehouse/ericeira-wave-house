@@ -5,14 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, Loader2, Clock } from 'lucide-react';
+import { Plus, Trash2, Loader2, Clock, CalendarOff } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { format, parseISO } from 'date-fns';
+import { pt } from 'date-fns/locale';
 
 const DAY_NAMES = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
 export default function SurfSlotsManager() {
   const queryClient = useQueryClient();
   const [newSlot, setNewSlot] = useState({ day_of_week: '1', label: '', start_time: '09:00', end_time: '12:00', price: '' });
+  const [newBlock, setNewBlock] = useState({ date: '', reason: '' });
 
   const { data: slots = [], isLoading } = useQuery({
     queryKey: ['surf-slots'],
@@ -66,6 +69,48 @@ export default function SurfSlotsManager() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['surf-slots'] });
       toast({ title: 'Horário removido.' });
+    },
+  });
+
+  const { data: blockedDates = [], isLoading: loadingBlocked } = useQuery({
+    queryKey: ['surf-blocked-dates'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('surf_blocked_dates')
+        .select('*')
+        .order('date', { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const addBlockMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from('surf_blocked_dates').insert([{
+        date: newBlock.date,
+        reason: newBlock.reason || null,
+      }]);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['surf-blocked-dates'] });
+      setNewBlock({ date: '', reason: '' });
+      toast({ title: 'Data bloqueada!' });
+    },
+    onError: (error) => {
+      console.error('Erro ao bloquear data:', error);
+      toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível bloquear a data. Já deves ter bloqueado esta data antes.' });
+    },
+  });
+
+  const deleteBlockMutation = useMutation({
+    mutationFn: async (id) => {
+      const { error } = await supabase.from('surf_blocked_dates').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['surf-blocked-dates'] });
+      toast({ title: 'Data desbloqueada.' });
     },
   });
 
@@ -161,6 +206,61 @@ export default function SurfSlotsManager() {
           {addMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
           Adicionar horário
         </Button>
+      </div>
+
+      <div className="mt-10">
+        <h2 className="font-heading text-lg font-semibold mb-1">Bloquear datas específicas</h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          Para quando o instrutor não pode num dia em concreto, mesmo que esse dia da semana tenha normalmente horários disponíveis. A data fica completamente indisponível para reservas de surf.
+        </p>
+
+        <div className="bg-card border border-border rounded-2xl p-6 space-y-3 mb-6">
+          {loadingBlocked && <p className="text-sm text-muted-foreground">A carregar...</p>}
+          {!loadingBlocked && blockedDates.length === 0 && (
+            <p className="text-sm text-muted-foreground">Ainda não bloqueaste nenhuma data.</p>
+          )}
+          {blockedDates.map((block) => (
+            <div key={block.id} className="flex items-center gap-3 p-3 rounded-xl border border-border bg-background">
+              <CalendarOff className="w-4 h-4 text-destructive shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium capitalize">{format(parseISO(block.date), "d 'de' MMMM yyyy", { locale: pt })}</p>
+                {block.reason && <p className="text-xs text-muted-foreground">{block.reason}</p>}
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="text-destructive hover:text-destructive"
+                onClick={() => deleteBlockMutation.mutate(block.id)}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+
+        <div className="bg-card border border-border rounded-2xl p-6">
+          <p className="text-sm font-medium mb-4">Bloquear data</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1.5 block">Data</Label>
+              <Input type="date" value={newBlock.date} onChange={(e) => setNewBlock({ ...newBlock, date: e.target.value })} />
+            </div>
+            <div className="md:col-span-2">
+              <Label className="text-xs text-muted-foreground mb-1.5 block">Motivo (opcional)</Label>
+              <Input placeholder="Instrutor indisponível" value={newBlock.reason} onChange={(e) => setNewBlock({ ...newBlock, reason: e.target.value })} />
+            </div>
+          </div>
+          <Button
+            type="button"
+            onClick={() => addBlockMutation.mutate()}
+            disabled={addBlockMutation.isPending || !newBlock.date}
+            className="w-full rounded-full mt-4"
+          >
+            {addBlockMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CalendarOff className="w-4 h-4 mr-2" />}
+            Bloquear data
+          </Button>
+        </div>
       </div>
     </div>
   );
