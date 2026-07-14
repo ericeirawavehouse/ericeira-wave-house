@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Loader2, Home, Waves, Plus, Trash2, CalendarRange, CalendarDays, Percent, Clock, Users } from 'lucide-react';
+import { Loader2, Home, Waves, Plus, Trash2, CalendarRange, CalendarDays, Percent, Clock, Users, Link2, Copy, RefreshCw } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
 import PricingCalendar from '@/components/admin/PricingCalendar';
@@ -22,6 +22,7 @@ export default function AdminPricing() {
   const [maxNights, setMaxNights] = useState('');
   const [advanceNoticeDays, setAdvanceNoticeDays] = useState('');
   const [bookingHorizonMonths, setBookingHorizonMonths] = useState('');
+  const [airbnbIcalUrl, setAirbnbIcalUrl] = useState('');
   const [surfGroupThreshold, setSurfGroupThreshold] = useState('');
   const [surfGroupDiscount, setSurfGroupDiscount] = useState('');
   const [surfLargeGroupThreshold, setSurfLargeGroupThreshold] = useState('');
@@ -73,6 +74,7 @@ export default function AdminPricing() {
       setMaxNights(String(data.max_nights ?? 30));
       setAdvanceNoticeDays(String(data.advance_notice_days ?? 0));
       setBookingHorizonMonths(String(data.booking_horizon_months ?? 0));
+      setAirbnbIcalUrl(data.airbnb_ical_url || '');
       setSurfGroupThreshold(String(data.surf_group_discount_threshold ?? 0));
       setSurfGroupDiscount(String(data.surf_group_discount_percent ?? 0));
       setSurfLargeGroupThreshold(String(data.surf_large_group_threshold ?? 0));
@@ -98,6 +100,7 @@ export default function AdminPricing() {
           max_nights: parseInt(maxNights) || 30,
           advance_notice_days: parseInt(advanceNoticeDays) || 0,
           booking_horizon_months: parseInt(bookingHorizonMonths) || 0,
+          airbnb_ical_url: airbnbIcalUrl || null,
           surf_group_discount_threshold: parseInt(surfGroupThreshold) || 0,
           surf_group_discount_percent: parseFloat(surfGroupDiscount) || 0,
           surf_large_group_threshold: parseInt(surfLargeGroupThreshold) || 0,
@@ -120,6 +123,30 @@ export default function AdminPricing() {
       toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível guardar os preços.' });
     },
   });
+
+  const syncAirbnbMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch('/api/sync-airbnb-calendar', { method: 'POST' });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || 'Falha ao sincronizar');
+      return body;
+    },
+    onSuccess: (body) => {
+      queryClient.invalidateQueries({ queryKey: ['external-calendar-blocks'] });
+      toast({ title: `Calendário do Airbnb sincronizado! (${body.synced} datas bloqueadas)` });
+    },
+    onError: (error) => {
+      console.error('Erro ao sincronizar Airbnb:', error);
+      toast({ variant: 'destructive', title: 'Erro', description: error.message || 'Não foi possível sincronizar o calendário do Airbnb.' });
+    },
+  });
+
+  const exportUrl = typeof window !== 'undefined' ? `${window.location.origin}/api/calendar.ics` : '/api/calendar.ics';
+
+  const copyExportUrl = () => {
+    navigator.clipboard.writeText(exportUrl);
+    toast({ title: 'Link copiado!' });
+  };
 
   const addPeriodMutation = useMutation({
     mutationFn: async () => {
@@ -397,6 +424,56 @@ export default function AdminPricing() {
             {saveMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
             Guardar preços
           </Button>
+        </div>
+
+        <div className="mt-10">
+          <h2 className="font-heading text-lg font-semibold mb-1">Sincronização com o Airbnb</h2>
+          <p className="text-sm text-muted-foreground mb-6">
+            Liga o calendário do Airbnb para bloquear aqui as datas já reservadas lá, e partilha o link do teu calendário para o Airbnb bloquear as datas reservadas aqui. Isto evita reservas em duplicado.
+          </p>
+          <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <Link2 className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <Label className="text-sm mb-2 block">Link do calendário do Airbnb (Passo 1 do Airbnb: "Ligação do calendário da Airbnb")</Label>
+                <p className="text-xs text-muted-foreground mb-2">No Airbnb: Calendário → Disponibilidade → Associar a outro site. Copia o link que começa por airbnb.pt/calendar/ical e cola aqui.</p>
+                <Input
+                  placeholder="https://www.airbnb.pt/calendar/ical/..."
+                  value={airbnbIcalUrl}
+                  onChange={(e) => setAirbnbIcalUrl(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="flex-1 rounded-full">
+                {saveMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                Guardar link
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => syncAirbnbMutation.mutate()}
+                disabled={syncAirbnbMutation.isPending || !airbnbIcalUrl}
+                className="flex-1 rounded-full"
+              >
+                {syncAirbnbMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+                Sincronizar agora
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">A sincronização automática corre uma vez por dia. Usa "Sincronizar agora" para atualizar imediatamente depois de guardares o link.</p>
+
+            <div className="border-t border-border pt-6">
+              <Label className="text-sm mb-2 block">Link do teu calendário para colar no Airbnb (Passo 2 do Airbnb: "Ligação do outro site")</Label>
+              <p className="text-xs text-muted-foreground mb-2">Cola este link no Airbnb para que ele bloqueie automaticamente as datas já reservadas aqui no site.</p>
+              <div className="flex gap-2">
+                <Input readOnly value={exportUrl} className="flex-1" />
+                <Button type="button" variant="outline" size="icon" onClick={copyExportUrl} className="shrink-0">
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
         </TabsContent>

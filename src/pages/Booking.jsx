@@ -56,10 +56,28 @@ export default function Booking() {
     },
   });
 
-  const disabledDates = confirmedBookings.flatMap((b) => {
-    if (!b.check_in || !b.check_out) return [];
-    return eachDayOfInterval({ start: parseISO(b.check_in), end: parseISO(b.check_out) });
+  // Datas bloqueadas por reservas vindas de calendários externos (ex: Airbnb)
+  const { data: externalBlocks = [] } = useQuery({
+    queryKey: ['external-calendar-blocks'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('external_calendar_blocks')
+        .select('start_date, end_date');
+      if (error) throw error;
+      return data;
+    },
   });
+
+  const disabledDates = [
+    ...confirmedBookings.flatMap((b) => {
+      if (!b.check_in || !b.check_out) return [];
+      return eachDayOfInterval({ start: parseISO(b.check_in), end: parseISO(b.check_out) });
+    }),
+    ...externalBlocks.flatMap((b) => {
+      if (!b.start_date || !b.end_date) return [];
+      return eachDayOfInterval({ start: parseISO(b.start_date), end: parseISO(b.end_date) });
+    }),
+  ];
 
   // Preços definidos no admin
   const { data: pricing } = useQuery({
