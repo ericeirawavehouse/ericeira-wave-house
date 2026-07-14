@@ -272,10 +272,7 @@ export default function AdminPricing() {
 
       <div className="max-w-2xl mt-10">
         <h2 className="font-heading text-lg font-semibold mb-1">Descontos</h2>
-        <p className="text-sm text-muted-foreground mb-6">
-          Descontos automáticos por duração da estadia, aplicados ao total do Alojamento.
-        </p>
-
+      
         <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
           <div className="flex items-start gap-4">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -465,7 +462,7 @@ export default function AdminPricing() {
                 Sincronizar agora
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">A sincronização automática corre uma vez por dia. Usa "Sincronizar agora" para atualizar imediatamente depois de guardares o link.</p>
+            <p className="text-xs text-muted-foreground">A sincronização automática corre uma vez por dia. Usa "Sincronizar agora" para sincronizar imediatamente.</p>
 
             <div className="border-t border-border pt-6">
               <Label className="text-sm mb-2 block">Link do teu calendário para colar no Airbnb (Passo 2 do Airbnb: "Ligação do outro site")</Label>

@@ -65,7 +65,7 @@ const sections = {
       title: 'Local Spots',
       items: [
         { name: 'Historic Centre', desc: 'Charming alleys, traditional houses and craft shops.' },
-        { name: 'Ericeira Market', desc: 'Fresh local produce and catch of the day.' },
+        { name: 'Ericeira Market', desc: 'Fresh local products and fish of the day.' },
         { name: 'Sala das Visitas Viewpoint', desc: 'Panoramic view over the ocean and the village.' },
       ],
     },

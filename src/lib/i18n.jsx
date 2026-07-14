@@ -174,11 +174,10 @@ const translations = {
       accommodation: 'Accommodation',
       surf: 'Surf',
       ericeira: 'Ericeira',
-      about: 'About',
+      about: 'About Us',
       contact: 'Contact',
       book: 'Book Now',
     },
-    // ... restante das traduções EN
     hero: {
       title: 'Your refuge by the sea',
       subtitle: 'Experience Ericeira with soul. Exclusive accommodation and unique experiences on the Portuguese coast.',
@@ -186,7 +185,7 @@ const translations = {
     },
     accommodation: {
       title: 'The House',
-      subtitle: 'An entire retreat just for you',
+      subtitle: 'An entire apartment just for you',
       description: 'Ideal for families, friends, or digital nomads, it features two double bedrooms, an office with a sofa bed, a bathroom, an equipped kitchen, and a living area with a dining table.',
       overview: 'Overview',
       rooms: 'Rooms & Beds',
