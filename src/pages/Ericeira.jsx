@@ -22,9 +22,9 @@ const sections = {
     restaurants: {
       title: 'Restaurantes',
       items: [
-        { name: 'Jangada', desc: 'Espaço acolhedor com uma seleção variada de pratos de sabores requintados.' },
-        { name: 'Ti Matilde', desc: 'Restaurante tradicional de ambiente familiar conhecido pelo peixe e marisco frescos.' },
-        { name: 'A Panela', desc: 'Restaurante no centro da vila com cozinha portuguesa contemporânea.' },
+        { name: 'Jangada', desc: 'Espaço acolhedor que se destaca pelos sabores regionais, marisco e pizzas artesanais em forno de lenha.' },
+        { name: 'Golfinho Azul', desc: 'Restaurante com vista mar conhecido por oferecer pratos da culinária portuguesa com destaque para as especialidades de peixe fresco.' },
+        { name: 'Balagan', desc: 'Espaço de inspiração mediterrânea e do Médio Oriente localizado na Praia do Sul.' },
       ],
     },
     spots: {
@@ -56,9 +56,9 @@ const sections = {
     restaurants: {
       title: 'Restaurants',
       items: [
-        { name: 'Jangada', desc: 'Welcoming space with a diverse selection of exquisitely flavored dishes.' },
-        { name: 'Ti Matilde', desc: 'Traditional restaurant with a family atmosphere, known for its fresh fish and seafood.' },
-        { name: 'A Panela', desc: 'Restaurant in the town center featuring contemporary Portuguese cuisine.' },
+        { name: 'Jangada', desc: 'Cosy spot known for regional flavours, fresh seafood and wood-fired artisan pizzas.' },
+        { name: 'Golfinho Azul', desc: 'Sea-view restaurant known for Portuguese cuisine, with a focus on fresh fish specialities.' },
+        { name: 'Balagan', desc: 'Mediterranean and Middle Eastern-inspired spot located at Praia do Sul.' },
       ],
     },
     spots: {

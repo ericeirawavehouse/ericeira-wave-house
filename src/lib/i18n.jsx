@@ -21,7 +21,7 @@ const translations = {
     accommodation: {
       title: 'A Casa',
       subtitle: 'Um apartamento inteiro só para ti',
-      description: 'Ideal para casais, amigos ou nómadas digitais, dispõe de dois quartos duplos, um escritório com sofá-cama, casa de banho, cozinha equipada e uma zona de estar com mesa de jantar. \n\nLocalização privilegiada, a apenas 5 minutos a pé do centro da vila, com todas as comodidades e fácil acesso às principais praias. Situado numa zona tranquila, combina conforto e conveniência.',
+      description: 'Ideal para famílias, amigos ou nómadas digitais, dispõe de dois quartos duplos, um escritório com sofá-cama, casa de banho, cozinha equipada e uma zona de estar com mesa de jantar.',
       entireHome: 'Apartamento Inteiro',
       guests: '5 Hóspedes',
       bedrooms: '3 Quartos',
@@ -183,7 +183,7 @@ const translations = {
     accommodation: {
       title: 'The House',
       subtitle: 'An entire retreat just for you',
-      description: 'Ideal for couples, friends, or digital nomads, this property features two double bedrooms, an office with a sofa bed, a bathroom, a fully equipped kitchen, and a living area with a dining table. \n\nPrime location, just a 5-minute walk from the village center, close to all amenities and with easy access to the main beaches. Situated in a quiet area, it perfectly combines comfort and convenience.',
+      description: 'Ideal for families, friends, or digital nomads, it features two double bedrooms, an office with a sofa bed, a bathroom, an equipped kitchen, and a living area with a dining table.',
       overview: 'Overview',
       rooms: 'Rooms & Beds',
       amenities: 'Amenities',
