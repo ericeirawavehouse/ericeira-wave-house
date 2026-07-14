@@ -21,7 +21,7 @@ import imgQuarto1 from '@/images/Casa/quarto_1.jpeg';
 import imgQuarto2 from '@/images/Casa/quarto_2.jpeg';
 import imgVaranda from '@/images/Casa/varanda.jpeg';
 import imgEscritorio from '@/images/Casa/escritorio.jpeg';
-import imgRua from '@/images/Casa/rua.png';
+import imgRua from '@/images/Casa/rua.jpg';
 
 // Todas as fotos da casa, numa lista só, organizadas por divisão
 const getAllPhotos = (t) => [
