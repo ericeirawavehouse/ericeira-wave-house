@@ -301,28 +301,57 @@ export default function CheckInForm() {
                 </Button>
               </div>
               {additionalGuests.map((guest, i) => (
-                <div key={i} className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4 p-4 bg-muted rounded-xl relative">
-                  <Input placeholder={`${labels.fullName} *`} value={guest.full_name} onChange={(e) => updateGuest(i, 'full_name', e.target.value)} required />
-                  <Input type="date" placeholder={`${labels.dob} *`} value={guest.date_of_birth} onChange={(e) => updateGuest(i, 'date_of_birth', e.target.value)} required />
-                  <Input placeholder={`${labels.placeOfBirth} *`} value={guest.place_of_birth} onChange={(e) => updateGuest(i, 'place_of_birth', e.target.value)} required />
-                  <Input placeholder={`${labels.nationality} *`} value={guest.nationality} onChange={(e) => updateGuest(i, 'nationality', e.target.value)} required />
-                  <Select value={guest.document_type} onValueChange={(v) => updateGuest(i, 'document_type', v)} required>
-                    <SelectTrigger>
-                      <SelectValue placeholder={labels.documentType} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="cc">{labels.documentTypeOptions.cc}</SelectItem>
-                      <SelectItem value="passport">{labels.documentTypeOptions.passport}</SelectItem>
-                      <SelectItem value="other">{labels.documentTypeOptions.other}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Input placeholder={`${labels.idNumber} *`} value={guest.id_number} onChange={(e) => updateGuest(i, 'id_number', e.target.value)} required />
-                  <Input placeholder={`${labels.documentIssuingCountry} *`} value={guest.document_issuing_country} onChange={(e) => updateGuest(i, 'document_issuing_country', e.target.value)} required />
-                  <div className="flex gap-2">
-                    <Input placeholder={`${labels.countryOfResidence} *`} value={guest.country_of_residence} onChange={(e) => updateGuest(i, 'country_of_residence', e.target.value)} required />
-                    <Button type="button" variant="ghost" size="icon" onClick={() => removeGuest(i)} className="shrink-0">
+                <div key={i} className="mb-4 p-4 bg-muted rounded-xl relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-semibold text-muted-foreground">
+                      {lang === 'pt' ? `Hóspede ${i + 2}` : `Guest ${i + 2}`}
+                    </p>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => removeGuest(i)} className="h-7 w-7 shrink-0">
                       <Trash2 className="w-4 h-4 text-destructive" />
                     </Button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs mb-1.5 block">{labels.fullName} *</Label>
+                      <Input value={guest.full_name} onChange={(e) => updateGuest(i, 'full_name', e.target.value)} required />
+                    </div>
+                    <div>
+                      <Label className="text-xs mb-1.5 block">{labels.dob} *</Label>
+                      <Input type="date" value={guest.date_of_birth} onChange={(e) => updateGuest(i, 'date_of_birth', e.target.value)} required />
+                    </div>
+                    <div>
+                      <Label className="text-xs mb-1.5 block">{labels.placeOfBirth} *</Label>
+                      <Input value={guest.place_of_birth} onChange={(e) => updateGuest(i, 'place_of_birth', e.target.value)} required />
+                    </div>
+                    <div>
+                      <Label className="text-xs mb-1.5 block">{labels.nationality} *</Label>
+                      <Input value={guest.nationality} onChange={(e) => updateGuest(i, 'nationality', e.target.value)} required />
+                    </div>
+                    <div>
+                      <Label className="text-xs mb-1.5 block">{labels.documentType} *</Label>
+                      <Select value={guest.document_type} onValueChange={(v) => updateGuest(i, 'document_type', v)} required>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cc">{labels.documentTypeOptions.cc}</SelectItem>
+                          <SelectItem value="passport">{labels.documentTypeOptions.passport}</SelectItem>
+                          <SelectItem value="other">{labels.documentTypeOptions.other}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs mb-1.5 block">{labels.idNumber} *</Label>
+                      <Input value={guest.id_number} onChange={(e) => updateGuest(i, 'id_number', e.target.value)} required />
+                    </div>
+                    <div>
+                      <Label className="text-xs mb-1.5 block">{labels.documentIssuingCountry} *</Label>
+                      <Input value={guest.document_issuing_country} onChange={(e) => updateGuest(i, 'document_issuing_country', e.target.value)} required />
+                    </div>
+                    <div>
+                      <Label className="text-xs mb-1.5 block">{labels.countryOfResidence} *</Label>
+                      <Input value={guest.country_of_residence} onChange={(e) => updateGuest(i, 'country_of_residence', e.target.value)} required />
+                    </div>
                   </div>
                 </div>
               ))}

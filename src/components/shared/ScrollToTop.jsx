@@ -11,7 +11,14 @@ export default function ScrollToTop() {
   }, []);
 
   useEffect(() => {
+    // O CSS tem scroll-behavior: smooth no <html>, o que faz este scroll ser
+    // animado (e por vezes nem chegar ao topo no mobile). Desativa-se
+    // temporariamente para o salto para o topo ser sempre instantâneo.
+    const html = document.documentElement;
+    const previousScrollBehavior = html.style.scrollBehavior;
+    html.style.scrollBehavior = 'auto';
     window.scrollTo(0, 0);
+    html.style.scrollBehavior = previousScrollBehavior;
   }, [pathname]);
 
   return null;
