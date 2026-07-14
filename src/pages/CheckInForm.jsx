@@ -71,7 +71,7 @@ export default function CheckInForm() {
     documentType: 'Tipo de documento',
     documentTypeOptions: { cc: 'Cartão de Cidadão / BI', passport: 'Passaporte', other: 'Outro' },
     idNumber: 'Nº do documento',
-    documentIssuingCountry: 'País emissor do documento',
+    documentIssuingCountry: 'País emissor do doc.',
     nationality: 'Nacionalidade',
     dob: 'Data de nascimento',
     placeOfBirth: 'Local de nascimento',

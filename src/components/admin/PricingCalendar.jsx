@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isSameMonth, isSameDay } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isSameMonth, isSameDay, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
@@ -22,6 +23,63 @@ export default function PricingCalendar({ settings, periods }) {
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
   const startDay = monthStart.getDay();
   const padDays = startDay === 0 ? 6 : startDay - 1;
+
+  const { data: confirmedBookings = [] } = useQuery({
+    queryKey: ['confirmed-bookings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('check_in, check_out')
+        .eq('type', 'accommodation')
+        .eq('status', 'confirmed')
+        .is('deleted_at', null);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: externalBlocks = [] } = useQuery({
+    queryKey: ['external-calendar-blocks'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('external_calendar_blocks')
+        .select('id, source, start_date, end_date');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const bookedDates = new Set(
+    confirmedBookings.flatMap((b) => {
+      if (!b.check_in || !b.check_out) return [];
+      return eachDayOfInterval({ start: parseISO(b.check_in), end: parseISO(b.check_out) }).map((d) => format(d, 'yyyy-MM-dd'));
+    })
+  );
+
+  const blockMutation = useMutation({
+    mutationFn: async (block) => {
+      const dateStr = format(editingDay, 'yyyy-MM-dd');
+      if (block) {
+        const { error } = await supabase.from('external_calendar_blocks').insert([{
+          source: 'manual', uid: `manual-${dateStr}`, start_date: dateStr, end_date: dateStr,
+        }]);
+        if (error) throw error;
+      } else {
+        const manualBlock = externalBlocks.find((b) => b.source === 'manual' && b.start_date === dateStr && b.end_date === dateStr);
+        if (!manualBlock) return;
+        const { error } = await supabase.from('external_calendar_blocks').delete().eq('id', manualBlock.id);
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_, block) => {
+      queryClient.invalidateQueries({ queryKey: ['external-calendar-blocks'] });
+      toast({ title: block ? 'Data bloqueada!' : 'Data desbloqueada!' });
+    },
+    onError: (error) => {
+      console.error('Erro ao bloquear/desbloquear data:', error);
+      toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível atualizar o bloqueio.' });
+    },
+  });
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -73,6 +131,14 @@ export default function PricingCalendar({ settings, periods }) {
   };
 
   const existingOverride = editingDay ? findSingleDayOverride(editingDay, periods) : null;
+  const editingDayStr = editingDay ? format(editingDay, 'yyyy-MM-dd') : null;
+  const isEditingDayBooked = editingDayStr ? bookedDates.has(editingDayStr) : false;
+  const editingDayManualBlock = editingDayStr
+    ? externalBlocks.find((b) => b.source === 'manual' && b.start_date === editingDayStr && b.end_date === editingDayStr)
+    : null;
+  const editingDayAirbnbBlock = editingDayStr
+    ? externalBlocks.find((b) => b.source === 'airbnb' && editingDayStr >= b.start_date && editingDayStr <= b.end_date)
+    : null;
 
   return (
     <div className="bg-card border border-border rounded-2xl p-6">
@@ -97,14 +163,22 @@ export default function PricingCalendar({ settings, periods }) {
           const price = priceForDate(day, settings, periods);
           const hasOverride = !!findSingleDayOverride(day, periods);
           const isToday = isSameDay(day, new Date());
+          const dayStr = format(day, 'yyyy-MM-dd');
+          const isBooked = bookedDates.has(dayStr);
+          const manualBlock = externalBlocks.find((b) => b.start_date === dayStr && b.end_date === dayStr && b.source === 'manual');
+          const airbnbBlock = externalBlocks.find((b) => b.source === 'airbnb' && dayStr >= b.start_date && dayStr <= b.end_date);
+          const isBlocked = !!manualBlock || !!airbnbBlock;
           return (
             <button
               key={day.toISOString()}
               onClick={() => openDay(day)}
-              className={`min-h-[64px] p-2 rounded-xl border text-left transition-colors hover:border-primary ${
+              className={`relative min-h-[64px] p-2 rounded-xl border text-left transition-colors hover:border-primary ${
                 isToday ? 'border-primary' : 'border-border'
-              } ${hasOverride ? 'bg-primary/5' : 'bg-transparent'}`}
+              } ${isBooked ? 'bg-red-50' : isBlocked ? 'bg-amber-50' : hasOverride ? 'bg-primary/5' : 'bg-transparent'}`}
             >
+              {(isBooked || isBlocked) && (
+                <span className={`absolute top-1.5 right-1.5 w-2 h-2 rounded-full ${isBooked ? 'bg-red-500' : 'bg-amber-500'}`} />
+              )}
               <p className="text-xs font-medium text-foreground/70">{format(day, 'd')}</p>
               <p className={`text-xs mt-1 font-semibold ${hasOverride ? 'text-primary' : 'text-muted-foreground'}`}>
                 €{price}
@@ -112,6 +186,10 @@ export default function PricingCalendar({ settings, periods }) {
             </button>
           );
         })}
+      </div>
+      <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-500" /> Reservado</span>
+        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-500" /> Bloqueado</span>
       </div>
 
       <Dialog open={!!editingDay} onOpenChange={(open) => !open && setEditingDay(null)}>
@@ -140,6 +218,28 @@ export default function PricingCalendar({ settings, periods }) {
                 Remover preço personalizado (voltar ao padrão)
               </Button>
             )}
+
+            <div className="border-t border-border pt-4">
+              {isEditingDayBooked ? (
+                <p className="text-xs text-muted-foreground">Este dia já está reservado por um hóspede, não pode ser bloqueado/desbloqueado aqui.</p>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm block">Bloquear esta data</Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {editingDayAirbnbBlock
+                        ? 'Também está bloqueado pelo calendário do Airbnb.'
+                        : 'Impede novas reservas neste dia, sem precisar de uma reserva.'}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={!!editingDayManualBlock}
+                    disabled={blockMutation.isPending}
+                    onCheckedChange={(checked) => blockMutation.mutate(checked)}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
