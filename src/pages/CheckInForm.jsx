@@ -29,8 +29,9 @@ export default function CheckInForm() {
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
   const [form, setForm] = useState({
-    full_name: '', id_number: '', nationality: '', date_of_birth: '',
-    address: '', phone: '', email: '', arrival_time: '', special_requests: '',
+    full_name: '', id_number: '', document_type: '', document_issuing_country: '',
+    nationality: '', date_of_birth: '', place_of_birth: '',
+    address: '', country_of_residence: '', phone: '', email: '', arrival_time: '', special_requests: '',
   });
   const [additionalGuests, setAdditionalGuests] = useState([]);
 
@@ -55,7 +56,8 @@ export default function CheckInForm() {
         if (data.guests_count > 1) {
           setAdditionalGuests(
             Array.from({ length: Math.min(data.guests_count - 1, MAX_ADDITIONAL_GUESTS) }, () => ({
-              full_name: '', id_number: '', nationality: '', date_of_birth: '',
+              full_name: '', id_number: '', document_type: '', document_issuing_country: '',
+              nationality: '', date_of_birth: '', place_of_birth: '', country_of_residence: '',
             }))
           );
         }
@@ -66,10 +68,15 @@ export default function CheckInForm() {
     title: 'Check-in Online',
     subtitle: 'Preenche os teus dados antes da chegada para agilizar o check-in.',
     fullName: 'Nome completo',
-    idNumber: 'Nº do documento (CC/Passaporte)',
+    documentType: 'Tipo de documento',
+    documentTypeOptions: { cc: 'Cartão de Cidadão / BI', passport: 'Passaporte', other: 'Outro' },
+    idNumber: 'Nº do documento',
+    documentIssuingCountry: 'País emissor do documento',
     nationality: 'Nacionalidade',
     dob: 'Data de nascimento',
+    placeOfBirth: 'Local de nascimento',
     address: 'Morada',
+    countryOfResidence: 'País de residência',
     phone: 'Telefone',
     email: 'Email',
     arrivalTime: 'Hora prevista de chegada',
@@ -81,10 +88,15 @@ export default function CheckInForm() {
     title: 'Online Check-in',
     subtitle: 'Fill in your details before arrival to speed up check-in.',
     fullName: 'Full name',
-    idNumber: 'ID number (ID card/Passport)',
+    documentType: 'Document type',
+    documentTypeOptions: { cc: 'National ID card', passport: 'Passport', other: 'Other' },
+    idNumber: 'Document number',
+    documentIssuingCountry: 'Document issuing country',
     nationality: 'Nationality',
     dob: 'Date of birth',
+    placeOfBirth: 'Place of birth',
     address: 'Address',
+    countryOfResidence: 'Country of residence',
     phone: 'Phone',
     email: 'Email',
     arrivalTime: 'Expected arrival time',
@@ -96,7 +108,10 @@ export default function CheckInForm() {
 
   const addGuest = () => {
     if (additionalGuests.length >= MAX_ADDITIONAL_GUESTS) return;
-    setAdditionalGuests([...additionalGuests, { full_name: '', id_number: '', nationality: '', date_of_birth: '' }]);
+    setAdditionalGuests([...additionalGuests, {
+      full_name: '', id_number: '', document_type: '', document_issuing_country: '',
+      nationality: '', date_of_birth: '', place_of_birth: '', country_of_residence: '',
+    }]);
   };
 
   const removeGuest = (index) => {
@@ -190,23 +205,52 @@ export default function CheckInForm() {
                 <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} required />
               </div>
               <div>
-                <Label className="text-sm mb-2 block">{labels.idNumber} *</Label>
-                <Input value={form.id_number} onChange={(e) => setForm({ ...form, id_number: e.target.value })} required />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label className="text-sm mb-2 block">{labels.nationality} *</Label>
-                <Input value={form.nationality} onChange={(e) => setForm({ ...form, nationality: e.target.value })} required />
-              </div>
-              <div>
                 <Label className="text-sm mb-2 block">{labels.dob} *</Label>
                 <Input type="date" value={form.date_of_birth} onChange={(e) => setForm({ ...form, date_of_birth: e.target.value })} required />
               </div>
             </div>
-            <div>
-              <Label className="text-sm mb-2 block">{labels.address} *</Label>
-              <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} required />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm mb-2 block">{labels.placeOfBirth} *</Label>
+                <Input value={form.place_of_birth} onChange={(e) => setForm({ ...form, place_of_birth: e.target.value })} required />
+              </div>
+              <div>
+                <Label className="text-sm mb-2 block">{labels.nationality} *</Label>
+                <Input value={form.nationality} onChange={(e) => setForm({ ...form, nationality: e.target.value })} required />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label className="text-sm mb-2 block">{labels.documentType} *</Label>
+                <Select value={form.document_type} onValueChange={(v) => setForm({ ...form, document_type: v })} name="document_type" required>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cc">{labels.documentTypeOptions.cc}</SelectItem>
+                    <SelectItem value="passport">{labels.documentTypeOptions.passport}</SelectItem>
+                    <SelectItem value="other">{labels.documentTypeOptions.other}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-sm mb-2 block">{labels.idNumber} *</Label>
+                <Input value={form.id_number} onChange={(e) => setForm({ ...form, id_number: e.target.value })} required />
+              </div>
+              <div>
+                <Label className="text-sm mb-2 block">{labels.documentIssuingCountry} *</Label>
+                <Input value={form.document_issuing_country} onChange={(e) => setForm({ ...form, document_issuing_country: e.target.value })} required />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm mb-2 block">{labels.address} *</Label>
+                <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} required />
+              </div>
+              <div>
+                <Label className="text-sm mb-2 block">{labels.countryOfResidence} *</Label>
+                <Input value={form.country_of_residence} onChange={(e) => setForm({ ...form, country_of_residence: e.target.value })} required />
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -259,10 +303,23 @@ export default function CheckInForm() {
               {additionalGuests.map((guest, i) => (
                 <div key={i} className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4 p-4 bg-muted rounded-xl relative">
                   <Input placeholder={`${labels.fullName} *`} value={guest.full_name} onChange={(e) => updateGuest(i, 'full_name', e.target.value)} required />
-                  <Input placeholder={`${labels.idNumber} *`} value={guest.id_number} onChange={(e) => updateGuest(i, 'id_number', e.target.value)} required />
+                  <Input type="date" placeholder={`${labels.dob} *`} value={guest.date_of_birth} onChange={(e) => updateGuest(i, 'date_of_birth', e.target.value)} required />
+                  <Input placeholder={`${labels.placeOfBirth} *`} value={guest.place_of_birth} onChange={(e) => updateGuest(i, 'place_of_birth', e.target.value)} required />
                   <Input placeholder={`${labels.nationality} *`} value={guest.nationality} onChange={(e) => updateGuest(i, 'nationality', e.target.value)} required />
+                  <Select value={guest.document_type} onValueChange={(v) => updateGuest(i, 'document_type', v)} required>
+                    <SelectTrigger>
+                      <SelectValue placeholder={labels.documentType} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cc">{labels.documentTypeOptions.cc}</SelectItem>
+                      <SelectItem value="passport">{labels.documentTypeOptions.passport}</SelectItem>
+                      <SelectItem value="other">{labels.documentTypeOptions.other}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input placeholder={`${labels.idNumber} *`} value={guest.id_number} onChange={(e) => updateGuest(i, 'id_number', e.target.value)} required />
+                  <Input placeholder={`${labels.documentIssuingCountry} *`} value={guest.document_issuing_country} onChange={(e) => updateGuest(i, 'document_issuing_country', e.target.value)} required />
                   <div className="flex gap-2">
-                    <Input type="date" value={guest.date_of_birth} onChange={(e) => updateGuest(i, 'date_of_birth', e.target.value)} required />
+                    <Input placeholder={`${labels.countryOfResidence} *`} value={guest.country_of_residence} onChange={(e) => updateGuest(i, 'country_of_residence', e.target.value)} required />
                     <Button type="button" variant="ghost" size="icon" onClick={() => removeGuest(i)} className="shrink-0">
                       <Trash2 className="w-4 h-4 text-destructive" />
                     </Button>

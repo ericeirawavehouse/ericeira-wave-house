@@ -6,7 +6,7 @@ import SectionHeading from '../components/shared/SectionHeading';
 import imagemRua from '../images/Outros/13.jpg';
 import imagemPraia from '../images/Surf/Surf 3.jpg';
 import imagemSpots from '../images/Outros/16.jpg';
-import imagemExperiencias from '../images/Outros/14.jpg';
+import imagemExperiencias from '../images/Outros/17.jpg';
 import imagemEriceira from '../images/Capa/3.jpg';
 
 const sections = {
@@ -30,9 +30,9 @@ const sections = {
     spots: {
       title: 'Spots Locais',
       items: [
-        { name: 'Centro Histórico', desc: 'Ruelas encantadoras, azulejos tradicionais e lojas de artesanato.' },
-        { name: 'Miradouro de Santa Marta', desc: 'Vista panorâmica sobre o oceano e a vila.' },
-        { name: 'Mercado da Ericeira', desc: 'Produtos locais frescos, peixe do dia e artesanato.' },
+        { name: 'Centro Histórico', desc: 'Ruelas encantadoras, casas tradicionais e lojas de artesanato.' },
+        { name: 'Mercado da Ericeira', desc: 'Produtos locais frescos e peixe do dia.' },
+        { name: 'Miradouro da Sala das Visitas', desc: 'Vista panorâmica sobre o oceano e a vila.' },
       ],
     },
     experiences: {
@@ -64,9 +64,9 @@ const sections = {
     spots: {
       title: 'Local Spots',
       items: [
-        { name: 'Historic Centre', desc: 'Charming alleys, traditional tiles and craft shops.' },
-        { name: 'Santa Marta Viewpoint', desc: 'Panoramic view over the ocean and the village.' },
-        { name: 'Ericeira Market', desc: 'Fresh local produce, catch of the day and crafts.' },
+        { name: 'Historic Centre', desc: 'Charming alleys, traditional houses and craft shops.' },
+        { name: 'Ericeira Market', desc: 'Fresh local produce and catch of the day.' },
+        { name: 'Sala das Visitas Viewpoint', desc: 'Panoramic view over the ocean and the village.' },
       ],
     },
     experiences: {

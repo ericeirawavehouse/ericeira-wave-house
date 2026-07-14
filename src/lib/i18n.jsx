@@ -162,6 +162,8 @@ const translations = {
     footer: {
       rights: 'Todos os direitos reservados.',
       followUs: 'Segue-nos',
+      alLicense: 'Registo de Alojamento Local (AL): {{number}}',
+      privacyPolicy: 'Política de Privacidade e Cookies',
     },
   },
   en: {
@@ -321,6 +323,8 @@ const translations = {
     footer: {
       rights: 'All rights reserved.',
       followUs: 'Follow us',
+      alLicense: 'Local Accommodation Registration (AL): {{number}}',
+      privacyPolicy: 'Privacy Policy & Cookies',
     },
   },
 };

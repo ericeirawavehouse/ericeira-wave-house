@@ -4,7 +4,7 @@ import FadeInView from '@/components/shared/FadeInView';
 
 
 import imageSobre from '../images/Outros/15.jpeg';
-import imgAboutCapa from '../images/Capa/1.jpg';
+import imgAboutCapa from '../images/Outros/18.jpg';
 
 export default function About() {
   const { t } = useLanguage();

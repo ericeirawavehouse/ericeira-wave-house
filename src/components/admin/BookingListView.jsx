@@ -21,6 +21,8 @@ const statusColors = {
 
 const statusLabels = { pending: 'Pendente', confirmed: 'Confirmada', rejected: 'Rejeitada' };
 
+const documentTypeLabels = { cc: 'Cartão de Cidadão / BI', passport: 'Passaporte', other: 'Outro' };
+
 const rejectionReasons = [
   'As datas pedidas já não estão disponíveis',
   'A casa está em manutenção nesse período',
@@ -254,10 +256,14 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div><p className="text-muted-foreground text-xs">Nome completo</p><p className="font-medium">{checkInData.full_name || '-'}</p></div>
-                        <div><p className="text-muted-foreground text-xs">Nº documento</p><p>{checkInData.id_number || '-'}</p></div>
-                        <div><p className="text-muted-foreground text-xs">Nacionalidade</p><p>{checkInData.nationality || '-'}</p></div>
                         <div><p className="text-muted-foreground text-xs">Data de nascimento</p><p>{checkInData.date_of_birth ? format(new Date(checkInData.date_of_birth), 'dd/MM/yyyy') : '-'}</p></div>
+                        <div><p className="text-muted-foreground text-xs">Local de nascimento</p><p>{checkInData.place_of_birth || '-'}</p></div>
+                        <div><p className="text-muted-foreground text-xs">Nacionalidade</p><p>{checkInData.nationality || '-'}</p></div>
+                        <div><p className="text-muted-foreground text-xs">Tipo de documento</p><p className="capitalize">{documentTypeLabels[checkInData.document_type] || checkInData.document_type || '-'}</p></div>
+                        <div><p className="text-muted-foreground text-xs">Nº documento</p><p>{checkInData.id_number || '-'}</p></div>
+                        <div><p className="text-muted-foreground text-xs">País emissor do documento</p><p>{checkInData.document_issuing_country || '-'}</p></div>
                         <div><p className="text-muted-foreground text-xs">Morada</p><p>{checkInData.address || '-'}</p></div>
+                        <div><p className="text-muted-foreground text-xs">País de residência</p><p>{checkInData.country_of_residence || '-'}</p></div>
                         <div><p className="text-muted-foreground text-xs">Telefone</p><p>{checkInData.phone || '-'}</p></div>
                         <div><p className="text-muted-foreground text-xs">Email</p><p>{checkInData.email || '-'}</p></div>
                         <div><p className="text-muted-foreground text-xs">Hora de chegada</p><p>{checkInData.arrival_time || '-'}</p></div>
@@ -270,9 +276,11 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
                           <p className="text-muted-foreground text-xs mb-2">Hóspedes adicionais</p>
                           <div className="space-y-2">
                             {checkInData.additional_guests.map((guest, i) => (
-                              <div key={i} className="bg-muted p-3 rounded-lg text-xs">
+                              <div key={i} className="bg-muted p-3 rounded-lg text-xs space-y-0.5">
                                 <p className="font-medium">{guest.full_name || '-'}</p>
-                                <p className="text-muted-foreground">{guest.id_number || '-'} · {guest.nationality || '-'}</p>
+                                <p className="text-muted-foreground">Nascimento: {guest.date_of_birth ? format(new Date(guest.date_of_birth), 'dd/MM/yyyy') : '-'} · {guest.place_of_birth || '-'} · {guest.nationality || '-'}</p>
+                                <p className="text-muted-foreground">{documentTypeLabels[guest.document_type] || guest.document_type || '-'}: {guest.id_number || '-'} ({guest.document_issuing_country || '-'})</p>
+                                <p className="text-muted-foreground">Residência: {guest.country_of_residence || '-'}</p>
                               </div>
                             ))}
                           </div>

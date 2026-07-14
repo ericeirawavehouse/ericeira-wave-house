@@ -16,6 +16,7 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import Booking from './pages/Booking';
 import CheckInForm from './pages/CheckInForm';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import AdminLayout from './components/admin/AdminLayout';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -44,6 +45,7 @@ function App() {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/booking" element={<Booking />} />
                 <Route path="/checkin" element={<CheckInForm />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               </Route>
 
               {/* Rotas de Admin - protegidas por login */}
