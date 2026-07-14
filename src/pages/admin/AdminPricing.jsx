@@ -27,6 +27,8 @@ export default function AdminPricing() {
   const [surfGroupDiscount, setSurfGroupDiscount] = useState('');
   const [surfLargeGroupThreshold, setSurfLargeGroupThreshold] = useState('');
   const [surfLargeGroupDiscount, setSurfLargeGroupDiscount] = useState('');
+  const [surfChildAgeLimit, setSurfChildAgeLimit] = useState('');
+  const [surfChildDiscount, setSurfChildDiscount] = useState('');
   const [surfMinPeople, setSurfMinPeople] = useState('');
   const [surfMaxPeople, setSurfMaxPeople] = useState('');
   const [surfAdvanceNoticeDays, setSurfAdvanceNoticeDays] = useState('');
@@ -79,6 +81,8 @@ export default function AdminPricing() {
       setSurfGroupDiscount(String(data.surf_group_discount_percent ?? 0));
       setSurfLargeGroupThreshold(String(data.surf_large_group_threshold ?? 0));
       setSurfLargeGroupDiscount(String(data.surf_large_group_discount_percent ?? 0));
+      setSurfChildAgeLimit(String(data.surf_child_age_limit ?? 0));
+      setSurfChildDiscount(String(data.surf_child_discount_percent ?? 0));
       setSurfMinPeople(String(data.surf_min_people ?? 1));
       setSurfMaxPeople(String(data.surf_max_people ?? 10));
       setSurfAdvanceNoticeDays(String(data.surf_advance_notice_days ?? 0));
@@ -105,6 +109,8 @@ export default function AdminPricing() {
           surf_group_discount_percent: parseFloat(surfGroupDiscount) || 0,
           surf_large_group_threshold: parseInt(surfLargeGroupThreshold) || 0,
           surf_large_group_discount_percent: parseFloat(surfLargeGroupDiscount) || 0,
+          surf_child_age_limit: parseInt(surfChildAgeLimit) || 0,
+          surf_child_discount_percent: parseFloat(surfChildDiscount) || 0,
           surf_min_people: parseInt(surfMinPeople) || 1,
           surf_max_people: parseInt(surfMaxPeople) || 10,
           surf_advance_notice_days: parseInt(surfAdvanceNoticeDays) || 0,
@@ -209,7 +215,6 @@ export default function AdminPricing() {
           <TabsTrigger value="calendar" className="rounded-full px-6">Calendário</TabsTrigger>
           <TabsTrigger value="base" className="rounded-full px-6">Preços</TabsTrigger>
           <TabsTrigger value="periods" className="rounded-full px-6">Períodos</TabsTrigger>
-          <TabsTrigger value="discounts" className="rounded-full px-6">Descontos</TabsTrigger>
           <TabsTrigger value="availability" className="rounded-full px-6">Disponibilidade</TabsTrigger>
           <TabsTrigger value="surf" className="rounded-full px-6">Surf</TabsTrigger>
         </TabsList>
@@ -263,6 +268,38 @@ export default function AdminPricing() {
           {saveMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
           Guardar preços
         </Button>
+      </div>
+
+      <div className="max-w-2xl mt-10">
+        <h2 className="font-heading text-lg font-semibold mb-1">Descontos</h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          Descontos automáticos por duração da estadia, aplicados ao total do Alojamento.
+        </p>
+
+        <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Percent className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <Label className="text-sm mb-2 block">Desconto semanal (%) - para 7 ou mais noites</Label>
+              <Input type="number" min="0" max="100" step="1" value={weeklyDiscount} onChange={(e) => setWeeklyDiscount(e.target.value)} />
+            </div>
+          </div>
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Percent className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <Label className="text-sm mb-2 block">Desconto mensal (%) - para 28 ou mais noites</Label>
+              <Input type="number" min="0" max="100" step="1" value={monthlyDiscount} onChange={(e) => setMonthlyDiscount(e.target.value)} />
+            </div>
+          </div>
+          <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="w-full rounded-full">
+            {saveMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+            Guardar preços
+          </Button>
+        </div>
       </div>
         </TabsContent>
 
@@ -339,39 +376,6 @@ export default function AdminPricing() {
             ))}
           </div>
         )}
-      </div>
-        </TabsContent>
-
-        <TabsContent value="discounts">
-      <div className="max-w-2xl">
-        <p className="text-sm text-muted-foreground mb-6">
-          Descontos automáticos por duração da estadia, aplicados ao total do Alojamento.
-        </p>
-
-        <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <Percent className="w-5 h-5 text-primary" />
-            </div>
-            <div className="flex-1">
-              <Label className="text-sm mb-2 block">Desconto semanal (%) - para 7 ou mais noites</Label>
-              <Input type="number" min="0" max="100" step="1" value={weeklyDiscount} onChange={(e) => setWeeklyDiscount(e.target.value)} />
-            </div>
-          </div>
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <Percent className="w-5 h-5 text-primary" />
-            </div>
-            <div className="flex-1">
-              <Label className="text-sm mb-2 block">Desconto mensal (%) - para 28 ou mais noites</Label>
-              <Input type="number" min="0" max="100" step="1" value={monthlyDiscount} onChange={(e) => setMonthlyDiscount(e.target.value)} />
-            </div>
-          </div>
-          <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="w-full rounded-full">
-            {saveMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-            Guardar preços
-          </Button>
-        </div>
       </div>
         </TabsContent>
 
@@ -536,6 +540,34 @@ export default function AdminPricing() {
                 <div>
                   <Label className="text-xs text-muted-foreground mb-1.5 block">Desconto (%)</Label>
                   <Input type="number" min="0" max="100" step="1" value={surfLargeGroupDiscount} onChange={(e) => setSurfLargeGroupDiscount(e.target.value)} />
+                </div>
+              </div>
+            </div>
+            <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="w-full rounded-full">
+              {saveMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+              Guardar preços
+            </Button>
+          </div>
+        </div>
+
+        <div>
+          <h2 className="font-heading text-lg font-semibold mb-1">Desconto por idade</h2>
+          <p className="text-sm text-muted-foreground mb-6">
+            Aplica um desconto a crianças/jovens até uma certa idade. No site vai aparecer um campo para indicar quantas das pessoas são crianças. Deixa a idade a 0 para desativar.
+          </p>
+          <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <Users className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1 grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">Crianças até (anos)</Label>
+                  <Input type="number" min="0" step="1" value={surfChildAgeLimit} onChange={(e) => setSurfChildAgeLimit(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">Desconto (%)</Label>
+                  <Input type="number" min="0" max="100" step="1" value={surfChildDiscount} onChange={(e) => setSurfChildDiscount(e.target.value)} />
                 </div>
               </div>
             </div>

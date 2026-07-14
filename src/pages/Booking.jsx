@@ -37,7 +37,7 @@ export default function Booking() {
     setSurfCalendarMonth(surfDate || new Date());
   }, [surfDate]);
   const [form, setForm] = useState({
-    guest_name: '', guest_email: '', guest_phone: '', guests_count: 2, surf_time: '', notes: '',
+    guest_name: '', guest_email: '', guest_phone: '', guests_count: 2, children_count: 0, surf_time: '', notes: '',
   });
 
   // 2. BUSCA DE DATAS OCUPADAS (SUPABASE)
@@ -85,7 +85,7 @@ export default function Booking() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('site_settings')
-        .select('accommodation_price_per_night, surf_lesson_price, weekend_price_per_night, weekly_discount_percent, monthly_discount_percent, min_nights, max_nights, advance_notice_days, booking_horizon_months, surf_group_discount_threshold, surf_group_discount_percent, surf_large_group_threshold, surf_large_group_discount_percent, surf_min_people, surf_max_people, surf_advance_notice_days, surf_booking_horizon_months')
+        .select('*')
         .eq('id', 1)
         .maybeSingle();
       if (error) throw error;
@@ -153,7 +153,13 @@ export default function Booking() {
     : (surfGroupThreshold > 0 && surfGuests >= surfGroupThreshold)
       ? (pricing?.surf_group_discount_percent || 0)
       : 0;
-  const surfSubtotal = surfPricePerPerson * surfGuests;
+  const surfChildAgeLimit = pricing?.surf_child_age_limit || 0;
+  const surfChildDiscountPercent = pricing?.surf_child_discount_percent || 0;
+  const hasChildDiscount = surfChildAgeLimit > 0;
+  const surfChildrenCount = hasChildDiscount ? Math.min(Math.max(parseInt(form.children_count) || 0, 0), surfGuests) : 0;
+  const surfAdultsCount = surfGuests - surfChildrenCount;
+  const surfChildPricePerPerson = surfPricePerPerson * (1 - surfChildDiscountPercent / 100);
+  const surfSubtotal = surfAdultsCount * surfPricePerPerson + surfChildrenCount * surfChildPricePerPerson;
   const surfDiscountAmount = surfSubtotal * (surfDiscountPercent / 100);
   const surfTotal = surfSubtotal - surfDiscountAmount;
   const minNights = pricing?.min_nights || 1;
@@ -413,10 +419,23 @@ export default function Booking() {
                     </div>
                   )}
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
-                      <span>€{surfPricePerPerson} x {surfGuests} {surfGuests === 1 ? t('booking.person') : t('booking.people')}</span>
-                      <span>€{surfSubtotal.toFixed(2)}</span>
-                    </div>
+                    {surfChildrenCount > 0 ? (
+                      <>
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                          <span>€{surfPricePerPerson} x {surfAdultsCount} {surfAdultsCount === 1 ? t('booking.person') : t('booking.people')}</span>
+                          <span>€{(surfPricePerPerson * surfAdultsCount).toFixed(2)}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                          <span>€{surfChildPricePerPerson.toFixed(2)} x {surfChildrenCount} {t('booking.children')}</span>
+                          <span>€{(surfChildPricePerPerson * surfChildrenCount).toFixed(2)}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex items-center justify-between text-sm text-muted-foreground">
+                        <span>€{surfPricePerPerson} x {surfGuests} {surfGuests === 1 ? t('booking.person') : t('booking.people')}</span>
+                        <span>€{surfSubtotal.toFixed(2)}</span>
+                      </div>
+                    )}
                     {surfDiscountPercent > 0 && (
                       <div className="flex items-center justify-between text-sm text-emerald-600">
                         <span>{t('booking.groupDiscountLabel', { percent: surfDiscountPercent })}</span>
@@ -513,6 +532,19 @@ export default function Booking() {
                   )}
                 </div>
               </div>
+              {type === 'surf' && hasChildDiscount && (
+                <div>
+                  <Label className="text-sm mb-2 block">{t('booking.numberOfChildren', { age: surfChildAgeLimit })}</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={surfGuests}
+                    value={form.children_count}
+                    onChange={(e) => setForm({ ...form, children_count: parseInt(e.target.value) || 0 })}
+                    className="rounded-lg"
+                  />
+                </div>
+              )}
               <div>
                 <Label className="text-sm mb-2 block">{t('booking.notes')}</Label>
                 <Textarea rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="rounded-lg" />

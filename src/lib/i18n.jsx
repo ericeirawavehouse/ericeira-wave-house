@@ -152,8 +152,10 @@ const translations = {
       surfGroupDiscountBanner: 'Este grupo tem um desconto de {{percent}}%',
       person: 'pessoa',
       people: 'pessoas',
+      children: 'crianças',
       groupDiscountLabel: 'Desconto de grupo ({{percent}}%)',
       numberOfPeople: 'Número de pessoas',
+      numberOfChildren: 'Número de crianças (até {{age}} anos)',
       peopleHint: 'Entre {{min}} e {{max}} pessoas por aula.',
     },
     testimonials: {
@@ -313,8 +315,10 @@ const translations = {
       surfGroupDiscountBanner: 'This group has a {{percent}}% discount',
       person: 'person',
       people: 'people',
+      children: 'children',
       groupDiscountLabel: 'Group discount ({{percent}}%)',
       numberOfPeople: 'Number of people',
+      numberOfChildren: 'Number of children (up to {{age}} years old)',
       peopleHint: 'Between {{min}} and {{max}} people per lesson.',
     },
     testimonials: {
