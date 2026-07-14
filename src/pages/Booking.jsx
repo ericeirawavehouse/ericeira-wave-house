@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useLanguage } from '@/lib/i18n';
 import { supabase } from '@/lib/supabaseClient';
@@ -26,6 +26,16 @@ export default function Booking() {
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
   const [surfDate, setSurfDate] = useState(undefined);
   const [selectedSlotId, setSelectedSlotId] = useState('');
+  const [accommodationCalendarMonth, setAccommodationCalendarMonth] = useState(new Date());
+  const [surfCalendarMonth, setSurfCalendarMonth] = useState(new Date());
+
+  useEffect(() => {
+    setAccommodationCalendarMonth(dateRange.from || new Date());
+  }, [dateRange.from]);
+
+  useEffect(() => {
+    setSurfCalendarMonth(surfDate || new Date());
+  }, [surfDate]);
   const [form, setForm] = useState({
     guest_name: '', guest_email: '', guest_phone: '', guests_count: 2, surf_time: '', notes: '',
   });
@@ -301,6 +311,8 @@ export default function Booking() {
                       mode="range"
                       selected={dateRange}
                       onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })}
+                      month={accommodationCalendarMonth}
+                      onMonthChange={setAccommodationCalendarMonth}
                       numberOfMonths={2}
                       toDate={latestSelectableDate}
                       disabled={(date) =>
@@ -318,6 +330,8 @@ export default function Booking() {
                       mode="single"
                       selected={surfDate}
                       onSelect={(date) => { setSurfDate(date); setSelectedSlotId(''); }}
+                      month={surfCalendarMonth}
+                      onMonthChange={setSurfCalendarMonth}
                       toDate={surfLatestSelectableDate}
                       disabled={(date) =>
                         date < surfEarliestSelectableDate ||

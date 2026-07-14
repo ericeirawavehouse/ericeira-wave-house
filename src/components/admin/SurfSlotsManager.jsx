@@ -99,7 +99,10 @@ export default function SurfSlotsManager() {
     },
     onError: (error) => {
       console.error('Erro ao bloquear data:', error);
-      toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível bloquear a data. Já deves ter bloqueado esta data antes.' });
+      const description = error?.code === '23505'
+        ? 'Esta data já está bloqueada.'
+        : 'Não foi possível bloquear a data.';
+      toast({ variant: 'destructive', title: 'Erro', description });
     },
   });
 

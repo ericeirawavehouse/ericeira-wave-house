@@ -316,7 +316,7 @@ export default function Accommodation() {
       {/* Lightbox de fotos */}
       <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
         <DialogContent
-          className="max-w-[100vw] w-screen h-dvh sm:rounded-none border-0 bg-black/95 p-0 flex items-center justify-center [&>button]:text-white [&>button]:z-20 [&>button]:opacity-80 [&>button]:hover:opacity-100 [&>button]:top-[max(1.5rem,env(safe-area-inset-top))] sm:[&>button]:top-4"
+          className="max-w-[100vw] w-screen h-dvh sm:rounded-none border-0 bg-black/95 p-0 flex items-center justify-center [&>button:last-child]:text-white [&>button:last-child]:z-20 [&>button:last-child]:opacity-80 [&>button:last-child]:hover:opacity-100 [&>button:last-child]:top-[max(1.5rem,env(safe-area-inset-top))] sm:[&>button:last-child]:top-4"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >

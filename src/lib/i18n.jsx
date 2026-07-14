@@ -20,7 +20,7 @@ const translations = {
     },
     accommodation: {
       title: 'A Casa',
-      subtitle: 'Um retiro inteiro só para ti',
+      subtitle: 'Um apartamento inteiro só para ti',
       description: 'Ideal para casais, amigos ou nómadas digitais, dispõe de dois quartos duplos, um escritório com sofá-cama, casa de banho, cozinha equipada e uma zona de estar com mesa de jantar. \n\nLocalização privilegiada, a apenas 5 minutos a pé do centro da vila, com todas as comodidades e fácil acesso às principais praias. Situado numa zona tranquila, combina conforto e conveniência.',
       entireHome: 'Apartamento Inteiro',
       guests: '5 Hóspedes',
