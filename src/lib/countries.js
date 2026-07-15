@@ -45,12 +45,4 @@ const COUNTRY_DATA = [
   ['Vaticano', 'VA'], ['Venezuela', 'VE'], ['Vietname', 'VN'], ['Zâmbia', 'ZM'], ['Zimbabué', 'ZW'],
 ];
 
-function flagFromCode(code) {
-  return String.fromCodePoint(...code.toUpperCase().split('').map((c) => 127397 + c.charCodeAt(0)));
-}
-
-export const COUNTRIES = COUNTRY_DATA.map(([name, code]) => ({
-  name,
-  code,
-  flag: flagFromCode(code),
-}));
+export const COUNTRIES = COUNTRY_DATA.map(([name, code]) => ({ name, code }));

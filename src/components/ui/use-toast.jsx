@@ -2,6 +2,7 @@ import * as React from "react"
 
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 10000
+const TOAST_AUTO_DISMISS_DELAY = 5000
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
@@ -83,6 +84,12 @@ function addToRemoveQueue(toastId) {
   toastTimeouts.set(toastId, timeout)
 }
 
+function scheduleAutoDismiss(toastId) {
+  setTimeout(() => {
+    dispatch({ type: actionTypes.DISMISS_TOAST, toastId })
+  }, TOAST_AUTO_DISMISS_DELAY)
+}
+
 export function useToast() {
   const [state, setState] = React.useState(memoryState)
 
@@ -114,6 +121,7 @@ export function useToast() {
           },
         },
       })
+      scheduleAutoDismiss(id)
 
       return { id, dismiss, update }
     },
@@ -128,6 +136,7 @@ export const toast = (props) => {
     type: actionTypes.ADD_TOAST,
     toast: { ...props, id, open: true },
   })
+  scheduleAutoDismiss(id)
   return {
     id,
     dismiss: () => dispatch({ type: actionTypes.DISMISS_TOAST, toastId: id }),

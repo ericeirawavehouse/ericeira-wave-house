@@ -209,14 +209,24 @@ export default function AdminPricing() {
   return (
     <div className="max-w-4xl mx-auto">
       <h1 className="font-heading text-2xl font-semibold mb-1">Preços</h1>
-      
+
+      <Tabs defaultValue="alojamento">
+        <TabsList className="bg-muted p-1.5 rounded-full mb-8 h-auto border border-border/60 inline-flex w-auto">
+          <TabsTrigger value="alojamento" className="rounded-full px-6">
+            <Home className="w-4 h-4 mr-1.5" /> Alojamento
+          </TabsTrigger>
+          <TabsTrigger value="surf" className="rounded-full px-6">
+            <Waves className="w-4 h-4 mr-1.5" /> Surf
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="alojamento">
       <Tabs defaultValue="calendar">
         <TabsList className="bg-muted p-1.5 rounded-full mb-8 flex-wrap h-auto border border-border/60 inline-flex w-auto">
           <TabsTrigger value="calendar" className="rounded-full px-6">Calendário</TabsTrigger>
           <TabsTrigger value="base" className="rounded-full px-6">Preços</TabsTrigger>
           <TabsTrigger value="periods" className="rounded-full px-6">Períodos</TabsTrigger>
           <TabsTrigger value="availability" className="rounded-full px-6">Disponibilidade</TabsTrigger>
-          <TabsTrigger value="surf" className="rounded-full px-6">Surf</TabsTrigger>
         </TabsList>
 
         <TabsContent value="calendar">
@@ -478,8 +488,18 @@ export default function AdminPricing() {
         </div>
       </div>
         </TabsContent>
+      </Tabs>
+        </TabsContent>
 
         <TabsContent value="surf">
+      <Tabs defaultValue="pricing">
+        <TabsList className="bg-muted p-1.5 rounded-full mb-8 flex-wrap h-auto border border-border/60 inline-flex w-auto">
+          <TabsTrigger value="pricing" className="rounded-full px-6">Preços & Descontos</TabsTrigger>
+          <TabsTrigger value="rules" className="rounded-full px-6">Regras</TabsTrigger>
+          <TabsTrigger value="days" className="rounded-full px-6">Dias Disponíveis</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="pricing">
       <div className="max-w-2xl space-y-10">
         <div>
           <p className="text-sm text-muted-foreground mb-6">
@@ -574,7 +594,11 @@ export default function AdminPricing() {
             </Button>
           </div>
         </div>
+      </div>
+        </TabsContent>
 
+        <TabsContent value="rules">
+      <div className="max-w-2xl space-y-10">
         <div>
           <h2 className="font-heading text-lg font-semibold mb-1">Regras da aula</h2>
           <p className="text-sm text-muted-foreground mb-6">
@@ -625,9 +649,15 @@ export default function AdminPricing() {
             </Button>
           </div>
         </div>
+      </div>
+        </TabsContent>
 
+        <TabsContent value="days">
+      <div className="max-w-2xl">
         <SurfSlotsManager />
       </div>
+        </TabsContent>
+      </Tabs>
         </TabsContent>
       </Tabs>
     </div>

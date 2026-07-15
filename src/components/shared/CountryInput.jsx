@@ -19,15 +19,28 @@ export default function CountryInput({ value, onChange, required, className }) {
 
   const query = (value || '').trim().toLowerCase();
   const matches = query
-    ? COUNTRIES.filter((c) => c.name.toLowerCase().includes(query)).slice(0, 8)
-    : COUNTRIES.slice(0, 8);
+    ? COUNTRIES.filter((c) => c.name.toLowerCase().includes(query))
+    : COUNTRIES;
 
   const selectedCountry = COUNTRIES.find((c) => c.name.toLowerCase() === query);
+
+  const Flag = ({ code, className: flagClassName }) => (
+    <img
+      src={`https://flagcdn.com/24x18/${code.toLowerCase()}.png`}
+      srcSet={`https://flagcdn.com/48x36/${code.toLowerCase()}.png 2x`}
+      alt=""
+      width={20}
+      height={15}
+      className={cn('inline-block rounded-sm object-cover shrink-0', flagClassName)}
+    />
+  );
 
   return (
     <div className="relative" ref={containerRef}>
       {selectedCountry && (
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">{selectedCountry.flag}</span>
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+          <Flag code={selectedCountry.code} />
+        </span>
       )}
       <Input
         value={value}
@@ -47,7 +60,7 @@ export default function CountryInput({ value, onChange, required, className }) {
               onClick={() => { onChange(country.name); setOpen(false); }}
               className="w-full flex items-center gap-2 text-left px-3 py-2 text-sm hover:bg-muted transition-colors"
             >
-              <span>{country.flag}</span>
+              <Flag code={country.code} />
               <span>{country.name}</span>
             </button>
           ))}

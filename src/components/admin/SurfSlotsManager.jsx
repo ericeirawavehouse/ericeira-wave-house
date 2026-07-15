@@ -4,8 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, Loader2, Clock, CalendarOff } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Trash2, Loader2, CalendarOff } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -14,7 +14,6 @@ const DAY_NAMES = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 
 
 export default function SurfSlotsManager() {
   const queryClient = useQueryClient();
-  const [newSlot, setNewSlot] = useState({ day_of_week: '1', label: '', start_time: '09:00', end_time: '12:00', price: '' });
   const [newBlock, setNewBlock] = useState({ date: '', reason: '' });
 
   const { data: slots = [], isLoading } = useQuery({
@@ -23,52 +22,34 @@ export default function SurfSlotsManager() {
       const { data, error } = await supabase
         .from('surf_slots')
         .select('*')
-        .order('day_of_week', { ascending: true })
-        .order('start_time', { ascending: true });
+        .order('day_of_week', { ascending: true });
       if (error) throw error;
       return data;
     },
   });
 
-  const addMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from('surf_slots').insert([{
-        day_of_week: parseInt(newSlot.day_of_week),
-        label: newSlot.label || 'Aula',
-        start_time: newSlot.start_time,
-        end_time: newSlot.end_time,
-        price: newSlot.price === '' ? null : parseFloat(newSlot.price),
-        active: true,
-      }]);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['surf-slots'] });
-      setNewSlot({ day_of_week: '1', label: '', start_time: '09:00', end_time: '12:00', price: '' });
-      toast({ title: 'Horário adicionado!' });
-    },
-    onError: (error) => {
-      console.error('Erro ao adicionar horário:', error);
-      toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível adicionar o horário.' });
-    },
-  });
-
-  const toggleActiveMutation = useMutation({
-    mutationFn: async (slot) => {
-      const { error } = await supabase.from('surf_slots').update({ active: !slot.active }).eq('id', slot.id);
-      if (error) throw error;
+  const toggleDayMutation = useMutation({
+    mutationFn: async ({ dayIndex, active }) => {
+      const existing = slots.find((s) => s.day_of_week === dayIndex);
+      if (existing) {
+        const { error } = await supabase.from('surf_slots').update({ active }).eq('id', existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('surf_slots').insert([{
+          day_of_week: dayIndex,
+          label: 'Aula de Surf',
+          start_time: '00:00',
+          end_time: '23:59',
+          price: null,
+          active,
+        }]);
+        if (error) throw error;
+      }
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['surf-slots'] }),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id) => {
-      const { error } = await supabase.from('surf_slots').delete().eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['surf-slots'] });
-      toast({ title: 'Horário removido.' });
+    onError: (error) => {
+      console.error('Erro ao atualizar dia:', error);
+      toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível atualizar este dia.' });
     },
   });
 
@@ -119,102 +100,36 @@ export default function SurfSlotsManager() {
 
   return (
     <div>
-      <h2 className="font-heading text-lg font-semibold mb-1">Horários disponíveis</h2>
+      <h2 className="font-heading text-lg font-semibold mb-1">Dias disponíveis</h2>
       <p className="text-sm text-muted-foreground mb-6">
-        Define em que dias da semana e horas há aulas de surf disponíveis. Podes definir um preço diferente do preço base para um horário específico (ex: aulas ao fim de semana mais caras). Se não definires nenhum horário, o site mostra sempre "Manhã" e "Tarde" como opções fixas.
+        Escolhe em que dias da semana há aulas de surf. A hora exata é combinada diretamente com o instrutor consoante as condições do mar, por isso não é definida aqui. Se não ativares nenhum dia, o site permite marcar qualquer dia.
       </p>
 
-      <div className="bg-card border border-border rounded-2xl p-6 space-y-3 mb-6">
-        {isLoading && <p className="text-sm text-muted-foreground">A carregar...</p>}
-        {!isLoading && slots.length === 0 && (
-          <p className="text-sm text-muted-foreground">Ainda não definiste nenhum horário.</p>
-        )}
-        {DAY_NAMES.map((dayName, dayIndex) => {
-          const daySlots = slots.filter((s) => s.day_of_week === dayIndex);
-          if (daySlots.length === 0) return null;
-          return (
-            <div key={dayIndex} className="border-b border-border last:border-0 pb-3 last:pb-0">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">{dayName}</p>
-              <div className="space-y-2">
-                {daySlots.map((slot) => (
-                  <div key={slot.id} className={`flex items-center gap-3 p-3 rounded-xl border ${slot.active ? 'border-border bg-background' : 'border-border/50 bg-muted/50 opacity-60'}`}>
-                    <Clock className="w-4 h-4 text-primary shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{slot.label} · {slot.start_time} - {slot.end_time}</p>
-                      <p className="text-xs text-muted-foreground">{slot.price != null ? `€${slot.price} por pessoa` : 'Preço base'}</p>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="rounded-full text-xs"
-                      onClick={() => toggleActiveMutation.mutate(slot)}
-                    >
-                      {slot.active ? 'Ativo' : 'Inativo'}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => deleteMutation.mutate(slot.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
+      <div className="bg-card border border-border rounded-2xl p-6 space-y-2 mb-10">
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">A carregar...</p>
+        ) : (
+          DAY_NAMES.map((dayName, dayIndex) => {
+            const slot = slots.find((s) => s.day_of_week === dayIndex);
+            const active = !!slot?.active;
+            return (
+              <div key={dayIndex} className="flex items-center justify-between p-3 rounded-xl border border-border">
+                <p className="text-sm font-medium">{dayName}</p>
+                <Switch
+                  checked={active}
+                  disabled={toggleDayMutation.isPending}
+                  onCheckedChange={(checked) => toggleDayMutation.mutate({ dayIndex, active: checked })}
+                />
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
 
-      <div className="bg-card border border-border rounded-2xl p-6">
-        <p className="text-sm font-medium mb-4">Adicionar horário</p>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 items-end">
-          <div className="col-span-2 md:col-span-1">
-            <Label className="text-xs text-muted-foreground mb-1.5 block">Dia da semana</Label>
-            <Select value={newSlot.day_of_week} onValueChange={(v) => setNewSlot({ ...newSlot, day_of_week: v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {DAY_NAMES.map((name, i) => (
-                  <SelectItem key={i} value={String(i)}>{name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label className="text-xs text-muted-foreground mb-1.5 block">Nome</Label>
-            <Input placeholder="Manhã" value={newSlot.label} onChange={(e) => setNewSlot({ ...newSlot, label: e.target.value })} />
-          </div>
-          <div>
-            <Label className="text-xs text-muted-foreground mb-1.5 block">Início</Label>
-            <Input type="time" value={newSlot.start_time} onChange={(e) => setNewSlot({ ...newSlot, start_time: e.target.value })} />
-          </div>
-          <div>
-            <Label className="text-xs text-muted-foreground mb-1.5 block">Fim</Label>
-            <Input type="time" value={newSlot.end_time} onChange={(e) => setNewSlot({ ...newSlot, end_time: e.target.value })} />
-          </div>
-          <div>
-            <Label className="text-xs text-muted-foreground mb-1.5 block">Preço (€, opcional)</Label>
-            <Input type="number" min="0" step="0.01" placeholder="Preço base" value={newSlot.price} onChange={(e) => setNewSlot({ ...newSlot, price: e.target.value })} />
-          </div>
-        </div>
-        <Button
-          type="button"
-          onClick={() => addMutation.mutate()}
-          disabled={addMutation.isPending || !newSlot.start_time || !newSlot.end_time}
-          className="w-full rounded-full mt-4"
-        >
-          {addMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-          Adicionar horário
-        </Button>
-      </div>
-
-      <div className="mt-10">
+      <div>
         <h2 className="font-heading text-lg font-semibold mb-1">Bloquear datas específicas</h2>
         <p className="text-sm text-muted-foreground mb-6">
-          Para quando o instrutor não pode num dia em concreto, mesmo que esse dia da semana tenha normalmente horários disponíveis. A data fica completamente indisponível para reservas de surf.
+          Para quando o instrutor não pode num dia em concreto, mesmo que esse dia da semana esteja normalmente disponível. A data fica completamente indisponível para reservas de surf.
         </p>
 
         <div className="bg-card border border-border rounded-2xl p-6 space-y-3 mb-6">

@@ -7,9 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
-import { Home, Waves, Loader2, CheckCircle, Tag } from 'lucide-react';
+import { Home, Waves, Loader2, CheckCircle, Tag, CloudSun } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import FadeInView from '../components/shared/FadeInView';
 import SectionHeading from '../components/shared/SectionHeading';
@@ -25,7 +24,6 @@ export default function Booking() {
   const [success, setSuccess] = useState(false);
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
   const [surfDate, setSurfDate] = useState(undefined);
-  const [selectedSlotId, setSelectedSlotId] = useState('');
   const [accommodationCalendarMonth, setAccommodationCalendarMonth] = useState(new Date());
   const [surfCalendarMonth, setSurfCalendarMonth] = useState(new Date());
 
@@ -134,11 +132,7 @@ export default function Booking() {
   const nights = dateRange.from && dateRange.to ? differenceInCalendarDays(dateRange.to, dateRange.from) : 0;
   const surfGuests = form.guests_count || 1;
   const hasConfiguredSlots = surfSlots.length > 0;
-  const daySlots = surfDate ? surfSlots.filter((s) => s.day_of_week === getDay(surfDate)) : [];
-  const selectedSlot = daySlots.find((s) => String(s.id) === String(selectedSlotId));
-  const surfPricePerPerson = (hasConfiguredSlots && selectedSlot && selectedSlot.price != null)
-    ? selectedSlot.price
-    : (pricing?.surf_lesson_price || 0);
+  const surfPricePerPerson = pricing?.surf_lesson_price || 0;
   const surfMinPeople = pricing?.surf_min_people || 1;
   const surfMaxPeople = pricing?.surf_max_people || 10;
   const surfAdvanceNoticeDays = pricing?.surf_advance_notice_days || 0;
@@ -210,14 +204,6 @@ export default function Booking() {
       toast({ variant: 'destructive', title: t('booking.errorTitle'), description: t('booking.selectSurfDateError') });
       return;
     }
-    if (type === 'surf' && hasConfiguredSlots && !selectedSlot) {
-      toast({ variant: 'destructive', title: t('booking.errorTitle'), description: t('booking.selectSurfTimeError') });
-      return;
-    }
-    if (type === 'surf' && !hasConfiguredSlots && !form.surf_time) {
-      toast({ variant: 'destructive', title: t('booking.errorTitle'), description: t('booking.selectSurfTimeError') });
-      return;
-    }
     if (type === 'surf' && (surfGuests < surfMinPeople || surfGuests > surfMaxPeople)) {
       toast({ variant: 'destructive', title: t('booking.errorTitle'), description: t('booking.peopleRangeError', { min: surfMinPeople, max: surfMaxPeople }) });
       return;
@@ -238,9 +224,7 @@ export default function Booking() {
 
     if (type === 'surf' && surfDate) {
       dataToInsert.surf_date = format(surfDate, 'yyyy-MM-dd');
-      if (hasConfiguredSlots && selectedSlot) {
-        dataToInsert.surf_time = `${selectedSlot.label} (${selectedSlot.start_time}-${selectedSlot.end_time})`;
-      }
+      dataToInsert.surf_time = 'A combinar consoante as condições';
     }
 
     const { error } = await supabase
@@ -353,7 +337,7 @@ export default function Booking() {
                     <Calendar
                       mode="single"
                       selected={surfDate}
-                      onSelect={(date) => { setSurfDate(date); setSelectedSlotId(''); }}
+                      onSelect={setSurfDate}
                       month={surfCalendarMonth}
                       onMonthChange={setSurfCalendarMonth}
                       toDate={surfLatestSelectableDate}
@@ -462,41 +446,10 @@ export default function Booking() {
                 </div>
               )}
 
-              {type === 'surf' && hasConfiguredSlots && (
-                <div>
-                  <Label className="text-sm mb-2 block">{t('booking.surfTime')}</Label>
-                  <Select
-                    value={selectedSlotId}
-                    onValueChange={setSelectedSlotId}
-                    name="surf_time"
-                    required
-                    disabled={!surfDate || daySlots.length === 0}
-                  >
-                    <SelectTrigger className="rounded-lg">
-                      <SelectValue placeholder={!surfDate ? t('booking.surfDate') : undefined} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {daySlots.map((slot) => (
-                        <SelectItem key={slot.id} value={String(slot.id)}>
-                          {slot.label} · {slot.start_time} - {slot.end_time}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              {type === 'surf' && !hasConfiguredSlots && (
-                <div>
-                  <Label className="text-sm mb-2 block">{t('booking.surfTime')}</Label>
-                  <Select value={form.surf_time} onValueChange={(v) => setForm({ ...form, surf_time: v })} name="surf_time" required>
-                    <SelectTrigger className="rounded-lg">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="morning">{t('booking.morning')}</SelectItem>
-                      <SelectItem value="afternoon">{t('booking.afternoon')}</SelectItem>
-                    </SelectContent>
-                  </Select>
+              {type === 'surf' && (
+                <div className="flex items-start gap-3 bg-sky-50 text-sky-800 text-sm px-4 py-3 rounded-xl">
+                  <CloudSun className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{t('booking.weatherNotice')}</span>
                 </div>
               )}
 
