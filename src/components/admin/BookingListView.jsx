@@ -22,6 +22,25 @@ const statusColors = {
 const statusLabels = { pending: 'Pendente', confirmed: 'Confirmada', rejected: 'Rejeitada' };
 
 const documentTypeLabels = { cc: 'Cartão de Cidadão / BI', passport: 'Passaporte', other: 'Outro' };
+const documentTypeSibaLabels = { cc: 'CARTÃO DE CIDADÃO', passport: 'PASSAPORTE', other: 'OUTRO' };
+
+const sibaDate = (dateStr) => (dateStr ? format(new Date(dateStr), 'dd-MM-yyyy') : '-');
+
+function buildSibaText(guest, checkIn, checkOut) {
+  return [
+    `Nome Completo: ${guest.full_name || '-'}`,
+    `Data de Nascimento: ${sibaDate(guest.date_of_birth)}`,
+    `Local Nascimento: ${guest.place_of_birth || '-'}`,
+    `Nacionalidade: ${guest.nationality || '-'}`,
+    `Local Residência: ${guest.address || guest.country_of_residence || '-'}`,
+    `País Residência: ${guest.country_of_residence || '-'}`,
+    `Número Documento: ${guest.id_number || '-'}`,
+    `Tipo Documento: ${documentTypeSibaLabels[guest.document_type] || guest.document_type || '-'}`,
+    `País Emissor Documento: ${guest.document_issuing_country || '-'}`,
+    `Data de Check-in: ${sibaDate(checkIn)}`,
+    `Data de Check-out: ${sibaDate(checkOut)}`,
+  ].join('\n');
+}
 
 const rejectionReasons = [
   'As datas pedidas já não estão disponíveis',
@@ -39,6 +58,11 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
   const [rejectReason, setRejectReason] = React.useState(rejectionReasons[0]);
   const [customReason, setCustomReason] = React.useState('');
   const [sendingRejection, setSendingRejection] = React.useState(false);
+
+  const copySibaData = (guest, checkIn, checkOut) => {
+    navigator.clipboard.writeText(buildSibaText(guest, checkIn, checkOut));
+    toast({ title: 'Dados copiados! Cola no SIBA.' });
+  };
 
   const { data: checkInData, isLoading: loadingCheckIn } = useQuery({
     queryKey: ['checkin-data', selected?.id],
@@ -254,6 +278,17 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
                     </div>
                   ) : checkInData ? (
                     <div className="space-y-4">
+                      {selected.type === 'accommodation' && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => copySibaData(checkInData, selected.check_in, selected.check_out)}
+                          className="rounded-full"
+                        >
+                          <Copy className="w-3.5 h-3.5 mr-1.5" /> Copiar dados para o SIBA
+                        </Button>
+                      )}
                       <div className="grid grid-cols-2 gap-4">
                         <div><p className="text-muted-foreground text-xs">Nome completo</p><p className="font-medium">{checkInData.full_name || '-'}</p></div>
                         <div><p className="text-muted-foreground text-xs">Data de nascimento</p><p>{checkInData.date_of_birth ? format(new Date(checkInData.date_of_birth), 'dd/MM/yyyy') : '-'}</p></div>
@@ -276,11 +311,27 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
                           <p className="text-muted-foreground text-xs mb-2">Hóspedes adicionais</p>
                           <div className="space-y-2">
                             {checkInData.additional_guests.map((guest, i) => (
-                              <div key={i} className="bg-muted p-3 rounded-lg text-xs space-y-0.5">
-                                <p className="font-medium">{guest.full_name || '-'}</p>
-                                <p className="text-muted-foreground">Nascimento: {guest.date_of_birth ? format(new Date(guest.date_of_birth), 'dd/MM/yyyy') : '-'} · {guest.place_of_birth || '-'} · {guest.nationality || '-'}</p>
-                                <p className="text-muted-foreground">{documentTypeLabels[guest.document_type] || guest.document_type || '-'}: {guest.id_number || '-'} ({guest.document_issuing_country || '-'})</p>
-                                <p className="text-muted-foreground">Residência: {guest.country_of_residence || '-'}</p>
+                              <div key={i} className="bg-muted p-3 rounded-lg text-xs space-y-1.5">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div>
+                                    <p className="font-medium">{guest.full_name || '-'}</p>
+                                    <p className="text-muted-foreground">Nascimento: {guest.date_of_birth ? format(new Date(guest.date_of_birth), 'dd/MM/yyyy') : '-'} · {guest.place_of_birth || '-'} · {guest.nationality || '-'}</p>
+                                    <p className="text-muted-foreground">{documentTypeLabels[guest.document_type] || guest.document_type || '-'}: {guest.id_number || '-'} ({guest.document_issuing_country || '-'})</p>
+                                    <p className="text-muted-foreground">Residência: {guest.country_of_residence || '-'}</p>
+                                  </div>
+                                  {selected.type === 'accommodation' && (
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => copySibaData(guest, selected.check_in, selected.check_out)}
+                                      className="h-7 w-7 shrink-0"
+                                      title="Copiar dados para o SIBA"
+                                    >
+                                      <Copy className="w-3.5 h-3.5" />
+                                    </Button>
+                                  )}
+                                </div>
                               </div>
                             ))}
                           </div>
