@@ -11,16 +11,11 @@ import { Loader2, CheckCircle, Plus, Trash2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import FadeInView from '../components/shared/FadeInView';
 import CountryInput from '../components/shared/CountryInput';
+import { generateTimeSlots } from '@/lib/timeSlots';
 
 const MAX_ADDITIONAL_GUESTS = 4;
 
-const arrivalTimeSlots = [];
-for (let h = 15; h <= 23; h++) {
-  for (let m = 0; m < 60; m += 15) {
-    if (h === 23 && m > 0) break;
-    arrivalTimeSlots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
-  }
-}
+const arrivalTimeSlots = generateTimeSlots(15, 23);
 
 export default function CheckInForm() {
   const { lang } = useLanguage();

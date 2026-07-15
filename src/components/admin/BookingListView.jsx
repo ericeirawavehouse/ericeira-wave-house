@@ -9,10 +9,22 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Check, X, Eye, Home, Waves, Mail, Copy, CheckCheck, Loader2, Trash2, Inbox } from 'lucide-react';
+import { Check, X, Eye, Home, Waves, Mail, Copy, CheckCheck, Loader2, Trash2, Inbox, Send } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { generateTimeSlots } from '@/lib/timeSlots';
+
+const surfProposalTimeSlots = generateTimeSlots(6, 21);
+
+function buildContactBodyPreview(mode, proposedDate, proposedTime, customMessage) {
+  if (mode === 'proposal') {
+    const dateLabel = proposedDate ? format(new Date(proposedDate), 'dd/MM/yyyy') : '-';
+    return `Para a tua aula de surf, proponho o seguinte horário:\n\nData: ${dateLabel}\nHora: ${proposedTime || '-'}\n\nEste horário funciona para ti? Responde a este email a confirmar ou para combinarmos uma alternativa.`;
+  }
+  return customMessage;
+}
 
 const statusColors = {
   pending: 'bg-amber-100 text-amber-800 border-amber-200',
@@ -111,6 +123,7 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
   const [customReason, setCustomReason] = React.useState('');
   const [sendingRejection, setSendingRejection] = React.useState(false);
   const [contactBooking, setContactBooking] = React.useState(null);
+  const [contactViewMode, setContactViewMode] = React.useState('compose');
   const [contactMode, setContactMode] = React.useState('proposal');
   const [instructorName, setInstructorName] = React.useState('');
   const [proposedDate, setProposedDate] = React.useState('');
@@ -147,9 +160,18 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
 
   const openContactModal = (booking) => {
     setContactBooking(booking);
+    setContactViewMode(booking.surf_contact_sent_at ? 'view' : 'compose');
     setContactMode('proposal');
-    setInstructorName('');
+    setInstructorName(booking.surf_contact_instructor || '');
     setProposedDate(booking.surf_date || '');
+    setProposedTime('');
+    setCustomMessage('');
+  };
+
+  const startNewContact = () => {
+    setContactViewMode('compose');
+    setContactMode('proposal');
+    setProposedDate(contactBooking?.surf_date || '');
     setProposedTime('');
     setCustomMessage('');
   };
@@ -186,15 +208,27 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
       if (!res.ok) throw new Error('Falha no envio');
 
       const sentAt = new Date().toISOString();
+      const messageBody = buildContactBodyPreview(contactMode, proposedDate, proposedTime, customMessage);
+      const sentByInstructor = instructorName.trim();
       const { error: updateError } = await supabase
         .from('bookings')
-        .update({ surf_contact_sent_at: sentAt })
+        .update({
+          surf_contact_sent_at: sentAt,
+          surf_contact_message: messageBody,
+          surf_contact_instructor: sentByInstructor,
+        })
         .eq('id', contactBooking.id);
       if (updateError) throw updateError;
 
       queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
+      setContactBooking((prev) => (prev ? {
+        ...prev,
+        surf_contact_sent_at: sentAt,
+        surf_contact_message: messageBody,
+        surf_contact_instructor: sentByInstructor,
+      } : prev));
+      setContactViewMode('view');
       toast({ title: 'Email enviado ao aluno!' });
-      setContactBooking(null);
     } catch (error) {
       console.error('Erro ao contactar aluno:', error);
       toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível enviar o email.' });
@@ -546,51 +580,73 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
                 {contactBooking.surf_date && <> · aula de {format(new Date(contactBooking.surf_date), 'dd/MM/yyyy')}</>}
               </p>
 
-              {contactBooking.surf_contact_sent_at && (
-                <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 text-xs px-3 py-2 rounded-lg">
-                  <CheckCheck className="w-3.5 h-3.5 shrink-0" />
-                  <span>Já contactaste este aluno em {format(new Date(contactBooking.surf_contact_sent_at), "dd/MM/yyyy 'às' HH:mm")}.</span>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <Label className="text-sm block">Escrever email do zero</Label>
-                  <p className="text-xs text-muted-foreground mt-0.5">Desligado: propor uma data/hora. Ligado: escreves a mensagem toda.</p>
-                </div>
-                <Switch
-                  checked={contactMode === 'custom'}
-                  onCheckedChange={(checked) => setContactMode(checked ? 'custom' : 'proposal')}
-                />
-              </div>
-
-              <div>
-                <Label className="text-xs text-muted-foreground mb-1.5 block">O teu nome (para a assinatura)</Label>
-                <Input value={instructorName} onChange={(e) => setInstructorName(e.target.value)} placeholder="Nome do instrutor" />
-              </div>
-
-              {contactMode === 'proposal' ? (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label className="text-xs text-muted-foreground mb-1.5 block">Data proposta</Label>
-                    <Input type="date" value={proposedDate} onChange={(e) => setProposedDate(e.target.value)} />
+              {contactViewMode === 'view' ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 text-emerald-700 text-xs">
+                      <CheckCheck className="w-3.5 h-3.5 shrink-0" />
+                      <span>
+                        Enviado em {format(new Date(contactBooking.surf_contact_sent_at), "dd/MM/yyyy 'às' HH:mm")}
+                        {contactBooking.surf_contact_instructor && <> por {contactBooking.surf_contact_instructor}</>}
+                      </span>
+                    </div>
+                    <Button type="button" variant="outline" size="sm" onClick={startNewContact} className="rounded-full shrink-0">
+                      <Send className="w-3.5 h-3.5 mr-1.5" /> Contactar novamente
+                    </Button>
                   </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground mb-1.5 block">Hora proposta</Label>
-                    <Input type="time" step="900" value={proposedTime} onChange={(e) => setProposedTime(e.target.value)} />
+                  <div className="bg-muted rounded-xl p-4 whitespace-pre-line">
+                    {contactBooking.surf_contact_message || '(Sem conteúdo guardado para este envio.)'}
                   </div>
                 </div>
               ) : (
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">Mensagem</Label>
-                  <Textarea rows={6} value={customMessage} onChange={(e) => setCustomMessage(e.target.value)} placeholder="Escreve a mensagem para o aluno..." />
-                </div>
-              )}
+                <>
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <Label className="text-sm block">Escrever email do zero</Label>
+                      <p className="text-xs text-muted-foreground mt-0.5">Desligado: propor uma data/hora. Ligado: escreves a mensagem toda.</p>
+                    </div>
+                    <Switch
+                      checked={contactMode === 'custom'}
+                      onCheckedChange={(checked) => setContactMode(checked ? 'custom' : 'proposal')}
+                    />
+                  </div>
 
-              <Button className="w-full" onClick={handleSendContact} disabled={sendingContact}>
-                {sendingContact ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mail className="w-4 h-4 mr-2" />}
-                Enviar email
-              </Button>
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">O teu nome (para a assinatura)</Label>
+                    <Input value={instructorName} onChange={(e) => setInstructorName(e.target.value)} placeholder="Nome do instrutor" />
+                  </div>
+
+                  {contactMode === 'proposal' ? (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-xs text-muted-foreground mb-1.5 block">Data proposta</Label>
+                        <Input type="date" value={proposedDate} onChange={(e) => setProposedDate(e.target.value)} />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground mb-1.5 block">Hora proposta</Label>
+                        <Select value={proposedTime} onValueChange={setProposedTime}>
+                          <SelectTrigger><SelectValue placeholder="Escolhe a hora" /></SelectTrigger>
+                          <SelectContent>
+                            {surfProposalTimeSlots.map((t) => (
+                              <SelectItem key={t} value={t}>{t}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-1.5 block">Mensagem</Label>
+                      <Textarea rows={6} value={customMessage} onChange={(e) => setCustomMessage(e.target.value)} placeholder="Escreve a mensagem para o aluno..." />
+                    </div>
+                  )}
+
+                  <Button className="w-full" onClick={handleSendContact} disabled={sendingContact}>
+                    {sendingContact ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mail className="w-4 h-4 mr-2" />}
+                    Enviar email
+                  </Button>
+                </>
+              )}
             </div>
           )}
         </DialogContent>
