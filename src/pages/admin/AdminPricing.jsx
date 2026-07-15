@@ -431,9 +431,6 @@ export default function AdminPricing({ section = 'accommodation' }) {
 
         <div className="mt-10">
           <h2 className="font-heading text-lg font-semibold mb-1">Sincronização com o Airbnb</h2>
-          <p className="text-sm text-muted-foreground mb-6">
-            Liga o calendário do Airbnb para bloquear aqui as datas já reservadas lá, e partilha o link do teu calendário para o Airbnb bloquear as datas reservadas aqui. Isto evita reservas em duplicado.
-          </p>
           <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
