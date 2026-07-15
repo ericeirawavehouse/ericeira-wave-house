@@ -62,7 +62,8 @@ function App() {
                 <Route path="bookings" element={<AdminBookings />} />
                 <Route path="messages" element={<AdminMessages />} />
                 <Route path="trash" element={<AdminTrash />} />
-                <Route path="pricing" element={<AdminPricing />} />
+                <Route path="pricing/accommodation" element={<AdminPricing section="accommodation" />} />
+                <Route path="pricing/surf" element={<AdminPricing section="surf" />} />
               </Route>
 
               <Route path="*" element={<PageNotFound />} />

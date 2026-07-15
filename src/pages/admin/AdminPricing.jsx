@@ -11,7 +11,7 @@ import PricingCalendar from '@/components/admin/PricingCalendar';
 import SurfSlotsManager from '@/components/admin/SurfSlotsManager';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
-export default function AdminPricing() {
+export default function AdminPricing({ section = 'accommodation' }) {
   const queryClient = useQueryClient();
   const [accommodationPrice, setAccommodationPrice] = useState('');
   const [surfPrice, setSurfPrice] = useState('');
@@ -208,19 +208,11 @@ export default function AdminPricing() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="font-heading text-2xl font-semibold mb-1">Preços</h1>
+      <h1 className="font-heading text-2xl font-semibold mb-1">
+        Preços · {section === 'surf' ? 'Surf' : 'Alojamento'}
+      </h1>
 
-      <Tabs defaultValue="alojamento">
-        <TabsList className="bg-muted p-1.5 rounded-full mb-8 h-auto border border-border/60 inline-flex w-auto">
-          <TabsTrigger value="alojamento" className="rounded-full px-6">
-            <Home className="w-4 h-4 mr-1.5" /> Alojamento
-          </TabsTrigger>
-          <TabsTrigger value="surf" className="rounded-full px-6">
-            <Waves className="w-4 h-4 mr-1.5" /> Surf
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="alojamento">
+      {section === 'accommodation' && (
       <Tabs defaultValue="calendar">
         <TabsList className="bg-muted p-1.5 rounded-full mb-8 flex-wrap h-auto border border-border/60 inline-flex w-auto">
           <TabsTrigger value="calendar" className="rounded-full px-6">Calendário</TabsTrigger>
@@ -489,9 +481,9 @@ export default function AdminPricing() {
       </div>
         </TabsContent>
       </Tabs>
-        </TabsContent>
+      )}
 
-        <TabsContent value="surf">
+      {section === 'surf' && (
       <Tabs defaultValue="pricing">
         <TabsList className="bg-muted p-1.5 rounded-full mb-8 flex-wrap h-auto border border-border/60 inline-flex w-auto">
           <TabsTrigger value="pricing" className="rounded-full px-6">Preços & Descontos</TabsTrigger>
@@ -658,8 +650,7 @@ export default function AdminPricing() {
       </div>
         </TabsContent>
       </Tabs>
-        </TabsContent>
-      </Tabs>
+      )}
     </div>
   );
 }
