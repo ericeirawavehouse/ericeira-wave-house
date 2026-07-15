@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
 import { Home, Waves, Loader2, CheckCircle, Tag, CloudSun } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
@@ -37,6 +38,7 @@ export default function Booking() {
   const [form, setForm] = useState({
     guest_name: '', guest_email: '', guest_phone: '', guests_count: 2, children_count: 0, surf_time: '', notes: '',
   });
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // 2. BUSCA DE DATAS OCUPADAS (SUPABASE)
   const { data: confirmedBookings = [] } = useQuery({
@@ -66,17 +68,6 @@ export default function Booking() {
     },
   });
 
-  const disabledDates = [
-    ...confirmedBookings.flatMap((b) => {
-      if (!b.check_in || !b.check_out) return [];
-      return eachDayOfInterval({ start: parseISO(b.check_in), end: parseISO(b.check_out) });
-    }),
-    ...externalBlocks.flatMap((b) => {
-      if (!b.start_date || !b.end_date) return [];
-      return eachDayOfInterval({ start: parseISO(b.start_date), end: parseISO(b.end_date) });
-    }),
-  ];
-
   // Preços definidos no admin
   const { data: pricing } = useQuery({
     queryKey: ['site-settings'],
@@ -90,6 +81,22 @@ export default function Booking() {
       return data;
     },
   });
+
+  const bufferNights = pricing?.buffer_nights || 0;
+
+  const disabledDates = [
+    ...confirmedBookings.flatMap((b) => {
+      if (!b.check_in || !b.check_out) return [];
+      return eachDayOfInterval({
+        start: subDays(parseISO(b.check_in), bufferNights),
+        end: addDays(parseISO(b.check_out), bufferNights - 1),
+      });
+    }),
+    ...externalBlocks.flatMap((b) => {
+      if (!b.start_date || !b.end_date) return [];
+      return eachDayOfInterval({ start: parseISO(b.start_date), end: parseISO(b.end_date) });
+    }),
+  ];
 
   // Períodos de preço especial (época alta/baixa, etc.)
   const { data: pricingPeriods = [] } = useQuery({
@@ -206,6 +213,10 @@ export default function Booking() {
     }
     if (type === 'surf' && (surfGuests < surfMinPeople || surfGuests > surfMaxPeople)) {
       toast({ variant: 'destructive', title: t('booking.errorTitle'), description: t('booking.peopleRangeError', { min: surfMinPeople, max: surfMaxPeople }) });
+      return;
+    }
+    if (!agreedToTerms) {
+      toast({ variant: 'destructive', title: t('booking.errorTitle'), description: t('booking.termsError') });
       return;
     }
 
@@ -509,6 +520,22 @@ export default function Booking() {
               <div>
                 <Label className="text-sm mb-2 block">{t('booking.notes')}</Label>
                 <Textarea rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="rounded-lg" />
+              </div>
+
+              <div className="flex items-start gap-2.5">
+                <Checkbox
+                  id="agreedToTerms"
+                  checked={agreedToTerms}
+                  onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
+                  className="mt-0.5"
+                />
+                <Label htmlFor="agreedToTerms" className="text-sm font-normal text-muted-foreground leading-snug cursor-pointer">
+                  {t('booking.termsLabel')}{' '}
+                  <Link to="/privacy-policy" target="_blank" className="text-primary underline underline-offset-2">
+                    {t('booking.termsLink')}
+                  </Link>
+                  {' '}*
+                </Label>
               </div>
 
               <Button type="submit" disabled={sending} className="w-full rounded-full py-3 h-auto text-sm font-medium tracking-wide">

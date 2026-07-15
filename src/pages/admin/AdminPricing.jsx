@@ -22,6 +22,7 @@ export default function AdminPricing({ section = 'accommodation' }) {
   const [maxNights, setMaxNights] = useState('');
   const [advanceNoticeDays, setAdvanceNoticeDays] = useState('');
   const [bookingHorizonMonths, setBookingHorizonMonths] = useState('');
+  const [bufferNights, setBufferNights] = useState('');
   const [airbnbIcalUrl, setAirbnbIcalUrl] = useState('');
   const [surfGroupThreshold, setSurfGroupThreshold] = useState('');
   const [surfGroupDiscount, setSurfGroupDiscount] = useState('');
@@ -76,6 +77,7 @@ export default function AdminPricing({ section = 'accommodation' }) {
       setMaxNights(String(data.max_nights ?? 30));
       setAdvanceNoticeDays(String(data.advance_notice_days ?? 0));
       setBookingHorizonMonths(String(data.booking_horizon_months ?? 0));
+      setBufferNights(String(data.buffer_nights ?? 0));
       setAirbnbIcalUrl(data.airbnb_ical_url || '');
       setSurfGroupThreshold(String(data.surf_group_discount_threshold ?? 0));
       setSurfGroupDiscount(String(data.surf_group_discount_percent ?? 0));
@@ -104,6 +106,7 @@ export default function AdminPricing({ section = 'accommodation' }) {
           max_nights: parseInt(maxNights) || 30,
           advance_notice_days: parseInt(advanceNoticeDays) || 0,
           booking_horizon_months: parseInt(bookingHorizonMonths) || 0,
+          buffer_nights: parseInt(bufferNights) || 0,
           airbnb_ical_url: airbnbIcalUrl || null,
           surf_group_discount_threshold: parseInt(surfGroupThreshold) || 0,
           surf_group_discount_percent: parseFloat(surfGroupDiscount) || 0,
@@ -421,6 +424,16 @@ export default function AdminPricing({ section = 'accommodation' }) {
               <Label className="text-sm mb-2 block">Reservas com quantos meses de antecedência (máximo)</Label>
               <p className="text-xs text-muted-foreground mb-2">Até quando é que o calendário mostra datas disponíveis. Deixa 0 para não haver limite.</p>
               <Input type="number" min="0" step="1" value={bookingHorizonMonths} onChange={(e) => setBookingHorizonMonths(e.target.value)} />
+            </div>
+          </div>
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Clock className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <Label className="text-sm mb-2 block">Tempo de preparação (noites antes e depois)</Label>
+              <p className="text-xs text-muted-foreground mb-2">Bloqueia automaticamente este número de noites antes e depois de cada reserva confirmada, para dar tempo de limpeza/preparação (tal como o Airbnb).</p>
+              <Input type="number" min="0" step="1" value={bufferNights} onChange={(e) => setBufferNights(e.target.value)} />
             </div>
           </div>
           <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="w-full rounded-full">

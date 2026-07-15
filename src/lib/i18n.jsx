@@ -154,6 +154,9 @@ const translations = {
       numberOfPeople: 'Número de pessoas',
       numberOfChildren: 'Número de crianças (até {{age}} anos)',
       peopleHint: 'Entre {{min}} e {{max}} pessoas por aula.',
+      termsLabel: 'Li e aceito os',
+      termsLink: 'Termos e Condições',
+      termsError: 'Tens de aceitar os Termos e Condições para continuar.',
     },
     testimonials: {
       title: 'O que dizem os nossos hóspedes',
@@ -313,6 +316,9 @@ const translations = {
       numberOfPeople: 'Number of people',
       numberOfChildren: 'Number of children (up to {{age}} years old)',
       peopleHint: 'Between {{min}} and {{max}} people per lesson.',
+      termsLabel: 'I\'ve read and accept the',
+      termsLink: 'Terms & Conditions',
+      termsError: 'You need to accept the Terms & Conditions to continue.',
     },
     testimonials: {
       title: 'What our guests say',
