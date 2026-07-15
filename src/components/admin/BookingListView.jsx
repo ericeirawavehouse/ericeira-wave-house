@@ -25,20 +25,64 @@ const documentTypeSibaLabels = { cc: 'CARTÃO DE CIDADÃO', passport: 'PASSAPORT
 
 const sibaDate = (dateStr) => (dateStr ? format(new Date(dateStr), 'dd-MM-yyyy') : '-');
 
-function sibaFields(guest, checkIn, checkOut) {
+// Agrupado nas mesmas linhas/pares que o formulário do SIBA, para ficar visualmente igual
+function sibaRows(guest, checkIn, checkOut) {
   return [
-    { label: 'Nome Completo', value: guest.full_name || '-' },
-    { label: 'Data de Nascimento', value: sibaDate(guest.date_of_birth) },
-    { label: 'Local Nascimento', value: guest.place_of_birth || '-' },
-    { label: 'Nacionalidade', value: guest.nationality || '-' },
-    { label: 'Local Residência', value: guest.address || guest.country_of_residence || '-' },
-    { label: 'País Residência', value: guest.country_of_residence || '-' },
-    { label: 'Número Documento', value: guest.id_number || '-' },
-    { label: 'Tipo Documento', value: documentTypeSibaLabels[guest.document_type] || guest.document_type || '-' },
-    { label: 'País Emissor Documento', value: guest.document_issuing_country || '-' },
-    { label: 'Data de Check-in', value: sibaDate(checkIn) },
-    { label: 'Data de Check-out', value: sibaDate(checkOut) },
+    [{ label: 'Nome Completo', value: guest.full_name || '-' }],
+    [
+      { label: 'Data de Nascimento', value: sibaDate(guest.date_of_birth) },
+      { label: 'Local Nascimento', value: guest.place_of_birth || '-' },
+    ],
+    [{ label: 'Nacionalidade', value: guest.nationality || '-' }],
+    [
+      { label: 'Local Residência', value: guest.address || guest.country_of_residence || '-' },
+      { label: 'País Residência', value: guest.country_of_residence || '-' },
+    ],
+    [
+      { label: 'Número Documento', value: guest.id_number || '-' },
+      { label: 'Tipo Documento', value: documentTypeSibaLabels[guest.document_type] || guest.document_type || '-' },
+    ],
+    [{ label: 'País Emissor Documento', value: guest.document_issuing_country || '-' }],
+    [
+      { label: 'Data de Check-in', value: sibaDate(checkIn) },
+      { label: 'Data de Check-out', value: sibaDate(checkOut) },
+    ],
   ];
+}
+
+function SibaFieldChip({ field, onCopy, compact }) {
+  return (
+    <div className={`flex items-center justify-between gap-1.5 rounded-lg ${compact ? 'bg-background px-2 py-1' : 'bg-primary/5 px-2.5 py-1.5'}`}>
+      <div className="min-w-0">
+        <p className={`text-muted-foreground leading-tight ${compact ? 'text-[10px]' : 'text-[11px]'}`}>{field.label}</p>
+        <p className={`font-medium truncate ${compact ? 'text-xs' : ''}`}>{field.value}</p>
+      </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={() => onCopy(field.label, field.value)}
+        className={compact ? 'h-6 w-6 shrink-0' : 'h-6 w-6 shrink-0'}
+        title={`Copiar ${field.label}`}
+      >
+        <Copy className={compact ? 'w-3 h-3' : 'w-3.5 h-3.5'} />
+      </Button>
+    </div>
+  );
+}
+
+function SibaFieldsGrid({ guest, checkIn, checkOut, onCopy, compact }) {
+  return (
+    <div className="space-y-2">
+      {sibaRows(guest, checkIn, checkOut).map((row, i) => (
+        <div key={i} className={`grid gap-2 ${row.length === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+          {row.map((f) => (
+            <SibaFieldChip key={f.label} field={f} onCopy={onCopy} compact={compact} />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
 }
 
 const rejectionReasons = [
@@ -232,7 +276,7 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
       </div>
 
       <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-heading">Detalhes da Reserva</DialogTitle>
           </DialogHeader>
@@ -280,26 +324,7 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
                       {selected.type === 'accommodation' && (
                         <div>
                           <p className="text-xs font-medium text-muted-foreground mb-2">Dados para o SIBA (clica no ícone para copiar cada campo)</p>
-                          <div className="grid grid-cols-2 gap-3">
-                            {sibaFields(checkInData, selected.check_in, selected.check_out).map((f) => (
-                              <div key={f.label} className="flex items-center justify-between gap-1.5 bg-primary/5 rounded-lg px-2.5 py-1.5">
-                                <div className="min-w-0">
-                                  <p className="text-muted-foreground text-[11px] leading-tight">{f.label}</p>
-                                  <p className="font-medium truncate">{f.value}</p>
-                                </div>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => copyField(f.label, f.value)}
-                                  className="h-6 w-6 shrink-0"
-                                  title={`Copiar ${f.label}`}
-                                >
-                                  <Copy className="w-3.5 h-3.5" />
-                                </Button>
-                              </div>
-                            ))}
-                          </div>
+                          <SibaFieldsGrid guest={checkInData} checkIn={selected.check_in} checkOut={selected.check_out} onCopy={copyField} />
                         </div>
                       )}
                       <div className="grid grid-cols-2 gap-4">
@@ -318,26 +343,7 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
                               <div key={i} className="bg-muted p-3 rounded-lg">
                                 <p className="font-medium text-xs mb-2">{guest.full_name || `Hóspede ${i + 2}`}</p>
                                 {selected.type === 'accommodation' ? (
-                                  <div className="grid grid-cols-2 gap-2">
-                                    {sibaFields(guest, selected.check_in, selected.check_out).map((f) => (
-                                      <div key={f.label} className="flex items-center justify-between gap-1.5 bg-background rounded-lg px-2 py-1">
-                                        <div className="min-w-0">
-                                          <p className="text-muted-foreground text-[10px] leading-tight">{f.label}</p>
-                                          <p className="text-xs font-medium truncate">{f.value}</p>
-                                        </div>
-                                        <Button
-                                          type="button"
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() => copyField(f.label, f.value)}
-                                          className="h-6 w-6 shrink-0"
-                                          title={`Copiar ${f.label}`}
-                                        >
-                                          <Copy className="w-3 h-3" />
-                                        </Button>
-                                      </div>
-                                    ))}
-                                  </div>
+                                  <SibaFieldsGrid guest={guest} checkIn={selected.check_in} checkOut={selected.check_out} onCopy={copyField} compact />
                                 ) : (
                                   <p className="text-muted-foreground text-xs">
                                     {guest.date_of_birth ? format(new Date(guest.date_of_birth), 'dd/MM/yyyy') : '-'} · {guest.place_of_birth || '-'} · {guest.nationality || '-'}

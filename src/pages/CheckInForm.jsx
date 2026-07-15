@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, CheckCircle, Plus, Trash2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import FadeInView from '../components/shared/FadeInView';
+import CountryInput from '../components/shared/CountryInput';
 
 const MAX_ADDITIONAL_GUESTS = 4;
 
@@ -216,7 +217,7 @@ export default function CheckInForm() {
               </div>
               <div>
                 <Label className="text-sm mb-2 block">{labels.nationality} *</Label>
-                <Input value={form.nationality} onChange={(e) => setForm({ ...form, nationality: e.target.value })} required />
+                <CountryInput value={form.nationality} onChange={(v) => setForm({ ...form, nationality: v })} required />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -239,7 +240,7 @@ export default function CheckInForm() {
               </div>
               <div>
                 <Label className="text-sm mb-2 block">{labels.documentIssuingCountry} *</Label>
-                <Input value={form.document_issuing_country} onChange={(e) => setForm({ ...form, document_issuing_country: e.target.value })} required />
+                <CountryInput value={form.document_issuing_country} onChange={(v) => setForm({ ...form, document_issuing_country: v })} required />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -249,7 +250,7 @@ export default function CheckInForm() {
               </div>
               <div>
                 <Label className="text-sm mb-2 block">{labels.countryOfResidence} *</Label>
-                <Input value={form.country_of_residence} onChange={(e) => setForm({ ...form, country_of_residence: e.target.value })} required />
+                <CountryInput value={form.country_of_residence} onChange={(v) => setForm({ ...form, country_of_residence: v })} required />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -325,7 +326,7 @@ export default function CheckInForm() {
                     </div>
                     <div>
                       <Label className="text-xs mb-1.5 block">{labels.nationality} *</Label>
-                      <Input value={guest.nationality} onChange={(e) => updateGuest(i, 'nationality', e.target.value)} required />
+                      <CountryInput value={guest.nationality} onChange={(v) => updateGuest(i, 'nationality', v)} required />
                     </div>
                     <div>
                       <Label className="text-xs mb-1.5 block">{labels.documentType} *</Label>
@@ -346,11 +347,11 @@ export default function CheckInForm() {
                     </div>
                     <div>
                       <Label className="text-xs mb-1.5 block">{labels.documentIssuingCountry} *</Label>
-                      <Input value={guest.document_issuing_country} onChange={(e) => updateGuest(i, 'document_issuing_country', e.target.value)} required />
+                      <CountryInput value={guest.document_issuing_country} onChange={(v) => updateGuest(i, 'document_issuing_country', v)} required />
                     </div>
                     <div>
                       <Label className="text-xs mb-1.5 block">{labels.countryOfResidence} *</Label>
-                      <Input value={guest.country_of_residence} onChange={(e) => updateGuest(i, 'country_of_residence', e.target.value)} required />
+                      <CountryInput value={guest.country_of_residence} onChange={(v) => updateGuest(i, 'country_of_residence', v)} required />
                     </div>
                   </div>
                 </div>
