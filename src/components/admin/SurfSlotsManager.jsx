@@ -102,7 +102,7 @@ export default function SurfSlotsManager() {
     <div>
       <h2 className="font-heading text-lg font-semibold mb-1">Dias disponíveis</h2>
       <p className="text-sm text-muted-foreground mb-6">
-        Escolhe em que dias da semana há aulas de surf. A hora exata é combinada diretamente com o instrutor consoante as condições do mar, por isso não é definida aqui. Se não ativares nenhum dia, o site permite marcar qualquer dia.
+        Escolhe em que dias da semana há aulas de surf. A hora exata é combinada com o aluno consoante as condições do mar, por isso não é definida aqui. Se não ativares nenhum dia, o site permite marcar qualquer dia.
       </p>
 
       <div className="bg-card border border-border rounded-2xl p-6 space-y-2 mb-10">

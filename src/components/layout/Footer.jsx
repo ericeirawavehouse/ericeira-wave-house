@@ -44,6 +44,7 @@ export default function Footer() {
         <div className="border-t border-background/10 mt-12 pt-8 text-center space-y-1">
           <p className="text-xs opacity-50">© {new Date().getFullYear()} <span translate="no" className="notranslate">Ericeira Wave House</span>. {t('footer.rights')}</p>
           <p className="text-xs opacity-50" translate="no">{t('footer.alLicense', { number: '175410/AL' })}</p>
+          <p className="text-xs opacity-50" translate="no">Designed & Developed by Marta Valentim</p>
         </div>
       </div>
     </footer>
