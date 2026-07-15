@@ -323,7 +323,6 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
                     <div className="space-y-4">
                       {selected.type === 'accommodation' && (
                         <div>
-                          <p className="text-xs font-medium text-muted-foreground mb-2">Dados para o SIBA (clica no ícone para copiar cada campo)</p>
                           <SibaFieldsGrid guest={checkInData} checkIn={selected.check_in} checkOut={selected.check_out} onCopy={copyField} />
                         </div>
                       )}
