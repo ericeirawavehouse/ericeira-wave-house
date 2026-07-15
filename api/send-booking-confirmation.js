@@ -69,9 +69,11 @@ Pessoas: ${peopleLine}`;
       <tr><td style="padding:4px 0;color:#666;">Data</td><td style="padding:4px 0;text-align:right;">${formatDate(surfDate)}</td></tr>
       <tr><td style="padding:4px 0;color:#666;">Pessoas</td><td style="padding:4px 0;text-align:right;">${peopleLine}</td></tr>
     `;
-    extraText = 'A hora exata da aula é combinada consoante as condições do mar e meteorológicas. O nosso instrutor vai entrar em contacto contigo mais perto da data para combinar os últimos detalhes.';
+    extraText = 'Vamos entrar em contacto contigo, normalmente na noite anterior à aula, para combinarmos a hora exata — isto permite-nos avaliar as marés e as condições do mar com a maior precisão possível. Não estranhes se não tiveres notícias nossas antes disso, é mesmo assim que costuma funcionar.';
     extraHtml = extraText;
   }
+
+  const cancelText = 'Se por algum motivo precisares de cancelar, contacta-nos por email para combinarmos os próximos passos.';
 
   const priceRowsText = !hasPrice
     ? ''
@@ -101,6 +103,8 @@ Pessoas: ${peopleLine}`;
     '',
     extraText,
     '',
+    cancelText,
+    '',
     'Até já,',
     'Equipa Ericeira Wave House',
     'ericeirawavehouse@gmail.com',
@@ -116,6 +120,7 @@ Pessoas: ${peopleLine}`;
       </table>
       ${hasPrice ? `<table style="width:100%; border-collapse: collapse; font-size: 14px; margin: 16px 0;">${priceRowsHtml}</table>` : ''}
       <p>${extraHtml}</p>
+      <p style="color:#666; font-size:13px;">${cancelText}</p>
       <p>Até já,<br/>
       Equipa Ericeira Wave House<br/>
       ericeirawavehouse@gmail.com<br/>

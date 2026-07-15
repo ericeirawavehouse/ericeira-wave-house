@@ -254,6 +254,7 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
           to: rejectBooking.guest_email,
           guestName: rejectBooking.guest_name,
           reason: finalReason,
+          type: rejectBooking.type,
         }),
       });
       if (!res.ok) throw new Error('Falha no envio');
