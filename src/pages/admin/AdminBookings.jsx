@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { List, CalendarDays, Loader2 } from 'lucide-react';
+import { differenceInCalendarDays, parseISO } from 'date-fns';
 import { toast } from '@/components/ui/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import BookingListView from '../../components/admin/BookingListView';
@@ -53,7 +54,29 @@ export default function AdminBookings() {
     updateMutation.mutate({ id: booking.id, data: { status: 'confirmed' } });
     toast({ title: 'Reserva confirmada!' });
 
-    console.log(`Link de Check-in para o cliente: ${window.location.origin}/checkin?booking=${booking.id}`);
+    const nights = booking.check_in && booking.check_out
+      ? differenceInCalendarDays(parseISO(booking.check_out), parseISO(booking.check_in))
+      : null;
+
+    fetch('/api/send-booking-confirmation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: booking.guest_email,
+        guestName: booking.guest_name,
+        type: booking.type,
+        checkIn: booking.check_in,
+        checkOut: booking.check_out,
+        nights,
+        surfDate: booking.surf_date,
+        guestsCount: booking.guests_count,
+        childrenCount: booking.children_count,
+        priceSubtotal: booking.price_subtotal,
+        discountAmount: booking.discount_amount,
+        discountLabel: booking.discount_label,
+        priceTotal: booking.price_total,
+      }),
+    }).catch((err) => console.error('Erro ao enviar email de confirmação:', err));
   };
 
   const handleReject = (booking) => {

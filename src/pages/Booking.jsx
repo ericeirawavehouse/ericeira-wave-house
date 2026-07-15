@@ -220,11 +220,19 @@ export default function Booking() {
     if (type === 'accommodation' && dateRange.from) {
       dataToInsert.check_in = format(dateRange.from, 'yyyy-MM-dd');
       if (dateRange.to) dataToInsert.check_out = format(dateRange.to, 'yyyy-MM-dd');
+      dataToInsert.price_subtotal = accommodationSubtotal;
+      dataToInsert.discount_amount = discountAmount;
+      dataToInsert.price_total = accommodationTotal;
+      dataToInsert.discount_label = discountPercent > 0 ? discountLabel : null;
     }
 
     if (type === 'surf' && surfDate) {
       dataToInsert.surf_date = format(surfDate, 'yyyy-MM-dd');
       dataToInsert.surf_time = 'A combinar consoante as condições';
+      dataToInsert.price_subtotal = surfSubtotal;
+      dataToInsert.discount_amount = surfDiscountAmount;
+      dataToInsert.price_total = surfTotal;
+      dataToInsert.discount_label = surfDiscountPercent > 0 ? 'Desconto de grupo' : null;
     }
 
     const { error } = await supabase
