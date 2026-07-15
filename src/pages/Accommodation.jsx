@@ -49,7 +49,6 @@ const rooms = [
 const amenityIcons = {
   wifi: Wifi,
   parking: Car,
-  accessible: Accessibility,
   balcony: Sun,
   dining: Utensils,
   tv: Tv,

@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Loader2, Home, Waves, Plus, Trash2, CalendarRange, CalendarDays, Percent, Clock, Users, Link2, Copy, RefreshCw } from 'lucide-react';
+import { Loader2, Home, Waves, Plus, Trash2, CalendarRange, CalendarDays, Percent, Clock, Users, Link2, Copy, RefreshCw, Landmark } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
 import PricingCalendar from '@/components/admin/PricingCalendar';
@@ -22,7 +22,12 @@ export default function AdminPricing({ section = 'accommodation' }) {
   const [maxNights, setMaxNights] = useState('');
   const [advanceNoticeDays, setAdvanceNoticeDays] = useState('');
   const [bookingHorizonMonths, setBookingHorizonMonths] = useState('');
-  const [bufferNights, setBufferNights] = useState('');
+  const [bufferNightsBefore, setBufferNightsBefore] = useState('');
+  const [bufferNightsAfter, setBufferNightsAfter] = useState('');
+  const [depositPercent, setDepositPercent] = useState('');
+  const [bankAccountName, setBankAccountName] = useState('');
+  const [bankIban, setBankIban] = useState('');
+  const [bankBic, setBankBic] = useState('');
   const [airbnbIcalUrl, setAirbnbIcalUrl] = useState('');
   const [surfGroupThreshold, setSurfGroupThreshold] = useState('');
   const [surfGroupDiscount, setSurfGroupDiscount] = useState('');
@@ -77,7 +82,12 @@ export default function AdminPricing({ section = 'accommodation' }) {
       setMaxNights(String(data.max_nights ?? 30));
       setAdvanceNoticeDays(String(data.advance_notice_days ?? 0));
       setBookingHorizonMonths(String(data.booking_horizon_months ?? 0));
-      setBufferNights(String(data.buffer_nights ?? 0));
+      setBufferNightsBefore(String(data.buffer_nights_before ?? 0));
+      setBufferNightsAfter(String(data.buffer_nights_after ?? 0));
+      setDepositPercent(String(data.deposit_percent ?? 30));
+      setBankAccountName(data.bank_account_name || '');
+      setBankIban(data.bank_iban || '');
+      setBankBic(data.bank_bic || '');
       setAirbnbIcalUrl(data.airbnb_ical_url || '');
       setSurfGroupThreshold(String(data.surf_group_discount_threshold ?? 0));
       setSurfGroupDiscount(String(data.surf_group_discount_percent ?? 0));
@@ -106,7 +116,12 @@ export default function AdminPricing({ section = 'accommodation' }) {
           max_nights: parseInt(maxNights) || 30,
           advance_notice_days: parseInt(advanceNoticeDays) || 0,
           booking_horizon_months: parseInt(bookingHorizonMonths) || 0,
-          buffer_nights: parseInt(bufferNights) || 0,
+          buffer_nights_before: parseInt(bufferNightsBefore) || 0,
+          buffer_nights_after: parseInt(bufferNightsAfter) || 0,
+          deposit_percent: parseFloat(depositPercent) || 0,
+          bank_account_name: bankAccountName || null,
+          bank_iban: bankIban || null,
+          bank_bic: bankBic || null,
           airbnb_ical_url: airbnbIcalUrl || null,
           surf_group_discount_threshold: parseInt(surfGroupThreshold) || 0,
           surf_group_discount_percent: parseFloat(surfGroupDiscount) || 0,
@@ -303,6 +318,49 @@ export default function AdminPricing({ section = 'accommodation' }) {
           </Button>
         </div>
       </div>
+
+      <div className="max-w-2xl mt-10">
+        <h2 className="font-heading text-lg font-semibold mb-1">Depósito &amp; Dados Bancários</h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          Usados no email enviado ao hóspede quando uma reserva de alojamento é aceite, a pedir o depósito.
+        </p>
+
+        <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Percent className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <Label className="text-sm mb-2 block">Percentagem do depósito (%)</Label>
+              <p className="text-xs text-muted-foreground mb-2">Calculada sobre o valor total da reserva. O restante é pago no check-in.</p>
+              <Input type="number" min="0" max="100" step="1" value={depositPercent} onChange={(e) => setDepositPercent(e.target.value)} />
+            </div>
+          </div>
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Landmark className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 space-y-4">
+              <div>
+                <Label className="text-sm mb-2 block">Nome do titular da conta</Label>
+                <Input value={bankAccountName} onChange={(e) => setBankAccountName(e.target.value)} />
+              </div>
+              <div>
+                <Label className="text-sm mb-2 block">IBAN</Label>
+                <Input value={bankIban} onChange={(e) => setBankIban(e.target.value)} />
+              </div>
+              <div>
+                <Label className="text-sm mb-2 block">BIC/SWIFT</Label>
+                <Input value={bankBic} onChange={(e) => setBankBic(e.target.value)} />
+              </div>
+            </div>
+          </div>
+          <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="w-full rounded-full">
+            {saveMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+            Guardar preços
+          </Button>
+        </div>
+      </div>
         </TabsContent>
 
         <TabsContent value="periods">
@@ -431,9 +489,18 @@ export default function AdminPricing({ section = 'accommodation' }) {
               <Clock className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1">
-              <Label className="text-sm mb-2 block">Tempo de preparação (noites antes e depois)</Label>
-              <p className="text-xs text-muted-foreground mb-2">Bloqueia automaticamente este número de noites antes e depois de cada reserva confirmada, para dar tempo de limpeza/preparação (tal como o Airbnb).</p>
-              <Input type="number" min="0" step="1" value={bufferNights} onChange={(e) => setBufferNights(e.target.value)} />
+              <Label className="text-sm mb-2 block">Tempo de preparação</Label>
+              <p className="text-xs text-muted-foreground mb-2">Bloqueia automaticamente noites antes e/ou depois de cada reserva confirmada, para dar tempo de limpeza/preparação (tal como o Airbnb).</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">Noites antes</Label>
+                  <Input type="number" min="0" step="1" value={bufferNightsBefore} onChange={(e) => setBufferNightsBefore(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">Noites depois</Label>
+                  <Input type="number" min="0" step="1" value={bufferNightsAfter} onChange={(e) => setBufferNightsAfter(e.target.value)} />
+                </div>
+              </div>
             </div>
           </div>
           <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="w-full rounded-full">

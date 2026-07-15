@@ -106,6 +106,7 @@ const content = {
           { h: '4.6 Regras da Casa', p: 'Para garantir uma estadia tranquila e agradável para todos os hóspedes, solicita-se o cumprimento das seguintes regras:', list: [
             'Não são permitidas festas ou eventos.',
             'Não é permitido fumar no interior do alojamento.',
+            'É proibido o consumo de drogas ilegais, estupefacientes ou substâncias psicotrópicas.',
             'Não são permitidos animais de estimação, salvo autorização prévia por escrito.',
             'Deve ser respeitado o horário de silêncio entre as 23h00 e as 07h00.',
             'O alojamento deverá ser utilizado de forma responsável, preservando o mobiliário, equipamentos e restantes bens existentes.',
@@ -117,8 +118,12 @@ const content = {
             'Situações de força maior, incluindo fenómenos naturais, greves ou determinações das autoridades competentes',
           ] },
           { h: '4.9 Proteção de Dados', p: 'Os dados pessoais fornecidos durante o processo de reserva serão tratados de acordo com a presente Política de Privacidade e utilizados exclusivamente para gestão da reserva e cumprimento das obrigações legais.' },
-          { h: '4.10 Lei Aplicável', p: 'Os presentes Termos e Condições são regidos pela legislação portuguesa. Em caso de litígio de consumo, o consumidor poderá recorrer a uma Entidade de Resolução Alternativa de Litígios de Consumo. Mais informações encontram-se disponíveis em:', link: 'https://www.consumidor.gov.pt' },
-          { h: '4.11 Contactos', p: 'Para qualquer questão relacionada com reservas, disponibilidade ou estadias, poderá contactar-nos através de:', list: [
+          { h: '4.10 Experiências de Surf', p: 'A Ericeira Wave House apoia os hóspedes na organização de aulas de surf através de escolas de surf parceiras de confiança.' },
+          { p: 'Estes serviços são prestados pela respetiva escola de surf, que é responsável pela organização da atividade, normas de segurança, seguros, horários e pelos seus próprios termos e condições.' },
+          { p: 'A participação em aulas de surf é voluntária e por conta e risco do hóspede. Os hóspedes são responsáveis por garantir que têm aptidão física para participar e por seguir todas as instruções fornecidas pelo prestador da atividade.' },
+          { p: 'A Ericeira Wave House atua como facilitadora e não poderá ser responsabilizada por cancelamentos, atrasos, lesões, acidentes, perdas ou danos resultantes de serviços prestados por prestadores de atividades terceiros.' },
+          { h: '4.11 Lei Aplicável', p: 'Os presentes Termos e Condições são regidos pela legislação portuguesa. Em caso de litígio de consumo, o consumidor poderá recorrer a uma Entidade de Resolução Alternativa de Litígios de Consumo. Mais informações encontram-se disponíveis em:', link: 'https://www.consumidor.gov.pt' },
+          { h: '4.12 Contactos', p: 'Para qualquer questão relacionada com reservas, disponibilidade ou estadias, poderá contactar-nos através de:', list: [
             'Ericeira Wave House',
             'E-mail: ericeirawavehouse@gmail.com',
             'Telefone: +351 960 461 100',
@@ -232,6 +237,7 @@ const content = {
           { h: '4.6 House Rules', p: 'To ensure a peaceful and pleasant stay for all guests, please comply with the following rules:', list: [
             'Parties or events are not allowed.',
             'Smoking indoors is not allowed.',
+            'Consumption of illegal drugs, narcotics or psychotropic substances is prohibited.',
             'Pets are not allowed, unless prior written authorisation is given.',
             'Quiet hours between 11:00 PM and 7:00 AM must be respected.',
             'The accommodation must be used responsibly, preserving the furniture, equipment and other existing property.',
@@ -243,8 +249,12 @@ const content = {
             'Force majeure events, including natural phenomena, strikes or decisions by the competent authorities',
           ] },
           { h: '4.9 Data Protection', p: 'Personal data provided during the booking process will be processed in accordance with this Privacy Policy and used exclusively for booking management and compliance with legal obligations.' },
-          { h: '4.10 Governing Law', p: 'These Terms & Conditions are governed by Portuguese law. In the event of a consumer dispute, the consumer may resort to a Consumer Alternative Dispute Resolution Entity. More information is available at:', link: 'https://www.consumidor.gov.pt' },
-          { h: '4.11 Contact', p: 'For any questions related to bookings, availability or stays, you may contact us at:', list: [
+          { h: '4.10 Surf Experiences', p: 'Ericeira Wave House assists guests in arranging surf lessons through trusted partner surf schools.' },
+          { p: 'These services are provided by the respective surf school, which is responsible for the organisation of the activity, safety standards, insurance, schedules and its own terms and conditions.' },
+          { p: 'Participation in surf lessons is voluntary and at the guest\'s own risk. Guests are responsible for ensuring they are physically fit to participate and for following all instructions provided by the activity provider.' },
+          { p: 'Ericeira Wave House acts as a facilitator and shall not be liable for cancellations, delays, injuries, accidents, loss or damage arising from services provided by third-party activity providers.' },
+          { h: '4.11 Governing Law', p: 'These Terms & Conditions are governed by Portuguese law. In the event of a consumer dispute, the consumer may resort to a Consumer Alternative Dispute Resolution Entity. More information is available at:', link: 'https://www.consumidor.gov.pt' },
+          { h: '4.12 Contact', p: 'For any questions related to bookings, availability or stays, you may contact us at:', list: [
             'Ericeira Wave House',
             'E-mail: ericeirawavehouse@gmail.com',
             'Phone: +351 960 461 100',

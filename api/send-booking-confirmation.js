@@ -1,4 +1,7 @@
 import nodemailer from 'nodemailer';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_ANON_KEY);
 
 function formatDate(dateStr) {
   if (!dateStr) return '-';
@@ -33,100 +36,184 @@ export default async function handler(req, res) {
     },
   });
 
-  const firstName = (guestName || '').split(' ')[0] || 'olá';
   const hasPrice = priceTotal != null;
-  const hasDiscount = hasPrice && discountAmount > 0;
   const total = hasPrice ? Number(priceTotal).toFixed(2) : null;
-  const subtotal = hasPrice ? Number(priceSubtotal ?? priceTotal).toFixed(2) : null;
-  const discount = hasPrice ? Number(discountAmount ?? 0).toFixed(2) : null;
 
-  let subject, introLine, detailsText, detailsHtml, extraText, extraHtml;
+  let subject, text, html;
 
   if (type === 'accommodation') {
-    subject = 'A tua reserva foi confirmada! - Ericeira Wave House';
-    introLine = 'A tua reserva na Ericeira Wave House foi confirmada!';
-    detailsText = `Check-in: ${formatDate(checkIn)}
-Check-out: ${formatDate(checkOut)}
-Noites: ${nights || '-'}
-Hóspedes: ${guestsCount || '-'}`;
-    detailsHtml = `
-      <tr><td style="padding:4px 0;color:#666;">Check-in</td><td style="padding:4px 0;text-align:right;">${formatDate(checkIn)}</td></tr>
-      <tr><td style="padding:4px 0;color:#666;">Check-out</td><td style="padding:4px 0;text-align:right;">${formatDate(checkOut)}</td></tr>
-      <tr><td style="padding:4px 0;color:#666;">Noites</td><td style="padding:4px 0;text-align:right;">${nights || '-'}</td></tr>
-      <tr><td style="padding:4px 0;color:#666;">Hóspedes</td><td style="padding:4px 0;text-align:right;">${guestsCount || '-'}</td></tr>
+    // Dados de depósito/pagamento vêm sempre do servidor (nunca do cliente),
+    // para não permitir que alguém injete um IBAN diferente através do pedido.
+    let depositPercent = 30;
+    let bankAccountName = '';
+    let bankIban = '';
+    let bankBic = '';
+    try {
+      const { data: settings, error: settingsError } = await supabase
+        .from('site_settings')
+        .select('deposit_percent, bank_account_name, bank_iban, bank_bic')
+        .eq('id', 1)
+        .maybeSingle();
+      if (!settingsError && settings) {
+        depositPercent = settings.deposit_percent || 30;
+        bankAccountName = settings.bank_account_name || '';
+        bankIban = settings.bank_iban || '';
+        bankBic = settings.bank_bic || '';
+      }
+    } catch (err) {
+      console.error('Erro ao obter dados de depósito:', err);
+    }
+
+    const displayName = (guestName || '').trim() || 'Guest';
+    const balancePercent = 100 - depositPercent;
+    const depositAmount = hasPrice ? (Number(priceTotal) * depositPercent / 100).toFixed(2) : null;
+
+    subject = 'Your Booking Request - Deposit Details - Ericeira Wave House';
+
+    text = [
+      `Dear ${displayName},`,
+      '',
+      'Thank you for your booking request and for choosing Ericeira Wave House.',
+      '',
+      'Booking Summary',
+      `- Check-in: ${formatDate(checkIn)}`,
+      `- Check-out: ${formatDate(checkOut)}`,
+      `- Guests: ${guestsCount || '-'}`,
+      ...(hasPrice ? [`- Total Amount: €${total}`] : []),
+      '',
+      hasPrice
+        ? `To secure your reservation, we kindly require a ${depositPercent}% deposit (€${depositAmount}).`
+        : `To secure your reservation, we kindly require a ${depositPercent}% deposit.`,
+      '',
+      'If you would like to proceed with the reservation, simply reply to this email to confirm. We will then issue the invoice for the deposit. Once the payment has been received, we will confirm your reservation and send you the corresponding receipt.',
+      '',
+      `The remaining ${balancePercent}% balance is payable on the day of check-in.`,
+      '',
+      'Bank Details',
+      `Account Name: ${bankAccountName || '-'}`,
+      `IBAN: ${bankIban || '-'}`,
+      `BIC/SWIFT: ${bankBic || '-'}`,
+      '',
+      'If you have any questions before your stay, please feel free to contact us. We will be happy to assist you.',
+      '',
+      'We look forward to welcoming you to Ericeira.',
+      '',
+      'Best regards,',
+      '',
+      'Carolina & Nuno',
+      'Ericeira Wave House',
+      'ericeirawavehouse@gmail.com',
+      'Ericeira, Portugal',
+    ].join('\n');
+
+    html = `
+      <div style="font-family: -apple-system, Arial, sans-serif; color: #1c1c1c; max-width: 480px;">
+        <p>Dear ${displayName},</p>
+        <p>Thank you for your booking request and for choosing <strong>Ericeira Wave House</strong>.</p>
+
+        <p style="font-weight:600; margin-bottom:8px;">Booking Summary</p>
+        <table style="width:100%; border-collapse: collapse; font-size: 14px; margin: 0 0 20px;">
+          <tr><td style="padding:4px 0;color:#666;">Check-in</td><td style="padding:4px 0;text-align:right;">${formatDate(checkIn)}</td></tr>
+          <tr><td style="padding:4px 0;color:#666;">Check-out</td><td style="padding:4px 0;text-align:right;">${formatDate(checkOut)}</td></tr>
+          <tr><td style="padding:4px 0;color:#666;">Guests</td><td style="padding:4px 0;text-align:right;">${guestsCount || '-'}</td></tr>
+          ${hasPrice ? `<tr><td style="padding:8px 0 0;font-weight:600;border-top:1px solid #eee;">Total Amount</td><td style="padding:8px 0 0;text-align:right;font-weight:600;border-top:1px solid #eee;">€${total}</td></tr>` : ''}
+        </table>
+
+        <div style="background:#f6f6f4; border-radius:12px; padding:16px 20px; margin-bottom:20px;">
+          <p style="margin:0 0 8px;">${hasPrice
+            ? `To secure your reservation, we kindly require a <strong>${depositPercent}% deposit (€${depositAmount})</strong>.`
+            : `To secure your reservation, we kindly require a <strong>${depositPercent}% deposit</strong>.`}</p>
+          <p style="margin:0; font-size:13px; color:#555;">The remaining ${balancePercent}% balance is payable on the day of check-in.</p>
+        </div>
+
+        <p>If you would like to proceed with the reservation, simply reply to this email to confirm. We will then issue the invoice for the deposit. Once the payment has been received, we will confirm your reservation and send you the corresponding receipt.</p>
+
+        <p style="font-weight:600; margin:20px 0 8px;">Bank Details</p>
+        <table style="width:100%; border-collapse: collapse; font-size: 14px; margin: 0 0 20px;">
+          <tr><td style="padding:4px 0;color:#666;">Account Name</td><td style="padding:4px 0;text-align:right;">${bankAccountName || '-'}</td></tr>
+          <tr><td style="padding:4px 0;color:#666;">IBAN</td><td style="padding:4px 0;text-align:right;">${bankIban || '-'}</td></tr>
+          <tr><td style="padding:4px 0;color:#666;">BIC/SWIFT</td><td style="padding:4px 0;text-align:right;">${bankBic || '-'}</td></tr>
+        </table>
+
+        <p>If you have any questions before your stay, please feel free to contact us. We will be happy to assist you.</p>
+        <p>We look forward to welcoming you to Ericeira.</p>
+
+        <p>Best regards,<br/><br/>
+        Carolina &amp; Nuno<br/>
+        Ericeira Wave House<br/>
+        ericeirawavehouse@gmail.com<br/>
+        Ericeira, Portugal</p>
+      </div>
     `;
-    extraText = 'Mais perto da data de chegada vais receber um link para preencheres o check-in online, para agilizar a tua entrada.';
-    extraHtml = extraText;
   } else {
-    subject = 'A tua aula de surf foi confirmada! - Ericeira Wave House';
-    introLine = 'A tua aula de surf na Ericeira Wave House foi confirmada!';
+    const firstName = (guestName || '').split(' ')[0] || 'olá';
     const peopleLine = childrenCount > 0
       ? `${guestsCount || '-'} pessoas (${childrenCount} criança${childrenCount === 1 ? '' : 's'})`
       : `${guestsCount || '-'}`;
-    detailsText = `Data: ${formatDate(surfDate)}
-Pessoas: ${peopleLine}`;
-    detailsHtml = `
-      <tr><td style="padding:4px 0;color:#666;">Data</td><td style="padding:4px 0;text-align:right;">${formatDate(surfDate)}</td></tr>
-      <tr><td style="padding:4px 0;color:#666;">Pessoas</td><td style="padding:4px 0;text-align:right;">${peopleLine}</td></tr>
+
+    subject = 'A tua aula de surf foi confirmada! - Ericeira Wave House';
+    const introLine = 'A tua aula de surf na Ericeira Wave House foi confirmada!';
+    const extraText = 'Vamos entrar em contacto contigo, normalmente na noite anterior à aula, para combinarmos a hora exata — isto permite-nos avaliar as marés e as condições do mar com a maior precisão possível. Não estranhes se não tiveres notícias nossas antes disso, é mesmo assim que costuma funciona.';
+    const cancelText = 'Se por algum motivo precisares de cancelar, contacta-nos por email para combinarmos os próximos passos.';
+    const hasDiscount = hasPrice && discountAmount > 0;
+    const subtotal = hasPrice ? Number(priceSubtotal ?? priceTotal).toFixed(2) : null;
+    const discount = hasPrice ? Number(discountAmount ?? 0).toFixed(2) : null;
+
+    const priceRowsText = !hasPrice
+      ? ''
+      : hasDiscount
+        ? `Subtotal: €${subtotal}\n${discountLabel || 'Desconto'}: -€${discount}\nTotal: €${total}`
+        : `Total: €${total}`;
+
+    const priceRowsHtml = !hasPrice
+      ? ''
+      : hasDiscount
+        ? `
+        <tr><td style="padding:4px 0;color:#666;">Subtotal</td><td style="padding:4px 0;text-align:right;">€${subtotal}</td></tr>
+        <tr><td style="padding:4px 0;color:#059669;">${discountLabel || 'Desconto'}</td><td style="padding:4px 0;text-align:right;color:#059669;">-€${discount}</td></tr>
+        <tr><td style="padding:8px 0 0;font-weight:600;border-top:1px solid #eee;">Total</td><td style="padding:8px 0 0;text-align:right;font-weight:600;border-top:1px solid #eee;">€${total}</td></tr>
+      `
+        : `
+        <tr><td style="padding:8px 0 0;font-weight:600;border-top:1px solid #eee;">Total</td><td style="padding:8px 0 0;text-align:right;font-weight:600;border-top:1px solid #eee;">€${total}</td></tr>
+      `;
+
+    text = [
+      `Olá ${firstName},`,
+      '',
+      introLine,
+      '',
+      `Data: ${formatDate(surfDate)}`,
+      `Pessoas: ${peopleLine}`,
+      ...(hasPrice ? ['', priceRowsText] : []),
+      '',
+      extraText,
+      '',
+      cancelText,
+      '',
+      'Até já,',
+      'Equipa Ericeira Wave House',
+      'ericeirawavehouse@gmail.com',
+      'Ericeira, Portugal',
+    ].join('\n');
+
+    html = `
+      <div style="font-family: -apple-system, Arial, sans-serif; color: #1c1c1c; max-width: 480px;">
+        <p>Olá ${firstName},</p>
+        <p><strong>${introLine}</strong></p>
+        <table style="width:100%; border-collapse: collapse; font-size: 14px; margin: 16px 0;">
+          <tr><td style="padding:4px 0;color:#666;">Data</td><td style="padding:4px 0;text-align:right;">${formatDate(surfDate)}</td></tr>
+          <tr><td style="padding:4px 0;color:#666;">Pessoas</td><td style="padding:4px 0;text-align:right;">${peopleLine}</td></tr>
+        </table>
+        ${hasPrice ? `<table style="width:100%; border-collapse: collapse; font-size: 14px; margin: 16px 0;">${priceRowsHtml}</table>` : ''}
+        <p>${extraText}</p>
+        <p style="color:#666; font-size:13px;">${cancelText}</p>
+        <p>Até já,<br/>
+        Equipa Ericeira Wave House<br/>
+        ericeirawavehouse@gmail.com<br/>
+        Ericeira, Portugal</p>
+      </div>
     `;
-    extraText = 'Vamos entrar em contacto contigo, normalmente na noite anterior à aula, para combinarmos a hora exata — isto permite-nos avaliar as marés e as condições do mar com a maior precisão possível. Não estranhes se não tiveres notícias nossas antes disso, é mesmo assim que costuma funcionar.';
-    extraHtml = extraText;
   }
-
-  const cancelText = 'Se por algum motivo precisares de cancelar, contacta-nos por email para combinarmos os próximos passos.';
-
-  const priceRowsText = !hasPrice
-    ? ''
-    : hasDiscount
-      ? `Subtotal: €${subtotal}\n${discountLabel || 'Desconto'}: -€${discount}\nTotal: €${total}`
-      : `Total: €${total}`;
-
-  const priceRowsHtml = !hasPrice
-    ? ''
-    : hasDiscount
-      ? `
-      <tr><td style="padding:4px 0;color:#666;">Subtotal</td><td style="padding:4px 0;text-align:right;">€${subtotal}</td></tr>
-      <tr><td style="padding:4px 0;color:#059669;">${discountLabel || 'Desconto'}</td><td style="padding:4px 0;text-align:right;color:#059669;">-€${discount}</td></tr>
-      <tr><td style="padding:8px 0 0;font-weight:600;border-top:1px solid #eee;">Total</td><td style="padding:8px 0 0;text-align:right;font-weight:600;border-top:1px solid #eee;">€${total}</td></tr>
-    `
-      : `
-      <tr><td style="padding:8px 0 0;font-weight:600;border-top:1px solid #eee;">Total</td><td style="padding:8px 0 0;text-align:right;font-weight:600;border-top:1px solid #eee;">€${total}</td></tr>
-    `;
-
-  const text = [
-    `Olá ${firstName},`,
-    '',
-    introLine,
-    '',
-    detailsText,
-    ...(hasPrice ? ['', priceRowsText] : []),
-    '',
-    extraText,
-    '',
-    cancelText,
-    '',
-    'Até já,',
-    'Equipa Ericeira Wave House',
-    'ericeirawavehouse@gmail.com',
-    'Ericeira, Portugal',
-  ].join('\n');
-
-  const html = `
-    <div style="font-family: -apple-system, Arial, sans-serif; color: #1c1c1c; max-width: 480px;">
-      <p>Olá ${firstName},</p>
-      <p><strong>${introLine}</strong></p>
-      <table style="width:100%; border-collapse: collapse; font-size: 14px; margin: 16px 0;">
-        ${detailsHtml}
-      </table>
-      ${hasPrice ? `<table style="width:100%; border-collapse: collapse; font-size: 14px; margin: 16px 0;">${priceRowsHtml}</table>` : ''}
-      <p>${extraHtml}</p>
-      <p style="color:#666; font-size:13px;">${cancelText}</p>
-      <p>Até já,<br/>
-      Equipa Ericeira Wave House<br/>
-      ericeirawavehouse@gmail.com<br/>
-      Ericeira, Portugal</p>
-    </div>
-  `;
 
   try {
     await transporter.sendMail({

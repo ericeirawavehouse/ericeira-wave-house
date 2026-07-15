@@ -82,14 +82,15 @@ export default function Booking() {
     },
   });
 
-  const bufferNights = pricing?.buffer_nights || 0;
+  const bufferNightsBefore = pricing?.buffer_nights_before || 0;
+  const bufferNightsAfter = pricing?.buffer_nights_after || 0;
 
   const disabledDates = [
     ...confirmedBookings.flatMap((b) => {
       if (!b.check_in || !b.check_out) return [];
       return eachDayOfInterval({
-        start: subDays(parseISO(b.check_in), bufferNights),
-        end: addDays(parseISO(b.check_out), bufferNights - 1),
+        start: subDays(parseISO(b.check_in), bufferNightsBefore),
+        end: addDays(parseISO(b.check_out), bufferNightsAfter - 1),
       });
     }),
     ...externalBlocks.flatMap((b) => {
