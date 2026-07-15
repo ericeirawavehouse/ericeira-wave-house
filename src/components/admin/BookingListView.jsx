@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Check, X, Eye, Home, Waves, Mail, Copy, CheckCheck, Loader2, Trash2, Inbox } from 'lucide-react';
@@ -85,10 +86,17 @@ function SibaFieldsGrid({ guest, checkIn, checkOut, onCopy, compact }) {
   );
 }
 
-const rejectionReasons = [
+const accommodationRejectionReasons = [
   'As datas pedidas já não estão disponíveis',
   'A casa está em manutenção nesse período',
   'Não cumpre os requisitos mínimos (nº de hóspedes/estadia mínima)',
+  'Outro motivo',
+];
+
+const surfRejectionReasons = [
+  'As condições do mar não são favoráveis nesta data',
+  'O instrutor não está disponível nesta data',
+  'Não cumpre os requisitos mínimos (nº de pessoas)',
   'Outro motivo',
 ];
 
@@ -98,9 +106,18 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
   const [copied, setCopied] = React.useState(false);
   const [sendingEmail, setSendingEmail] = React.useState(false);
   const [rejectBooking, setRejectBooking] = React.useState(null);
-  const [rejectReason, setRejectReason] = React.useState(rejectionReasons[0]);
+  const [rejectReason, setRejectReason] = React.useState(accommodationRejectionReasons[0]);
   const [customReason, setCustomReason] = React.useState('');
   const [sendingRejection, setSendingRejection] = React.useState(false);
+  const [contactBooking, setContactBooking] = React.useState(null);
+  const [contactMode, setContactMode] = React.useState('proposal');
+  const [instructorName, setInstructorName] = React.useState('');
+  const [proposedDate, setProposedDate] = React.useState('');
+  const [proposedTime, setProposedTime] = React.useState('');
+  const [customMessage, setCustomMessage] = React.useState('');
+  const [sendingContact, setSendingContact] = React.useState(false);
+
+  const activeRejectionReasons = rejectBooking?.type === 'surf' ? surfRejectionReasons : accommodationRejectionReasons;
 
   const copyField = (label, value) => {
     navigator.clipboard.writeText(String(value));
@@ -123,8 +140,57 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
 
   const openRejectModal = (booking) => {
     setRejectBooking(booking);
-    setRejectReason(rejectionReasons[0]);
+    setRejectReason(booking.type === 'surf' ? surfRejectionReasons[0] : accommodationRejectionReasons[0]);
     setCustomReason('');
+  };
+
+  const openContactModal = (booking) => {
+    setContactBooking(booking);
+    setContactMode('proposal');
+    setInstructorName('');
+    setProposedDate(booking.surf_date || '');
+    setProposedTime('');
+    setCustomMessage('');
+  };
+
+  const handleSendContact = async () => {
+    if (!instructorName.trim()) {
+      toast({ variant: 'destructive', title: 'Erro', description: 'Escreve o nome do instrutor.' });
+      return;
+    }
+    if (contactMode === 'proposal' && (!proposedDate || !proposedTime)) {
+      toast({ variant: 'destructive', title: 'Erro', description: 'Escolhe a data e a hora propostas.' });
+      return;
+    }
+    if (contactMode === 'custom' && !customMessage.trim()) {
+      toast({ variant: 'destructive', title: 'Erro', description: 'Escreve a mensagem.' });
+      return;
+    }
+
+    setSendingContact(true);
+    try {
+      const res = await fetch('/api/send-surf-contact-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: contactBooking.guest_email,
+          guestName: contactBooking.guest_name,
+          instructorName: instructorName.trim(),
+          mode: contactMode,
+          proposedDate: contactMode === 'proposal' ? proposedDate : undefined,
+          proposedTime: contactMode === 'proposal' ? proposedTime : undefined,
+          message: contactMode === 'custom' ? customMessage.trim() : undefined,
+        }),
+      });
+      if (!res.ok) throw new Error('Falha no envio');
+      toast({ title: 'Email enviado ao aluno!' });
+      setContactBooking(null);
+    } catch (error) {
+      console.error('Erro ao contactar aluno:', error);
+      toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível enviar o email.' });
+    } finally {
+      setSendingContact(false);
+    }
   };
 
   const handleConfirmReject = async () => {
@@ -246,6 +312,11 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
                     )}
                     {b.status === 'confirmed' && b.type === 'accommodation' && !b.checkin_completed && (
                       <Button size="icon" variant="ghost" onClick={() => setCheckInBooking(b)} className="h-8 w-8 text-primary hover:bg-primary/10" title="Enviar check-in">
+                        <Mail className="w-4 h-4" />
+                      </Button>
+                    )}
+                    {b.status === 'confirmed' && b.type === 'surf' && (
+                      <Button size="icon" variant="ghost" onClick={() => openContactModal(b)} className="h-8 w-8 text-primary hover:bg-primary/10" title="Contactar aluno">
                         <Mail className="w-4 h-4" />
                       </Button>
                     )}
@@ -416,7 +487,7 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
               <div className="space-y-3">
                 <Label className="text-xs text-muted-foreground">Motivo da rejeição</Label>
                 <RadioGroup value={rejectReason} onValueChange={setRejectReason}>
-                  {rejectionReasons.map((reason) => (
+                  {activeRejectionReasons.map((reason) => (
                     <div key={reason} className="flex items-center gap-2">
                       <RadioGroupItem value={reason} id={reason} />
                       <Label htmlFor={reason} className="font-normal cursor-pointer">{reason}</Label>
@@ -441,6 +512,61 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
               >
                 {sendingRejection ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <X className="w-4 h-4 mr-2" />}
                 Rejeitar e notificar hóspede
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!contactBooking} onOpenChange={(open) => !open && setContactBooking(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Contactar Aluno</DialogTitle>
+          </DialogHeader>
+          {contactBooking && (
+            <div className="space-y-5 text-sm">
+              <p className="text-muted-foreground">
+                Para <span className="font-medium text-foreground">{contactBooking.guest_name}</span> ({contactBooking.guest_email})
+                {contactBooking.surf_date && <> · aula de {format(new Date(contactBooking.surf_date), 'dd/MM/yyyy')}</>}
+              </p>
+
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <Label className="text-sm block">Escrever email do zero</Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">Desligado: propor uma data/hora. Ligado: escreves a mensagem toda.</p>
+                </div>
+                <Switch
+                  checked={contactMode === 'custom'}
+                  onCheckedChange={(checked) => setContactMode(checked ? 'custom' : 'proposal')}
+                />
+              </div>
+
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1.5 block">O teu nome (para a assinatura)</Label>
+                <Input value={instructorName} onChange={(e) => setInstructorName(e.target.value)} placeholder="Nome do instrutor" />
+              </div>
+
+              {contactMode === 'proposal' ? (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">Data proposta</Label>
+                    <Input type="date" value={proposedDate} onChange={(e) => setProposedDate(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">Hora proposta</Label>
+                    <Input type="time" value={proposedTime} onChange={(e) => setProposedTime(e.target.value)} />
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">Mensagem</Label>
+                  <Textarea rows={6} value={customMessage} onChange={(e) => setCustomMessage(e.target.value)} placeholder="Escreve a mensagem para o aluno..." />
+                </div>
+              )}
+
+              <Button className="w-full" onClick={handleSendContact} disabled={sendingContact}>
+                {sendingContact ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mail className="w-4 h-4 mr-2" />}
+                Enviar email
               </Button>
             </div>
           )}

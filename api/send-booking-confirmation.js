@@ -34,10 +34,11 @@ export default async function handler(req, res) {
   });
 
   const firstName = (guestName || '').split(' ')[0] || 'olá';
-  const hasDiscount = discountAmount > 0;
-  const total = (priceTotal ?? 0).toFixed(2);
-  const subtotal = (priceSubtotal ?? 0).toFixed(2);
-  const discount = (discountAmount ?? 0).toFixed(2);
+  const hasPrice = priceTotal != null;
+  const hasDiscount = hasPrice && discountAmount > 0;
+  const total = hasPrice ? Number(priceTotal).toFixed(2) : null;
+  const subtotal = hasPrice ? Number(priceSubtotal ?? priceTotal).toFixed(2) : null;
+  const discount = hasPrice ? Number(discountAmount ?? 0).toFixed(2) : null;
 
   let subject, introLine, detailsText, detailsHtml, extraText, extraHtml;
 
@@ -72,34 +73,39 @@ Pessoas: ${peopleLine}`;
     extraHtml = extraText;
   }
 
-  const priceRowsText = hasDiscount
-    ? `Subtotal: €${subtotal}\n${discountLabel || 'Desconto'}: -€${discount}\nTotal: €${total}`
-    : `Total: €${total}`;
+  const priceRowsText = !hasPrice
+    ? ''
+    : hasDiscount
+      ? `Subtotal: €${subtotal}\n${discountLabel || 'Desconto'}: -€${discount}\nTotal: €${total}`
+      : `Total: €${total}`;
 
-  const priceRowsHtml = hasDiscount
-    ? `
+  const priceRowsHtml = !hasPrice
+    ? ''
+    : hasDiscount
+      ? `
       <tr><td style="padding:4px 0;color:#666;">Subtotal</td><td style="padding:4px 0;text-align:right;">€${subtotal}</td></tr>
       <tr><td style="padding:4px 0;color:#059669;">${discountLabel || 'Desconto'}</td><td style="padding:4px 0;text-align:right;color:#059669;">-€${discount}</td></tr>
       <tr><td style="padding:8px 0 0;font-weight:600;border-top:1px solid #eee;">Total</td><td style="padding:8px 0 0;text-align:right;font-weight:600;border-top:1px solid #eee;">€${total}</td></tr>
     `
-    : `
+      : `
       <tr><td style="padding:8px 0 0;font-weight:600;border-top:1px solid #eee;">Total</td><td style="padding:8px 0 0;text-align:right;font-weight:600;border-top:1px solid #eee;">€${total}</td></tr>
     `;
 
-  const text = `Olá ${firstName},
-
-${introLine}
-
-${detailsText}
-
-${priceRowsText}
-
-${extraText}
-
-Até já,
-Equipa Ericeira Wave House
-ericeirawavehouse@gmail.com
-Ericeira, Portugal`;
+  const text = [
+    `Olá ${firstName},`,
+    '',
+    introLine,
+    '',
+    detailsText,
+    ...(hasPrice ? ['', priceRowsText] : []),
+    '',
+    extraText,
+    '',
+    'Até já,',
+    'Equipa Ericeira Wave House',
+    'ericeirawavehouse@gmail.com',
+    'Ericeira, Portugal',
+  ].join('\n');
 
   const html = `
     <div style="font-family: -apple-system, Arial, sans-serif; color: #1c1c1c; max-width: 480px;">
@@ -108,9 +114,7 @@ Ericeira, Portugal`;
       <table style="width:100%; border-collapse: collapse; font-size: 14px; margin: 16px 0;">
         ${detailsHtml}
       </table>
-      <table style="width:100%; border-collapse: collapse; font-size: 14px; margin: 16px 0;">
-        ${priceRowsHtml}
-      </table>
+      ${hasPrice ? `<table style="width:100%; border-collapse: collapse; font-size: 14px; margin: 16px 0;">${priceRowsHtml}</table>` : ''}
       <p>${extraHtml}</p>
       <p>Até já,<br/>
       Equipa Ericeira Wave House<br/>
