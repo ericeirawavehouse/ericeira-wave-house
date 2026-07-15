@@ -1,6 +1,6 @@
 import React from 'react';
 import { format } from 'date-fns';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -101,6 +101,7 @@ const surfRejectionReasons = [
 ];
 
 export default function BookingListView({ bookings, onApprove, onReject, onDelete }) {
+  const queryClient = useQueryClient();
   const [selected, setSelected] = React.useState(null);
   const [checkInBooking, setCheckInBooking] = React.useState(null);
   const [copied, setCopied] = React.useState(false);
@@ -183,6 +184,15 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
         }),
       });
       if (!res.ok) throw new Error('Falha no envio');
+
+      const sentAt = new Date().toISOString();
+      const { error: updateError } = await supabase
+        .from('bookings')
+        .update({ surf_contact_sent_at: sentAt })
+        .eq('id', contactBooking.id);
+      if (updateError) throw updateError;
+
+      queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
       toast({ title: 'Email enviado ao aluno!' });
       setContactBooking(null);
     } catch (error) {
@@ -316,8 +326,14 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
                       </Button>
                     )}
                     {b.status === 'confirmed' && b.type === 'surf' && (
-                      <Button size="icon" variant="ghost" onClick={() => openContactModal(b)} className="h-8 w-8 text-primary hover:bg-primary/10" title="Contactar aluno">
-                        <Mail className="w-4 h-4" />
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => openContactModal(b)}
+                        className={`h-8 w-8 hover:bg-primary/10 ${b.surf_contact_sent_at ? 'text-emerald-600' : 'text-primary'}`}
+                        title={b.surf_contact_sent_at ? `Contactado em ${format(new Date(b.surf_contact_sent_at), "dd/MM/yyyy 'às' HH:mm")}` : 'Contactar aluno'}
+                      >
+                        {b.surf_contact_sent_at ? <CheckCheck className="w-4 h-4" /> : <Mail className="w-4 h-4" />}
                       </Button>
                     )}
                     <Button size="icon" variant="ghost" onClick={() => setSelected(b)} className="h-8 w-8">
@@ -530,6 +546,13 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
                 {contactBooking.surf_date && <> · aula de {format(new Date(contactBooking.surf_date), 'dd/MM/yyyy')}</>}
               </p>
 
+              {contactBooking.surf_contact_sent_at && (
+                <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 text-xs px-3 py-2 rounded-lg">
+                  <CheckCheck className="w-3.5 h-3.5 shrink-0" />
+                  <span>Já contactaste este aluno em {format(new Date(contactBooking.surf_contact_sent_at), "dd/MM/yyyy 'às' HH:mm")}.</span>
+                </div>
+              )}
+
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <Label className="text-sm block">Escrever email do zero</Label>
@@ -554,7 +577,7 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
                   </div>
                   <div>
                     <Label className="text-xs text-muted-foreground mb-1.5 block">Hora proposta</Label>
-                    <Input type="time" value={proposedTime} onChange={(e) => setProposedTime(e.target.value)} />
+                    <Input type="time" step="900" value={proposedTime} onChange={(e) => setProposedTime(e.target.value)} />
                   </div>
                 </div>
               ) : (
