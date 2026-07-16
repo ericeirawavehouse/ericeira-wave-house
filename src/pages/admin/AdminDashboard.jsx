@@ -87,7 +87,7 @@ export default function AdminDashboard() {
                 {pendingPackages.map((p) => (
                   <Link
                     key={p.id}
-                    to="/admin/pricing/surf?tab=packages"
+                    to="/admin/bookings"
                     className="flex items-center gap-4 px-5 py-3.5 hover:bg-muted/50 transition-colors"
                   >
                     <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center shrink-0">

@@ -12,7 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Check, X, Eye, Home, Waves, Mail, Copy, CheckCheck, Loader2, Trash2, Inbox, Send } from 'lucide-react';
+import { Check, X, Eye, Home, Waves, Mail, Copy, CheckCheck, Loader2, Trash2, Inbox, Send, Package } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { generateTimeSlots } from '@/lib/timeSlots';
 
@@ -112,6 +112,12 @@ const surfRejectionReasons = [
   'Outro motivo',
 ];
 
+const packageRejectionReasons = [
+  'Pacote já esgotado',
+  'Fora de época para aulas de surf',
+  'Outro motivo',
+];
+
 export default function BookingListView({ bookings, onApprove, onReject, onDelete }) {
   const queryClient = useQueryClient();
   const [selected, setSelected] = React.useState(null);
@@ -131,7 +137,11 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
   const [customMessage, setCustomMessage] = React.useState('');
   const [sendingContact, setSendingContact] = React.useState(false);
 
-  const activeRejectionReasons = rejectBooking?.type === 'surf' ? surfRejectionReasons : accommodationRejectionReasons;
+  const activeRejectionReasons = rejectBooking?.type === 'surf_package'
+    ? packageRejectionReasons
+    : rejectBooking?.type === 'surf'
+      ? surfRejectionReasons
+      : accommodationRejectionReasons;
 
   const copyField = (label, value) => {
     navigator.clipboard.writeText(String(value));
@@ -154,7 +164,13 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
 
   const openRejectModal = (booking) => {
     setRejectBooking(booking);
-    setRejectReason(booking.type === 'surf' ? surfRejectionReasons[0] : accommodationRejectionReasons[0]);
+    setRejectReason(
+      booking.type === 'surf_package'
+        ? packageRejectionReasons[0]
+        : booking.type === 'surf'
+          ? surfRejectionReasons[0]
+          : accommodationRejectionReasons[0]
+    );
     setCustomReason('');
   };
 
@@ -318,11 +334,11 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
           </TableHeader>
           <TableBody>
             {bookings.map((b) => (
-              <TableRow key={b.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelected(b)}>
+              <TableRow key={`${b._table}-${b.id}`} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelected(b)}>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    {b.type === 'accommodation' ? <Home className="w-4 h-4 text-primary" /> : <Waves className="w-4 h-4 text-secondary" />}
-                    <span className="text-sm capitalize">{b.type === 'accommodation' ? 'Alojamento' : 'Surf'}</span>
+                    {b.type === 'accommodation' ? <Home className="w-4 h-4 text-primary" /> : b.type === 'surf_package' ? <Package className="w-4 h-4 text-secondary" /> : <Waves className="w-4 h-4 text-secondary" />}
+                    <span className="text-sm capitalize">{b.type === 'accommodation' ? 'Alojamento' : b.type === 'surf_package' ? 'Pacote de Surf' : 'Surf'}</span>
                   </div>
                 </TableCell>
                 <TableCell>
@@ -334,10 +350,12 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
                 <TableCell className="text-sm">
                   {b.type === 'accommodation'
                     ? `${b.check_in ? format(new Date(b.check_in), 'dd/MM') : '-'} → ${b.check_out ? format(new Date(b.check_out), 'dd/MM') : '-'}`
-                    : b.surf_date ? format(new Date(b.surf_date), 'dd/MM/yyyy') : '-'}
+                    : b.type === 'surf_package'
+                      ? b.package_name
+                      : b.surf_date ? format(new Date(b.surf_date), 'dd/MM/yyyy') : '-'}
                   {b.surf_time && ` (${b.surf_time})`}
                 </TableCell>
-                <TableCell className="text-sm">{b.guests_count || '-'}</TableCell>
+                <TableCell className="text-sm">{b.type === 'surf_package' ? `${b.lessons_used}/${b.lessons_total} aulas` : (b.guests_count || '-')}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className={`${statusColors[b.status]} border text-xs`}>
                     {statusLabels[b.status]}
@@ -405,12 +423,14 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
           {selected && (
             <div className="space-y-4 text-sm">
               <div className="grid grid-cols-2 gap-4">
-                <div><p className="text-muted-foreground text-xs">Tipo</p><p className="font-medium capitalize">{selected.type === 'accommodation' ? 'Alojamento' : 'Surf'}</p></div>
+                <div><p className="text-muted-foreground text-xs">Tipo</p><p className="font-medium capitalize">{selected.type === 'accommodation' ? 'Alojamento' : selected.type === 'surf_package' ? 'Pacote de Surf' : 'Surf'}</p></div>
                 <div><p className="text-muted-foreground text-xs">Estado</p><Badge variant="outline" className={`${statusColors[selected.status]} border text-xs`}>{statusLabels[selected.status]}</Badge></div>
                 <div><p className="text-muted-foreground text-xs">Nome</p><p className="font-medium">{selected.guest_name}</p></div>
                 <div><p className="text-muted-foreground text-xs">Email</p><p>{selected.guest_email}</p></div>
                 <div><p className="text-muted-foreground text-xs">Telefone</p><p>{selected.guest_phone || '-'}</p></div>
-                <div><p className="text-muted-foreground text-xs">Hóspedes</p><p>{selected.guests_count || '-'}</p></div>
+                {selected.type !== 'surf_package' && (
+                  <div><p className="text-muted-foreground text-xs">Hóspedes</p><p>{selected.guests_count || '-'}</p></div>
+                )}
                 {selected.type === 'accommodation' && (
                   <>
                     <div><p className="text-muted-foreground text-xs">Check-in</p><p>{selected.check_in ? format(new Date(selected.check_in), 'dd/MM/yyyy') : '-'}</p></div>
@@ -421,6 +441,13 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
                   <>
                     <div><p className="text-muted-foreground text-xs">Data</p><p>{selected.surf_date ? format(new Date(selected.surf_date), 'dd/MM/yyyy') : '-'}</p></div>
                     <div><p className="text-muted-foreground text-xs">Hora</p><p>{selected.surf_time || '-'}</p></div>
+                  </>
+                )}
+                {selected.type === 'surf_package' && (
+                  <>
+                    <div><p className="text-muted-foreground text-xs">Pacote</p><p>{selected.package_name}</p></div>
+                    <div><p className="text-muted-foreground text-xs">Aulas</p><p>{selected.lessons_used}/{selected.lessons_total} usadas</p></div>
+                    <div><p className="text-muted-foreground text-xs">Valor</p><p>€{selected.price_total}</p></div>
                   </>
                 )}
               </div>

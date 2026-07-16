@@ -31,27 +31,83 @@ export default function AdminBookings() {
     },
   });
 
-  // 3. MUTATION PARA ATUALIZAR STATUS (Aprovar/Rejeitar)
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, data }) => {
-      const { error } = await supabase
-        .from('bookings')
-        .update(data)
-        .eq('id', id);
-      
+  // Pedidos de pacotes de surf — tratados como "reservas" de Surf, junto com as aulas
+  const { data: packagePurchases = [], isLoading: isLoadingPackages } = useQuery({
+    queryKey: ['admin-package-purchases'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('surf_package_purchases')
+        .select('*')
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
       if (error) throw error;
+      return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-bookings'] }),
   });
 
-  const filteredBookings = bookings.filter((b) => {
-    if (typeFilter !== 'all' && b.type !== typeFilter) return false;
+  // 3. MUTATION PARA ATUALIZAR STATUS (Aprovar/Rejeitar)
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data, table }) => {
+      const { error } = await supabase
+        .from(table)
+        .update(data)
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-package-purchases'] });
+    },
+  });
+
+  const normalizedPackages = packagePurchases.map((p) => ({
+    id: p.id,
+    _table: 'surf_package_purchases',
+    type: 'surf_package',
+    guest_name: p.guest_name,
+    guest_email: p.guest_email,
+    guest_phone: p.guest_phone,
+    status: p.status,
+    created_at: p.created_at,
+    deleted_at: p.deleted_at,
+    package_name: p.package_name,
+    lessons_total: p.lessons_total,
+    lessons_used: p.lessons_used,
+    price_total: p.price_total,
+  }));
+  const normalizedBookings = bookings.map((b) => ({ ...b, _table: 'bookings' }));
+  const allItems = [...normalizedBookings, ...normalizedPackages].sort(
+    (a, b) => new Date(b.created_at) - new Date(a.created_at)
+  );
+
+  const filteredBookings = allItems.filter((b) => {
+    if (typeFilter === 'accommodation' && b.type !== 'accommodation') return false;
+    if (typeFilter === 'surf' && b.type !== 'surf' && b.type !== 'surf_package') return false;
     if (statusFilter !== 'all' && b.status !== statusFilter) return false;
     return true;
   });
 
   const handleApprove = async (booking) => {
-    updateMutation.mutate({ id: booking.id, data: { status: 'confirmed' } });
+    updateMutation.mutate({ id: booking.id, table: booking._table, data: { status: 'confirmed' } });
+
+    if (booking.type === 'surf_package') {
+      toast({ title: 'Pacote confirmado!' });
+      fetch('/api/send-booking-confirmation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: booking.guest_email,
+          guestName: booking.guest_name,
+          type: 'surf_package',
+          packageName: booking.package_name,
+          lessonsTotal: booking.lessons_total,
+          priceTotal: booking.price_total,
+        }),
+      }).catch((err) => console.error('Erro ao enviar email de confirmação:', err));
+      return;
+    }
+
     toast({ title: 'Reserva confirmada!' });
 
     const nights = booking.check_in && booking.check_out
@@ -80,23 +136,23 @@ export default function AdminBookings() {
   };
 
   const handleReject = (booking) => {
-    updateMutation.mutate({ id: booking.id, data: { status: 'rejected' } });
-    toast({ title: 'Reserva rejeitada.' });
+    updateMutation.mutate({ id: booking.id, table: booking._table, data: { status: 'rejected' } });
+    toast({ title: booking.type === 'surf_package' ? 'Pedido de pacote rejeitado.' : 'Reserva rejeitada.' });
   };
 
   const handleDelete = (booking) => {
-    updateMutation.mutate({ id: booking.id, data: { deleted_at: new Date().toISOString() } });
+    updateMutation.mutate({ id: booking.id, table: booking._table, data: { deleted_at: new Date().toISOString() } });
     toast({
-      title: 'Reserva movida para o lixo.',
+      title: booking.type === 'surf_package' ? 'Pedido movido para o lixo.' : 'Reserva movida para o lixo.',
       action: (
-        <ToastAction altText="Desfazer" onClick={() => updateMutation.mutate({ id: booking.id, data: { deleted_at: null } })}>
+        <ToastAction altText="Desfazer" onClick={() => updateMutation.mutate({ id: booking.id, table: booking._table, data: { deleted_at: null } })}>
           Desfazer
         </ToastAction>
       ),
     });
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingPackages) {
     return (
       <div className="flex items-center justify-center py-24">
         <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
