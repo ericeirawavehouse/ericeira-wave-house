@@ -9,6 +9,7 @@ import { toast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
 import PricingCalendar from '@/components/admin/PricingCalendar';
 import SurfSlotsManager from '@/components/admin/SurfSlotsManager';
+import SurfPackagesManager from '@/components/admin/SurfPackagesManager';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 export default function AdminPricing({ section = 'accommodation' }) {
@@ -566,6 +567,7 @@ export default function AdminPricing({ section = 'accommodation' }) {
           <TabsTrigger value="pricing" className="rounded-full px-6">Preços & Descontos</TabsTrigger>
           <TabsTrigger value="rules" className="rounded-full px-6">Regras</TabsTrigger>
           <TabsTrigger value="days" className="rounded-full px-6">Dias Disponíveis</TabsTrigger>
+          <TabsTrigger value="packages" className="rounded-full px-6">Pacotes</TabsTrigger>
         </TabsList>
 
         <TabsContent value="pricing">
@@ -725,6 +727,10 @@ export default function AdminPricing({ section = 'accommodation' }) {
       <div className="max-w-2xl">
         <SurfSlotsManager />
       </div>
+        </TabsContent>
+
+        <TabsContent value="packages">
+          <SurfPackagesManager />
         </TabsContent>
       </Tabs>
       )}

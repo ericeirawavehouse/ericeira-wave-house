@@ -20,6 +20,7 @@ export default async function handler(req, res) {
     surfDate,
     guestsCount, childrenCount,
     priceSubtotal, discountAmount, discountLabel, priceTotal,
+    packageName, lessonsTotal,
   } = req.body || {};
 
   if (!to || !type) {
@@ -141,6 +142,45 @@ export default async function handler(req, res) {
         <p>Best regards,<br/><br/>
         Carolina &amp; Nuno<br/>
         Ericeira Wave House<br/>
+        ericeirawavehouse@gmail.com<br/>
+        Ericeira, Portugal</p>
+      </div>
+    `;
+  } else if (type === 'surf_package') {
+    const firstName = (guestName || '').split(' ')[0] || 'olá';
+    subject = 'O teu pacote de aulas de surf foi confirmado! - Ericeira Wave House';
+    const introLine = `O teu pedido do pacote "${packageName || '-'}" foi confirmado!`;
+
+    text = [
+      `Olá ${firstName},`,
+      '',
+      introLine,
+      '',
+      `Aulas incluídas: ${lessonsTotal ?? '-'}`,
+      ...(hasPrice ? [`Valor total: €${total}`] : []),
+      '',
+      'Vamos entrar em contacto contigo para combinarmos o pagamento. Depois de confirmado, basta reservares as tuas aulas através do formulário de reserva do site, usando o mesmo email — as aulas serão automaticamente descontadas do teu pacote.',
+      '',
+      'Se por algum motivo precisares de cancelar, contacta-nos por email para combinarmos os próximos passos.',
+      '',
+      'Até já,',
+      'Equipa Ericeira Wave House',
+      'ericeirawavehouse@gmail.com',
+      'Ericeira, Portugal',
+    ].join('\n');
+
+    html = `
+      <div style="font-family: -apple-system, Arial, sans-serif; color: #1c1c1c; max-width: 480px;">
+        <p>Olá ${firstName},</p>
+        <p><strong>${introLine}</strong></p>
+        <table style="width:100%; border-collapse: collapse; font-size: 14px; margin: 16px 0;">
+          <tr><td style="padding:4px 0;color:#666;">Aulas incluídas</td><td style="padding:4px 0;text-align:right;">${lessonsTotal ?? '-'}</td></tr>
+          ${hasPrice ? `<tr><td style="padding:8px 0 0;font-weight:600;border-top:1px solid #eee;">Valor total</td><td style="padding:8px 0 0;text-align:right;font-weight:600;border-top:1px solid #eee;">€${total}</td></tr>` : ''}
+        </table>
+        <p>Vamos entrar em contacto contigo para combinarmos o pagamento. Depois de confirmado, basta reservares as tuas aulas através do formulário de reserva do site, usando o mesmo email — as aulas serão automaticamente descontadas do teu pacote.</p>
+        <p style="color:#666; font-size:13px;">Se por algum motivo precisares de cancelar, contacta-nos por email para combinarmos os próximos passos.</p>
+        <p>Até já,<br/>
+        Equipa Ericeira Wave House<br/>
         ericeirawavehouse@gmail.com<br/>
         Ericeira, Portugal</p>
       </div>

@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
-import { Home, Waves, Loader2, CheckCircle, Tag, CloudSun } from 'lucide-react';
+import { Home, Waves, Loader2, CheckCircle, Tag, CloudSun, Package } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import FadeInView from '../components/shared/FadeInView';
 import SectionHeading from '../components/shared/SectionHeading';
@@ -39,6 +39,7 @@ export default function Booking() {
     guest_name: '', guest_email: '', guest_phone: '', guests_count: 2, children_count: 0, surf_time: '', notes: '',
   });
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [usePackageCredit, setUsePackageCredit] = useState(false);
 
   // 2. BUSCA DE DATAS OCUPADAS (SUPABASE)
   const { data: confirmedBookings = [] } = useQuery({
@@ -136,6 +137,26 @@ export default function Booking() {
       return data;
     },
   });
+
+  // Pacotes de surf confirmados associados ao email introduzido, com aulas por marcar
+  const guestEmailTrimmed = form.guest_email.trim();
+  const { data: guestPackages = [] } = useQuery({
+    queryKey: ['guest-surf-packages', guestEmailTrimmed],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('surf_package_purchases')
+        .select('*')
+        .ilike('guest_email', guestEmailTrimmed)
+        .eq('status', 'confirmed')
+        .is('deleted_at', null)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+    enabled: type === 'surf' && /\S+@\S+\.\S+/.test(guestEmailTrimmed),
+  });
+  const availablePackage = guestPackages.find((p) => p.lessons_used < p.lessons_total);
+  const isUsingPackageCredit = usePackageCredit && !!availablePackage;
 
   const nights = dateRange.from && dateRange.to ? differenceInCalendarDays(dateRange.to, dateRange.from) : 0;
   const surfGuests = form.guests_count || 1;
@@ -241,10 +262,18 @@ export default function Booking() {
     if (type === 'surf' && surfDate) {
       dataToInsert.surf_date = format(surfDate, 'yyyy-MM-dd');
       dataToInsert.surf_time = 'A combinar consoante as condições';
-      dataToInsert.price_subtotal = surfSubtotal;
-      dataToInsert.discount_amount = surfDiscountAmount;
-      dataToInsert.price_total = surfTotal;
-      dataToInsert.discount_label = surfDiscountPercent > 0 ? 'Desconto de grupo' : null;
+      if (isUsingPackageCredit) {
+        dataToInsert.price_subtotal = 0;
+        dataToInsert.discount_amount = 0;
+        dataToInsert.price_total = 0;
+        dataToInsert.discount_label = 'Aula de pacote';
+        dataToInsert.package_purchase_id = availablePackage.id;
+      } else {
+        dataToInsert.price_subtotal = surfSubtotal;
+        dataToInsert.discount_amount = surfDiscountAmount;
+        dataToInsert.price_total = surfTotal;
+        dataToInsert.discount_label = surfDiscountPercent > 0 ? 'Desconto de grupo' : null;
+      }
     }
 
     const { error } = await supabase
@@ -259,6 +288,16 @@ export default function Booking() {
     } else {
       setSuccess(true);
       toast({ title: t('booking.success') });
+
+      if (isUsingPackageCredit) {
+        supabase
+          .from('surf_package_purchases')
+          .update({ lessons_used: availablePackage.lessons_used + 1 })
+          .eq('id', availablePackage.id)
+          .then(({ error: creditError }) => {
+            if (creditError) console.error('Erro ao descontar aula do pacote:', creditError);
+          });
+      }
 
       const dates = type === 'accommodation'
         ? `${dataToInsert.check_in || '?'} → ${dataToInsert.check_out || '?'}`
@@ -414,7 +453,28 @@ export default function Booking() {
                   )}
                 </div>
               )}
-              {type === 'surf' && surfDate && pricing && (
+              {type === 'surf' && availablePackage && (
+                <div className="flex items-start gap-3 bg-emerald-50 text-emerald-800 text-sm px-4 py-3 rounded-xl">
+                  <Package className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p>{t('booking.packageCreditBanner', { count: availablePackage.lessons_total - availablePackage.lessons_used, name: availablePackage.package_name })}</p>
+                    <label className="flex items-center gap-2 mt-2 cursor-pointer">
+                      <Checkbox checked={usePackageCredit} onCheckedChange={(checked) => setUsePackageCredit(checked === true)} />
+                      <span className="font-normal">{t('booking.usePackageCredit')}</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {type === 'surf' && surfDate && pricing && isUsingPackageCredit && (
+                <div className="border-t border-border pt-6">
+                  <div className="flex items-center justify-between font-semibold">
+                    <span>{t('booking.total')}</span>
+                    <span className="text-emerald-600">{t('booking.packageCreditApplied')}</span>
+                  </div>
+                </div>
+              )}
+              {type === 'surf' && surfDate && pricing && !isUsingPackageCredit && (
                 <div className="border-t border-border pt-6 space-y-4">
                   {surfDiscountPercent > 0 && (
                     <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 text-sm px-4 py-3 rounded-xl">

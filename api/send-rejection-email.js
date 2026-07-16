@@ -25,15 +25,21 @@ export default async function handler(req, res) {
 
   const subject = type === 'surf'
     ? 'Sobre o teu pedido de aula de surf - Ericeira Wave House'
-    : 'Sobre o teu pedido de reserva - Ericeira Wave House';
+    : type === 'surf_package'
+      ? 'Sobre o teu pedido de pacote de surf - Ericeira Wave House'
+      : 'Sobre o teu pedido de reserva - Ericeira Wave House';
 
   const introLine = type === 'surf'
     ? 'Obrigado pelo teu interesse nas aulas de surf da Ericeira Wave House. Infelizmente, não vamos conseguir confirmar o teu pedido desta vez.'
-    : 'Obrigado pelo teu interesse na Ericeira Wave House. Infelizmente, não vamos conseguir confirmar o teu pedido de reserva desta vez.';
+    : type === 'surf_package'
+      ? 'Obrigado pelo teu interesse nos pacotes de aulas de surf da Ericeira Wave House. Infelizmente, não vamos conseguir confirmar o teu pedido desta vez.'
+      : 'Obrigado pelo teu interesse na Ericeira Wave House. Infelizmente, não vamos conseguir confirmar o teu pedido de reserva desta vez.';
 
   const closingLine = type === 'surf'
     ? 'Se quiseres, podes tentar outra data ou contactar-nos diretamente para vermos alternativas.'
-    : 'Se quiseres, podes tentar outras datas ou contactar-nos diretamente para vermos alternativas.';
+    : type === 'surf_package'
+      ? 'Se quiseres, contacta-nos diretamente para vermos alternativas.'
+      : 'Se quiseres, podes tentar outras datas ou contactar-nos diretamente para vermos alternativas.';
 
   const text = `Olá ${firstName},
 
