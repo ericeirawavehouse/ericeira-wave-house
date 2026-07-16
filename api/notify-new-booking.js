@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 
   const isPackage = type === 'surf_package';
   const adminUrl = isPackage
-    ? `${req.headers.origin || 'https://ericeirawavehouse.pt'}/admin/pricing/surf`
+    ? `${req.headers.origin || 'https://ericeirawavehouse.pt'}/admin/pricing/surf?tab=packages`
     : `${req.headers.origin || 'https://ericeirawavehouse.pt'}/admin/bookings`;
   const typeLabel = type === 'surf' ? 'Surf' : isPackage ? 'Pacote de Surf' : 'Alojamento';
   const headline = isPackage ? 'Novo pedido de pacote recebido!' : 'Nova reserva recebida!';

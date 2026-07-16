@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 export default function AdminPricing({ section = 'accommodation' }) {
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || (section === 'surf' ? 'pricing' : 'calendar');
+  const handleTabChange = (value) => setSearchParams({ tab: value }, { replace: true });
   const [accommodationPrice, setAccommodationPrice] = useState('');
   const [surfPrice, setSurfPrice] = useState('');
   const [weekendPrice, setWeekendPrice] = useState('');
@@ -232,7 +236,7 @@ export default function AdminPricing({ section = 'accommodation' }) {
       </h1>
 
       {section === 'accommodation' && (
-      <Tabs defaultValue="calendar">
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="bg-muted p-1.5 rounded-full mb-8 flex-wrap h-auto border border-border/60 inline-flex w-auto">
           <TabsTrigger value="calendar" className="rounded-full px-6">Calendário</TabsTrigger>
           <TabsTrigger value="base" className="rounded-full px-6">Preços</TabsTrigger>
@@ -562,7 +566,7 @@ export default function AdminPricing({ section = 'accommodation' }) {
       )}
 
       {section === 'surf' && (
-      <Tabs defaultValue="pricing">
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="bg-muted p-1.5 rounded-full mb-8 flex-wrap h-auto border border-border/60 inline-flex w-auto">
           <TabsTrigger value="pricing" className="rounded-full px-6">Preços & Descontos</TabsTrigger>
           <TabsTrigger value="rules" className="rounded-full px-6">Regras</TabsTrigger>
