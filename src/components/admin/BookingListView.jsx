@@ -12,7 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Check, X, Eye, Home, Waves, Mail, Copy, CheckCheck, Loader2, Trash2, Inbox, Send, Package } from 'lucide-react';
+import { Check, X, Eye, Home, Waves, Mail, Copy, CheckCheck, Loader2, Trash2, Inbox, Send, Package, PartyPopper } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { generateTimeSlots } from '@/lib/timeSlots';
 
@@ -124,6 +124,8 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
   const [checkInBooking, setCheckInBooking] = React.useState(null);
   const [copied, setCopied] = React.useState(false);
   const [sendingEmail, setSendingEmail] = React.useState(false);
+  const [welcomeBooking, setWelcomeBooking] = React.useState(null);
+  const [sendingWelcome, setSendingWelcome] = React.useState(false);
   const [rejectBooking, setRejectBooking] = React.useState(null);
   const [rejectReason, setRejectReason] = React.useState(accommodationRejectionReasons[0]);
   const [customReason, setCustomReason] = React.useState('');
@@ -318,6 +320,28 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
     }
   };
 
+  const handleSendWelcome = async () => {
+    setSendingWelcome(true);
+    try {
+      const res = await fetch('/api/send-welcome-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: welcomeBooking.guest_email,
+          guestName: welcomeBooking.guest_name,
+        }),
+      });
+      if (!res.ok) throw new Error('Falha no envio');
+      toast({ title: 'Boas-vindas enviadas com sucesso!' });
+      setWelcomeBooking(null);
+    } catch (error) {
+      console.error('Erro ao enviar boas-vindas:', error);
+      toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível enviar o email.' });
+    } finally {
+      setSendingWelcome(false);
+    }
+  };
+
   return (
     <>
       <div className="bg-card rounded-xl border border-border overflow-hidden">
@@ -376,6 +400,11 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
                     {b.status === 'confirmed' && b.type === 'accommodation' && !b.checkin_completed && (
                       <Button size="icon" variant="ghost" onClick={() => setCheckInBooking(b)} className="h-8 w-8 text-primary hover:bg-primary/10" title="Enviar check-in">
                         <Mail className="w-4 h-4" />
+                      </Button>
+                    )}
+                    {b.status === 'confirmed' && b.type === 'accommodation' && b.checkin_completed && (
+                      <Button size="icon" variant="ghost" onClick={() => setWelcomeBooking(b)} className="h-8 w-8 text-primary hover:bg-primary/10" title="Enviar boas-vindas">
+                        <PartyPopper className="w-4 h-4" />
                       </Button>
                     )}
                     {b.status === 'confirmed' && b.type === 'surf' && (
@@ -546,6 +575,29 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
                   </Button>
                 </div>
               </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!welcomeBooking} onOpenChange={(open) => !open && setWelcomeBooking(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Enviar Boas-vindas</DialogTitle>
+          </DialogHeader>
+          {welcomeBooking && (
+            <div className="space-y-5 text-sm">
+              <p className="text-muted-foreground">
+                Para <span className="font-medium text-foreground">{welcomeBooking.guest_name}</span> ({welcomeBooking.guest_email})
+              </p>
+              <p className="text-muted-foreground text-xs">
+                Envia as informações da casa: contactos, Wi-Fi, equipamentos de segurança, regras da casa e check-out.
+              </p>
+
+              <Button className="w-full" onClick={handleSendWelcome} disabled={sendingWelcome}>
+                {sendingWelcome ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <PartyPopper className="w-4 h-4 mr-2" />}
+                Enviar por email
+              </Button>
             </div>
           )}
         </DialogContent>
