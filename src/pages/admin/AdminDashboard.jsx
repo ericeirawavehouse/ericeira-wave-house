@@ -2,21 +2,23 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
-import { CheckCircle2, Clock, Mail, Home, Waves, Loader2 } from 'lucide-react';
+import { CheckCircle2, Clock, Mail, Home, Waves, Package, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function AdminDashboard() {
   const { data, isLoading } = useQuery({
     queryKey: ['admin-dashboard'],
     queryFn: async () => {
-      const [pending, unread] = await Promise.all([
+      const [pending, unread, pendingPackages] = await Promise.all([
         supabase.from('bookings').select('*').eq('status', 'pending').is('deleted_at', null).order('created_at', { ascending: false }),
         supabase.from('contact_messages').select('*').eq('read', false).is('deleted_at', null).order('created_at', { ascending: false }),
+        supabase.from('surf_package_purchases').select('*').eq('status', 'pending').is('deleted_at', null).order('created_at', { ascending: false }),
       ]);
 
       return {
         pendingBookings: pending.data || [],
         unreadMessages: unread.data || [],
+        pendingPackages: pendingPackages.data || [],
       };
     },
   });
@@ -29,8 +31,8 @@ export default function AdminDashboard() {
     );
   }
 
-  const { pendingBookings, unreadMessages } = data;
-  const allClear = pendingBookings.length === 0 && unreadMessages.length === 0;
+  const { pendingBookings, unreadMessages, pendingPackages } = data;
+  const allClear = pendingBookings.length === 0 && unreadMessages.length === 0 && pendingPackages.length === 0;
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -68,6 +70,32 @@ export default function AdminDashboard() {
                           ? `${b.check_in ? format(new Date(b.check_in), 'dd/MM') : '?'} → ${b.check_out ? format(new Date(b.check_out), 'dd/MM') : '?'}`
                           : b.surf_date ? format(new Date(b.surf_date), 'dd/MM/yyyy') : 'Aula de surf'}
                       </p>
+                    </div>
+                    <Clock className="w-4 h-4 text-amber-500 shrink-0" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {pendingPackages.length > 0 && (
+            <div>
+              <h2 className="text-sm font-medium text-muted-foreground mb-3">
+                Pedidos de pacotes pendentes ({pendingPackages.length})
+              </h2>
+              <div className="bg-card border border-border rounded-2xl divide-y divide-border overflow-hidden">
+                {pendingPackages.map((p) => (
+                  <Link
+                    key={p.id}
+                    to="/admin/pricing/surf"
+                    className="flex items-center gap-4 px-5 py-3.5 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
+                      <Package className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{p.guest_name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{p.package_name}</p>
                     </div>
                     <Clock className="w-4 h-4 text-amber-500 shrink-0" />
                   </Link>

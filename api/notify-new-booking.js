@@ -17,29 +17,33 @@ export default async function handler(req, res) {
     },
   });
 
-  const adminUrl = type === 'surf_package'
+  const isPackage = type === 'surf_package';
+  const adminUrl = isPackage
     ? `${req.headers.origin || 'https://ericeirawavehouse.pt'}/admin/pricing/surf`
     : `${req.headers.origin || 'https://ericeirawavehouse.pt'}/admin/bookings`;
-  const typeLabel = type === 'surf' ? 'Surf' : type === 'surf_package' ? 'Pacote de Surf' : 'Alojamento';
+  const typeLabel = type === 'surf' ? 'Surf' : isPackage ? 'Pacote de Surf' : 'Alojamento';
+  const headline = isPackage ? 'Novo pedido de pacote recebido!' : 'Nova reserva recebida!';
+  const datesLabel = isPackage ? 'Pacote' : 'Datas';
+  const buttonLabel = isPackage ? 'Ver pedido no site' : 'Ver reserva no site';
 
-  const text = `Nova reserva recebida!
+  const text = `${headline}
 
 Nome: ${guestName || '-'}
 Tipo: ${typeLabel}
-Datas: ${dates || '-'}
+${datesLabel}: ${dates || '-'}
 
 Vê os detalhes e aprova/rejeita aqui:
 ${adminUrl}`;
 
   const html = `
     <div style="font-family: -apple-system, Arial, sans-serif; color: #1c1c1c; max-width: 480px;">
-      <p><strong>Nova reserva recebida!</strong></p>
+      <p><strong>${headline}</strong></p>
       <p>
         Nome: ${guestName || '-'}<br/>
         Tipo: ${typeLabel}<br/>
-        Datas: ${dates || '-'}
+        ${datesLabel}: ${dates || '-'}
       </p>
-      <p><a href="${adminUrl}" style="display:inline-block; background:#1c4a63; color:#fff; padding:10px 20px; border-radius:9999px; text-decoration:none;">Ver reserva no site</a></p>
+      <p><a href="${adminUrl}" style="display:inline-block; background:#1c4a63; color:#fff; padding:10px 20px; border-radius:9999px; text-decoration:none;">${buttonLabel}</a></p>
     </div>
   `;
 
@@ -48,7 +52,7 @@ ${adminUrl}`;
       from: `"Ericeira Wave House" <${process.env.SMTP_USER}>`,
       to: 'ericeirawavehouse@gmail.com',
       replyTo: 'ericeirawavehouse@gmail.com',
-      subject: `Nova reserva: ${guestName || 'novo pedido'}`,
+      subject: isPackage ? `Novo pedido de pacote: ${guestName || 'novo pedido'}` : `Nova reserva: ${guestName || 'novo pedido'}`,
       text,
       html,
     });
