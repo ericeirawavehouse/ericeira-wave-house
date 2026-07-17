@@ -96,7 +96,7 @@ export default function AdminBookings() {
     return true;
   });
 
-  const handleApprove = async (booking) => {
+  const handleApprove = async (booking, attachment) => {
     const now = new Date();
     const confirmData = { status: 'confirmed', confirmed_at: now.toISOString() };
     if (booking.type === 'surf_package' && booking.validity_days) {
@@ -149,6 +149,7 @@ export default function AdminBookings() {
         discountLabel: booking.discount_label,
         priceTotal: booking.price_total,
         lang: booking.lang || 'pt',
+        attachment,
       }),
     }).catch((err) => console.error('Erro ao enviar email de confirmação:', err));
   };

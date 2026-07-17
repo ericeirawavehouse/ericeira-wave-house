@@ -16,7 +16,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Check, X, Eye, Home, Waves, Mail, MailCheck, Copy, CheckCheck, Loader2, Trash2, Inbox, Send, Package, PartyPopper, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { Check, X, Eye, Home, Waves, Mail, MailCheck, Copy, CheckCheck, Loader2, Trash2, Inbox, Send, Package, PartyPopper, ShieldCheck, AlertTriangle, Banknote, Wallet } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { generateTimeSlots } from '@/lib/timeSlots';
 
@@ -145,7 +145,37 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
   const [sendingContact, setSendingContact] = React.useState(false);
   const [showAllPast, setShowAllPast] = React.useState(false);
   const [approveBooking, setApproveBooking] = React.useState(null);
+  const [approveAttachment, setApproveAttachment] = React.useState(null);
   const [deleteBooking, setDeleteBooking] = React.useState(null);
+  const [paymentAction, setPaymentAction] = React.useState(null);
+  const [paymentAttachment, setPaymentAttachment] = React.useState(null);
+  const [sendingPaymentAction, setSendingPaymentAction] = React.useState(false);
+  const [balanceRequestBooking, setBalanceRequestBooking] = React.useState(null);
+  const [balanceAttachment, setBalanceAttachment] = React.useState(null);
+  const [sendingBalanceRequest, setSendingBalanceRequest] = React.useState(false);
+
+  const { data: siteSettings } = useQuery({
+    queryKey: ['site-settings-deposit'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('site_settings').select('deposit_percent').eq('id', 1).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const depositPercent = siteSettings?.deposit_percent || 30;
+
+  const fileToBase64 = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  const buildAttachment = async (file) => {
+    if (!file) return undefined;
+    const contentBase64 = await fileToBase64(file);
+    return { filename: file.name, contentType: file.type || 'application/pdf', contentBase64 };
+  };
 
   const updatePaymentMutation = useMutation({
     mutationFn: async ({ b, data }) => {
@@ -212,12 +242,34 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
     return b.type === 'accommodation' ? { deposit_paid_at: b.deposit_paid_at || now, payment_received_at: now } : { payment_received_at: now };
   };
 
-  const handlePaymentChange = (b, value) => {
-    const wasFull = paymentState(b) === 'full';
-    updatePaymentMutation.mutate({ b, data: computePaymentData(b, value) });
+  const computeDepositAmount = (b) => (b.price_total != null ? Number(b.price_total) * depositPercent / 100 : undefined);
+  const computeBalanceAmount = (b) => (b.price_total != null ? Number(b.price_total) * (100 - depositPercent) / 100 : undefined);
 
-    if (value === 'full' && !wasFull) {
-      fetch('/api/send-payment-received-email', {
+  const patchSelected = (b, data) => {
+    setSelected((prev) => (prev && prev.id === b.id && prev._table === b._table ? { ...prev, ...data } : prev));
+  };
+
+  const handlePaymentChange = (b, value) => {
+    if (value === 'unpaid') {
+      const data = computePaymentData(b, value);
+      updatePaymentMutation.mutate({ b, data });
+      patchSelected(b, data);
+      return;
+    }
+    setPaymentAction({ booking: b, value });
+    setPaymentAttachment(null);
+  };
+
+  const confirmPaymentAction = async () => {
+    const { booking: b, value } = paymentAction;
+    setSendingPaymentAction(true);
+    try {
+      const attachment = await buildAttachment(paymentAttachment);
+      const data = computePaymentData(b, value);
+      updatePaymentMutation.mutate({ b, data });
+      patchSelected(b, data);
+
+      const res = await fetch('/api/send-payment-received-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -225,19 +277,72 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
           guestName: b.guest_name,
           type: b.type,
           lang: b.lang || 'pt',
+          stage: value === 'deposit' ? 'deposit' : 'full',
           checkIn: b.check_in,
           checkOut: b.check_out,
           surfDate: b.surf_date,
           packageName: b.package_name,
           packageNameEn: b.package_name_en,
           priceTotal: b.price_total,
+          depositAmount: value === 'deposit' ? computeDepositAmount(b) : undefined,
+          depositPercent: value === 'deposit' ? depositPercent : undefined,
+          attachment,
         }),
-      })
-        .then(() => toast({ title: 'Pagamento marcado e hóspede notificado por email.' }))
-        .catch((err) => {
-          console.error('Erro ao enviar email de pagamento recebido:', err);
-          toast({ variant: 'destructive', title: 'Erro', description: 'Pagamento marcado, mas não foi possível enviar o email ao hóspede.' });
-        });
+      });
+      if (!res.ok) throw new Error('Falha no envio');
+      toast({ title: 'Pagamento marcado e hóspede notificado por email.' });
+    } catch (error) {
+      console.error('Erro ao enviar email de pagamento recebido:', error);
+      toast({ variant: 'destructive', title: 'Erro', description: 'Pagamento marcado, mas não foi possível enviar o email ao hóspede.' });
+    } finally {
+      setSendingPaymentAction(false);
+      setPaymentAction(null);
+      setPaymentAttachment(null);
+    }
+  };
+
+  const openBalanceRequestModal = (b) => {
+    setBalanceRequestBooking(b);
+    setBalanceAttachment(null);
+  };
+
+  const handleSendBalanceRequest = async () => {
+    const b = balanceRequestBooking;
+    setSendingBalanceRequest(true);
+    try {
+      const attachment = await buildAttachment(balanceAttachment);
+      const res = await fetch('/api/send-balance-request-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: b.guest_email,
+          guestName: b.guest_name,
+          lang: b.lang || 'pt',
+          checkIn: b.check_in,
+          checkOut: b.check_out,
+          balanceAmount: computeBalanceAmount(b),
+          balancePercent: 100 - depositPercent,
+          attachment,
+        }),
+      });
+      if (!res.ok) throw new Error('Falha no envio');
+
+      const sentAt = new Date().toISOString();
+      const { error: updateError } = await supabase
+        .from('bookings')
+        .update({ balance_request_sent_at: sentAt })
+        .eq('id', b.id);
+      if (updateError) throw updateError;
+
+      queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
+      patchSelected(b, { balance_request_sent_at: sentAt });
+      setBalanceRequestBooking((prev) => (prev ? { ...prev, balance_request_sent_at: sentAt } : prev));
+      toast({ title: 'Pedido de saldo enviado!' });
+    } catch (error) {
+      console.error('Erro ao enviar pedido de saldo:', error);
+      toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível enviar o email.' });
+    } finally {
+      setSendingBalanceRequest(false);
     }
   };
 
@@ -247,6 +352,7 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
       b.confirmed_at && { label: 'Reserva confirmada', date: b.confirmed_at },
       b.rejected_at && { label: 'Reserva rejeitada', date: b.rejected_at },
       b.deposit_paid_at && { label: 'Sinal pago', date: b.deposit_paid_at },
+      b.balance_request_sent_at && { label: 'Pedido de saldo enviado', date: b.balance_request_sent_at },
       b.payment_received_at && { label: b.type === 'accommodation' ? 'Saldo pago (pago na totalidade)' : 'Pago', date: b.payment_received_at },
       b.checkin_email_sent_at && { label: 'Email de check-in enviado', date: b.checkin_email_sent_at },
       b.welcome_sent_at && { label: 'Boas-vindas enviadas', date: b.welcome_sent_at },
@@ -358,6 +464,17 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
               title={b.surf_contact_sent_at ? `Contactado em ${format(new Date(b.surf_contact_sent_at), "dd/MM/yyyy 'às' HH:mm")}` : 'Contactar aluno'}
             >
               {b.surf_contact_sent_at ? <CheckCheck className="w-4 h-4" /> : <Send className="w-4 h-4" />}
+            </Button>
+          )}
+          {b.status === 'confirmed' && b.type === 'accommodation' && paymentState(b) !== 'full' && (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => openBalanceRequestModal(b)}
+              className={`h-8 w-8 hover:bg-primary/10 ${b.balance_request_sent_at ? 'text-emerald-600' : 'text-primary'}`}
+              title={b.balance_request_sent_at ? `Saldo pedido em ${format(new Date(b.balance_request_sent_at), "dd/MM/yyyy 'às' HH:mm")}` : 'Pedir saldo restante'}
+            >
+              {b.balance_request_sent_at ? <Wallet className="w-4 h-4" /> : <Banknote className="w-4 h-4" />}
             </Button>
           )}
           <Button size="icon" variant="ghost" onClick={() => setSelected(b)} className="h-8 w-8" title="Ver detalhes">
@@ -704,10 +821,7 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
                     ) : (
                       <Select
                         value={paymentState(selected)}
-                        onValueChange={(value) => {
-                          handlePaymentChange(selected, value);
-                          setSelected((prev) => (prev ? { ...prev, ...computePaymentData(selected, value) } : prev));
-                        }}
+                        onValueChange={(value) => handlePaymentChange(selected, value)}
                       >
                         <SelectTrigger className={`h-8 w-auto gap-1.5 px-3 text-xs border-0 ${paymentStyles[paymentState(selected)]}`}>
                           <SelectValue />
@@ -808,6 +922,11 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
                   {selected.type === 'surf' && (
                     <Button variant="outline" size="sm" onClick={() => { openContactModal(selected); setSelected(null); }}>
                       <Send className="w-3.5 h-3.5 mr-1.5" /> Contactar aluno
+                    </Button>
+                  )}
+                  {selected.type === 'accommodation' && paymentState(selected) !== 'full' && (
+                    <Button variant="outline" size="sm" onClick={() => { openBalanceRequestModal(selected); setSelected(null); }}>
+                      <Banknote className="w-3.5 h-3.5 mr-1.5" /> Pedir saldo
                     </Button>
                   )}
                 </div>
@@ -937,7 +1056,7 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!approveBooking} onOpenChange={(open) => !open && setApproveBooking(null)}>
+      <AlertDialog open={!!approveBooking} onOpenChange={(open) => { if (!open) { setApproveBooking(null); setApproveAttachment(null); } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
@@ -948,10 +1067,21 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
               Vai ser enviado um email a <strong>{approveBooking?.guest_name}</strong> a confirmar {approveBooking?.type === 'surf_package' ? 'o pacote' : 'a reserva'}. Tens a certeza?
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {approveBooking?.type === 'accommodation' && (
+            <div className="space-y-1.5 text-sm">
+              <Label className="text-xs text-muted-foreground">Fatura do sinal (opcional)</Label>
+              <Input type="file" accept="application/pdf,image/*" onChange={(e) => setApproveAttachment(e.target.files?.[0] || null)} />
+            </div>
+          )}
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => { onApprove(approveBooking); setApproveBooking(null); }}
+              onClick={async () => {
+                const attachment = await buildAttachment(approveAttachment);
+                onApprove(approveBooking, attachment);
+                setApproveBooking(null);
+                setApproveAttachment(null);
+              }}
               className="bg-emerald-600 hover:bg-emerald-700"
             >
               Sim, confirmar
@@ -959,6 +1089,68 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={!!paymentAction} onOpenChange={(open) => { if (!open) { setPaymentAction(null); setPaymentAttachment(null); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading">
+              {paymentAction?.value === 'deposit' ? 'Confirmar sinal pago?' : 'Confirmar pagamento total?'}
+            </DialogTitle>
+          </DialogHeader>
+          {paymentAction && (
+            <div className="space-y-5 text-sm">
+              <p className="text-muted-foreground">
+                Vai ser enviado um email a <span className="font-medium text-foreground">{paymentAction.booking.guest_name}</span> a confirmar o pagamento.
+              </p>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Recibo (opcional)</Label>
+                <Input type="file" accept="application/pdf,image/*" onChange={(e) => setPaymentAttachment(e.target.files?.[0] || null)} />
+              </div>
+              <Button className="w-full" onClick={confirmPaymentAction} disabled={sendingPaymentAction}>
+                {sendingPaymentAction ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
+                Confirmar e notificar
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!balanceRequestBooking} onOpenChange={(open) => { if (!open) { setBalanceRequestBooking(null); setBalanceAttachment(null); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Pedir saldo restante</DialogTitle>
+          </DialogHeader>
+          {balanceRequestBooking && (
+            <div className="space-y-5 text-sm">
+              <p className="text-muted-foreground">
+                Para <span className="font-medium text-foreground">{balanceRequestBooking.guest_name}</span> ({balanceRequestBooking.guest_email})
+              </p>
+              {computeBalanceAmount(balanceRequestBooking) != null && (
+                <p className="text-xs text-muted-foreground">
+                  Saldo restante ({100 - depositPercent}%): <span className="font-medium text-foreground">€{computeBalanceAmount(balanceRequestBooking).toFixed(2)}</span>
+                </p>
+              )}
+
+              {balanceRequestBooking.balance_request_sent_at && (
+                <div className="flex items-center gap-2 text-emerald-700 text-xs bg-emerald-50 px-3 py-2 rounded-lg">
+                  <CheckCheck className="w-3.5 h-3.5 shrink-0" />
+                  <span>Já pedido em {format(new Date(balanceRequestBooking.balance_request_sent_at), "dd/MM/yyyy 'às' HH:mm")}</span>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Fatura do saldo (opcional)</Label>
+                <Input type="file" accept="application/pdf,image/*" onChange={(e) => setBalanceAttachment(e.target.files?.[0] || null)} />
+              </div>
+
+              <Button className="w-full" onClick={handleSendBalanceRequest} disabled={sendingBalanceRequest}>
+                {sendingBalanceRequest ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Banknote className="w-4 h-4 mr-2" />}
+                {balanceRequestBooking.balance_request_sent_at ? 'Enviar novamente' : 'Enviar pedido'}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={!!deleteBooking} onOpenChange={(open) => !open && setDeleteBooking(null)}>
         <AlertDialogContent>

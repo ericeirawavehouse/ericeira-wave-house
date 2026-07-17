@@ -31,10 +31,10 @@ export default function Contact() {
 
       if (error) throw error;
 
-      fetch('/api/notify-new-message', {
+      fetch('/api/notify-admin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: form.name, subject: form.subject, message: form.message }),
+        body: JSON.stringify({ event: 'new_message', name: form.name, subject: form.subject, message: form.message }),
       }).catch((err) => console.error('Erro ao notificar nova mensagem:', err));
 
       // Limpar formulário e dar feedback de sucesso

@@ -89,10 +89,11 @@ export default function Surf() {
       toast({ title: t('surf.packageSuccess') });
       setRequestPackage(null);
 
-      fetch('/api/notify-new-booking', {
+      fetch('/api/notify-admin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          event: 'new_booking',
           guestName: form.guest_name,
           type: 'surf_package',
           dates: `${requestPackage.name} (${requestPackage.lessons_count} aulas)`,

@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     guestsCount, childrenCount,
     priceSubtotal, discountAmount, discountLabel, priceTotal,
     packageName, packageNameEn, lessonsTotal, expiresAt,
-    lang,
+    lang, attachment,
   } = req.body || {};
 
   if (!to || !type) {
@@ -463,6 +463,9 @@ export default async function handler(req, res) {
       subject,
       text,
       html,
+      attachments: attachment
+        ? [{ filename: attachment.filename, content: Buffer.from(attachment.contentBase64, 'base64'), contentType: attachment.contentType }]
+        : undefined,
     });
 
     return res.status(200).json({ success: true });
