@@ -17,10 +17,10 @@ export default async function handler(req, res) {
   const {
     to, guestName, type,
     checkIn, checkOut, nights,
-    surfDate,
+    surfDate, isPrivate,
     guestsCount, childrenCount,
     priceSubtotal, discountAmount, discountLabel, priceTotal,
-    packageName, packageNameEn, lessonsTotal,
+    packageName, packageNameEn, lessonsTotal, expiresAt,
     lang,
   } = req.body || {};
 
@@ -41,6 +41,7 @@ export default async function handler(req, res) {
   const isEn = lang === 'en';
   const hasPrice = priceTotal != null;
   const total = hasPrice ? Number(priceTotal).toFixed(2) : null;
+  const expiresDateStr = expiresAt ? formatDate(expiresAt.slice(0, 10)) : null;
 
   let subject, text, html;
 
@@ -243,6 +244,7 @@ export default async function handler(req, res) {
         '',
         `Lessons included: ${lessonsTotal ?? '-'}`,
         ...(hasPrice ? [`Total amount: €${total}`] : []),
+        ...(expiresDateStr ? [`Valid until: ${expiresDateStr}`] : []),
         '',
         'We\'ll get in touch with you to arrange payment. Once confirmed, simply book your lessons through the booking form on the site, using the same email - the lessons will be automatically deducted from your package.',
         '',
@@ -261,6 +263,7 @@ export default async function handler(req, res) {
           <table style="width:100%; border-collapse: collapse; font-size: 14px; margin: 16px 0;">
             <tr><td style="padding:4px 0;color:#666;">Lessons included</td><td style="padding:4px 0;text-align:right;">${lessonsTotal ?? '-'}</td></tr>
             ${hasPrice ? `<tr><td style="padding:8px 0 0;font-weight:600;border-top:1px solid #eee;">Total amount</td><td style="padding:8px 0 0;text-align:right;font-weight:600;border-top:1px solid #eee;">€${total}</td></tr>` : ''}
+            ${expiresDateStr ? `<tr><td style="padding:4px 0;color:#666;">Valid until</td><td style="padding:4px 0;text-align:right;">${expiresDateStr}</td></tr>` : ''}
           </table>
           <p>We'll get in touch with you to arrange payment. Once confirmed, simply book your lessons through the booking form on the site, using the same email - the lessons will be automatically deducted from your package.</p>
           <p style="color:#666; font-size:13px;">If for any reason you need to cancel, please email us to arrange the next steps.</p>
@@ -281,6 +284,7 @@ export default async function handler(req, res) {
         '',
         `Aulas incluídas: ${lessonsTotal ?? '-'}`,
         ...(hasPrice ? [`Valor total: €${total}`] : []),
+        ...(expiresDateStr ? [`Válido até: ${expiresDateStr}`] : []),
         '',
         'Vamos entrar em contacto contigo para combinarmos o pagamento. Depois de confirmado, basta reservares as tuas aulas através do formulário de reserva do site, usando o mesmo email - as aulas serão automaticamente descontadas do teu pacote.',
         '',
@@ -299,6 +303,7 @@ export default async function handler(req, res) {
           <table style="width:100%; border-collapse: collapse; font-size: 14px; margin: 16px 0;">
             <tr><td style="padding:4px 0;color:#666;">Aulas incluídas</td><td style="padding:4px 0;text-align:right;">${lessonsTotal ?? '-'}</td></tr>
             ${hasPrice ? `<tr><td style="padding:8px 0 0;font-weight:600;border-top:1px solid #eee;">Valor total</td><td style="padding:8px 0 0;text-align:right;font-weight:600;border-top:1px solid #eee;">€${total}</td></tr>` : ''}
+            ${expiresDateStr ? `<tr><td style="padding:4px 0;color:#666;">Válido até</td><td style="padding:4px 0;text-align:right;">${expiresDateStr}</td></tr>` : ''}
           </table>
           <p>Vamos entrar em contacto contigo para combinarmos o pagamento. Depois de confirmado, basta reservares as tuas aulas através do formulário de reserva do site, usando o mesmo email - as aulas serão automaticamente descontadas do teu pacote.</p>
           <p style="color:#666; font-size:13px;">Se por algum motivo precisares de cancelar, contacta-nos por email para combinarmos os próximos passos.</p>
@@ -320,8 +325,8 @@ export default async function handler(req, res) {
         ? `${guestsCount || '-'} people (${childrenCount} ${childrenCount === 1 ? 'child' : 'children'})`
         : `${guestsCount || '-'}`;
 
-      subject = 'Your surf lesson has been confirmed! - Ericeira Wave House';
-      const introLine = 'Your surf lesson at Ericeira Wave House has been confirmed!';
+      subject = isPrivate ? 'Your private surf lesson has been confirmed! - Ericeira Wave House' : 'Your surf lesson has been confirmed! - Ericeira Wave House';
+      const introLine = isPrivate ? 'Your private surf lesson at Ericeira Wave House has been confirmed!' : 'Your surf lesson at Ericeira Wave House has been confirmed!';
       const extraText = 'We\'ll get in touch with you, usually the evening before the lesson, to arrange the exact time - this allows us to assess the tides and sea conditions as accurately as possible. Don\'t worry if you don\'t hear from us before that, that\'s just how it usually works.';
       const cancelText = 'If for any reason you need to cancel, please email us to arrange the next steps.';
 
@@ -348,6 +353,7 @@ export default async function handler(req, res) {
         '',
         introLine,
         '',
+        ...(isPrivate ? ['Type: Private lesson'] : []),
         `Date: ${formatDate(surfDate)}`,
         `People: ${peopleLine}`,
         ...(hasPrice ? ['', priceRowsText] : []),
@@ -367,6 +373,7 @@ export default async function handler(req, res) {
           <p>Hi ${firstName},</p>
           <p><strong>${introLine}</strong></p>
           <table style="width:100%; border-collapse: collapse; font-size: 14px; margin: 16px 0;">
+            ${isPrivate ? '<tr><td style="padding:4px 0;color:#666;">Type</td><td style="padding:4px 0;text-align:right;">Private lesson</td></tr>' : ''}
             <tr><td style="padding:4px 0;color:#666;">Date</td><td style="padding:4px 0;text-align:right;">${formatDate(surfDate)}</td></tr>
             <tr><td style="padding:4px 0;color:#666;">People</td><td style="padding:4px 0;text-align:right;">${peopleLine}</td></tr>
           </table>
@@ -384,8 +391,8 @@ export default async function handler(req, res) {
         ? `${guestsCount || '-'} pessoas (${childrenCount} criança${childrenCount === 1 ? '' : 's'})`
         : `${guestsCount || '-'}`;
 
-      subject = 'A tua aula de surf foi confirmada! - Ericeira Wave House';
-      const introLine = 'A tua aula de surf na Ericeira Wave House foi confirmada!';
+      subject = isPrivate ? 'A tua aula privada de surf foi confirmada! - Ericeira Wave House' : 'A tua aula de surf foi confirmada! - Ericeira Wave House';
+      const introLine = isPrivate ? 'A tua aula privada de surf na Ericeira Wave House foi confirmada!' : 'A tua aula de surf na Ericeira Wave House foi confirmada!';
       const extraText = 'Vamos entrar em contacto contigo, normalmente na noite anterior à aula, para combinarmos a hora exata - isto permite-nos avaliar as marés e as condições do mar com a maior precisão possível. Não estranhes se não tiveres notícias nossas antes disso, é mesmo assim que costuma funcionar.';
       const cancelText = 'Se por algum motivo precisares de cancelar, contacta-nos por email para combinarmos os próximos passos.';
 
@@ -412,6 +419,7 @@ export default async function handler(req, res) {
         '',
         introLine,
         '',
+        ...(isPrivate ? ['Tipo: Aula privada'] : []),
         `Data: ${formatDate(surfDate)}`,
         `Pessoas: ${peopleLine}`,
         ...(hasPrice ? ['', priceRowsText] : []),
@@ -431,6 +439,7 @@ export default async function handler(req, res) {
           <p>Olá ${firstName},</p>
           <p><strong>${introLine}</strong></p>
           <table style="width:100%; border-collapse: collapse; font-size: 14px; margin: 16px 0;">
+            ${isPrivate ? '<tr><td style="padding:4px 0;color:#666;">Tipo</td><td style="padding:4px 0;text-align:right;">Aula privada</td></tr>' : ''}
             <tr><td style="padding:4px 0;color:#666;">Data</td><td style="padding:4px 0;text-align:right;">${formatDate(surfDate)}</td></tr>
             <tr><td style="padding:4px 0;color:#666;">Pessoas</td><td style="padding:4px 0;text-align:right;">${peopleLine}</td></tr>
           </table>

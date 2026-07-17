@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Home, Waves, Loader2, CheckCircle, Tag, CloudSun, Package } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
@@ -36,10 +37,12 @@ export default function Booking() {
     setSurfCalendarMonth(surfDate || new Date());
   }, [surfDate]);
   const [form, setForm] = useState({
-    guest_name: '', guest_email: '', guest_phone: '', guests_count: 2, children_count: 0, surf_time: '', notes: '',
+    guest_name: '', guest_email: '', guest_phone: '', guests_count: '', children_count: 0, surf_time: '', notes: '',
   });
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [usePackageCredit, setUsePackageCredit] = useState(false);
+  const [isPrivateLesson, setIsPrivateLesson] = useState(false);
+  const [surfLevel, setSurfLevel] = useState('');
 
   // 2. BUSCA DE DATAS OCUPADAS (SUPABASE)
   const { data: confirmedBookings = [] } = useQuery({
@@ -155,13 +158,22 @@ export default function Booking() {
     },
     enabled: type === 'surf' && /\S+@\S+\.\S+/.test(guestEmailTrimmed),
   });
-  const availablePackage = guestPackages.find((p) => p.lessons_used < p.lessons_total);
+  const availablePackage = !isPrivateLesson && guestPackages.find((p) =>
+    p.payment_received_at && p.lessons_used < p.lessons_total && (!p.expires_at || new Date(p.expires_at) >= new Date())
+  );
   const isUsingPackageCredit = usePackageCredit && !!availablePackage;
+
+  // Quando aparece um pacote disponível, usar os créditos por defeito (o hóspede pode desmarcar se quiser pagar à parte)
+  useEffect(() => {
+    if (availablePackage) {
+      setUsePackageCredit(true);
+    }
+  }, [availablePackage?.id]);
 
   const nights = dateRange.from && dateRange.to ? differenceInCalendarDays(dateRange.to, dateRange.from) : 0;
   const surfGuests = form.guests_count || 1;
   const hasConfiguredSlots = surfSlots.length > 0;
-  const surfPricePerPerson = pricing?.surf_lesson_price || 0;
+  const surfPricePerPerson = isPrivateLesson ? (pricing?.surf_private_lesson_price || 0) : (pricing?.surf_lesson_price || 0);
   const surfMinPeople = pricing?.surf_min_people || 1;
   const surfMaxPeople = pricing?.surf_max_people || 10;
   const surfAdvanceNoticeDays = pricing?.surf_advance_notice_days || 0;
@@ -171,7 +183,7 @@ export default function Booking() {
   const surfBlockedDateStrings = surfBlockedDates.map((b) => b.date);
   const surfLargeGroupThreshold = pricing?.surf_large_group_threshold || 0;
   const surfGroupThreshold = pricing?.surf_group_discount_threshold || 0;
-  const surfDiscountPercent = (surfLargeGroupThreshold > 0 && surfGuests >= surfLargeGroupThreshold)
+  const surfDiscountPercent = isPrivateLesson ? 0 : (surfLargeGroupThreshold > 0 && surfGuests >= surfLargeGroupThreshold)
     ? (pricing?.surf_large_group_discount_percent || 0)
     : (surfGroupThreshold > 0 && surfGuests >= surfGroupThreshold)
       ? (pricing?.surf_group_discount_percent || 0)
@@ -262,6 +274,8 @@ export default function Booking() {
 
     if (type === 'surf' && surfDate) {
       dataToInsert.surf_date = format(surfDate, 'yyyy-MM-dd');
+      dataToInsert.is_private = isPrivateLesson;
+      dataToInsert.surf_level = surfLevel || null;
       if (isUsingPackageCredit) {
         dataToInsert.price_subtotal = 0;
         dataToInsert.discount_amount = 0;
@@ -301,7 +315,7 @@ export default function Booking() {
 
       const dates = type === 'accommodation'
         ? `${dataToInsert.check_in || '?'} → ${dataToInsert.check_out || '?'}`
-        : `${dataToInsert.surf_date || '?'}`;
+        : `${dataToInsert.surf_date || '?'}${type === 'surf' && isPrivateLesson ? ' (Privada)' : ''}`;
 
       fetch('/api/notify-new-booking', {
         method: 'POST',
@@ -323,6 +337,7 @@ export default function Booking() {
           childrenCount: form.children_count,
           surfDate: dataToInsert.surf_date,
           isPackageCredit: isUsingPackageCredit,
+          isPrivate: isPrivateLesson,
           priceTotal: dataToInsert.price_total,
         }),
       }).catch((err) => console.error('Erro ao enviar email de pedido recebido:', err));
@@ -383,15 +398,37 @@ export default function Booking() {
               </button>
             </div>
             {type === 'surf' && (
-              <div className="flex justify-center -mt-6 mb-12">
-                <Link
-                  to="/surf"
-                  target="_blank"
-                  className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline underline-offset-2"
-                >
-                  <Package className="w-4 h-4" />
-                  {t('booking.viewPackages')}
-                </Link>
+              <div className="flex flex-col items-center gap-4 -mt-6 mb-12">
+                <div className="inline-flex bg-muted rounded-full p-1">
+                  <button
+                    type="button"
+                    onClick={() => setIsPrivateLesson(false)}
+                    className={`px-5 py-2 text-sm font-medium rounded-full transition-all duration-300 ${
+                      !isPrivateLesson ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {t('booking.groupLesson')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsPrivateLesson(true)}
+                    className={`px-5 py-2 text-sm font-medium rounded-full transition-all duration-300 ${
+                      isPrivateLesson ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {t('booking.privateLesson')}
+                  </button>
+                </div>
+                {!isPrivateLesson && (
+                  <Link
+                    to="/surf"
+                    target="_blank"
+                    className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline underline-offset-2"
+                  >
+                    <Package className="w-4 h-4" />
+                    {t('booking.viewPackages')}
+                  </Link>
+                )}
               </div>
             )}
           </FadeInView>
@@ -595,6 +632,19 @@ export default function Booking() {
                   )}
                 </div>
               </div>
+              {type === 'surf' && (
+                <div>
+                  <Label className="text-sm mb-2 block">{t('booking.surfLevel')}</Label>
+                  <Select value={surfLevel} onValueChange={setSurfLevel}>
+                    <SelectTrigger className="rounded-lg"><SelectValue placeholder={t('booking.surfLevelPlaceholder')} /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="beginner">{t('booking.surfLevelBeginner')}</SelectItem>
+                      <SelectItem value="intermediate">{t('booking.surfLevelIntermediate')}</SelectItem>
+                      <SelectItem value="advanced">{t('booking.surfLevelAdvanced')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               {type === 'surf' && hasChildDiscount && (
                 <div>
                   <Label className="text-sm mb-2 block">{t('booking.numberOfChildren', { age: surfChildAgeLimit })}</Label>

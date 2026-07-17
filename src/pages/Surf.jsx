@@ -69,6 +69,7 @@ export default function Surf() {
       package_name_en: requestPackage.name_en || null,
       lessons_total: requestPackage.lessons_count,
       price_total: requestPackage.price_total,
+      validity_days: requestPackage.validity_days || null,
       guest_name: form.guest_name,
       guest_email: form.guest_email,
       guest_phone: form.guest_phone,
@@ -161,42 +162,62 @@ export default function Surf() {
       </section>
 
       {/* Packages */}
-      {packages.length > 0 && (
-        <section className="py-24 px-6 bg-muted/50">
-          <div className="max-w-7xl mx-auto">
-            <SectionHeading title={t('surf.packagesTitle')} subtitle={t('surf.packagesSubtitle')} />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-              {packages.map((pkg, i) => {
-                const regularPrice = surfPricePerPerson * pkg.lessons_count;
-                const savingsPercent = regularPrice > 0 ? Math.round((1 - pkg.price_total / regularPrice) * 100) : 0;
-                return (
-                  <FadeInView key={pkg.id} delay={i * 0.1}>
-                    <div className="bg-card border border-border rounded-2xl p-8 h-full flex flex-col">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                        <Package className="w-5 h-5 text-primary" />
-                      </div>
-                      <h3 className="font-heading text-xl font-semibold mb-1">{lang === 'en' && pkg.name_en ? pkg.name_en : pkg.name}</h3>
-                      <p className="text-sm text-muted-foreground mb-4">{t('surf.packageLessons', { count: pkg.lessons_count })}</p>
-                      <div className="flex items-baseline gap-2 mb-1">
-                        <span className="text-2xl font-semibold">€{pkg.price_total}</span>
-                        {savingsPercent > 0 && (
-                          <span className="text-xs text-emerald-600 font-medium">{t('surf.packageSavings', { percent: savingsPercent })}</span>
-                        )}
-                      </div>
-                      <Button
-                        onClick={() => openRequestDialog(pkg)}
-                        className="w-full rounded-full mt-6"
+      {packages.length > 0 && (() => {
+        const packagesWithSavings = packages.map((pkg) => {
+          const regularPrice = surfPricePerPerson * pkg.lessons_count;
+          const savingsPercent = regularPrice > 0 ? Math.round((1 - pkg.price_total / regularPrice) * 100) : 0;
+          return { pkg, savingsPercent };
+        });
+        const bestSavings = Math.max(...packagesWithSavings.map((p) => p.savingsPercent));
+
+        return (
+          <section className="py-24 px-6">
+            <div className="max-w-7xl mx-auto">
+              <SectionHeading title={t('surf.packagesTitle')} subtitle={t('surf.packagesSubtitle')} />
+              <div className="flex flex-wrap justify-center gap-6 mt-12">
+                {packagesWithSavings.map(({ pkg, savingsPercent }, i) => {
+                  const isBest = savingsPercent > 0 && savingsPercent === bestSavings;
+                  return (
+                    <FadeInView key={pkg.id} delay={i * 0.1} className="w-full sm:w-[300px]">
+                      <div
+                        className={`relative bg-card rounded-2xl p-8 h-full flex flex-col transition-shadow duration-300 hover:shadow-xl ${
+                          isBest ? 'border-2 border-primary shadow-lg' : 'border border-border'
+                        }`}
                       >
-                        {t('surf.packageRequest')}
-                      </Button>
-                    </div>
-                  </FadeInView>
-                );
-              })}
+                        {isBest && (
+                          <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-medium tracking-wide px-4 py-1 rounded-full">
+                            {t('surf.bestValue')}
+                          </span>
+                        )}
+                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-5">
+                          <Package className="w-6 h-6 text-primary" />
+                        </div>
+                        <h3 className="font-heading text-xl font-semibold mb-1">{lang === 'en' && pkg.name_en ? pkg.name_en : pkg.name}</h3>
+                        <p className="text-sm text-muted-foreground mb-5">{t('surf.packageLessons', { count: pkg.lessons_count })}</p>
+                        <div className="flex items-baseline gap-2 mb-1">
+                          <span className="text-3xl font-semibold">€{pkg.price_total}</span>
+                          {savingsPercent > 0 && (
+                            <span className="text-xs text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded-full">{t('surf.packageSavings', { percent: savingsPercent })}</span>
+                          )}
+                        </div>
+                        {pkg.validity_days && (
+                          <p className="text-xs text-muted-foreground mt-1">{t('surf.packageValidity', { days: pkg.validity_days })}</p>
+                        )}
+                        <Button
+                          onClick={() => openRequestDialog(pkg)}
+                          className="w-full rounded-full mt-6"
+                        >
+                          {t('surf.packageRequest')}
+                        </Button>
+                      </div>
+                    </FadeInView>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        </section>
-      )}
+          </section>
+        );
+      })()}
 
       {/* Testimonials */}
       <section className="py-24 px-6 bg-muted/50">

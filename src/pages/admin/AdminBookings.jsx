@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { List, CalendarDays, Loader2 } from 'lucide-react';
-import { differenceInCalendarDays, parseISO } from 'date-fns';
+import { differenceInCalendarDays, parseISO, addDays } from 'date-fns';
 import { toast } from '@/components/ui/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import BookingListView from '../../components/admin/BookingListView';
@@ -77,7 +77,11 @@ export default function AdminBookings() {
     lessons_used: p.lessons_used,
     price_total: p.price_total,
     payment_received_at: p.payment_received_at,
+    confirmed_at: p.confirmed_at,
+    rejected_at: p.rejected_at,
     lang: p.lang,
+    validity_days: p.validity_days,
+    expires_at: p.expires_at,
   }));
   const normalizedBookings = bookings.map((b) => ({ ...b, _table: 'bookings' }));
   const allItems = [...normalizedBookings, ...normalizedPackages].sort(
@@ -92,7 +96,12 @@ export default function AdminBookings() {
   });
 
   const handleApprove = async (booking) => {
-    updateMutation.mutate({ id: booking.id, table: booking._table, data: { status: 'confirmed' } });
+    const now = new Date();
+    const confirmData = { status: 'confirmed', confirmed_at: now.toISOString() };
+    if (booking.type === 'surf_package' && booking.validity_days) {
+      confirmData.expires_at = addDays(now, booking.validity_days).toISOString();
+    }
+    updateMutation.mutate({ id: booking.id, table: booking._table, data: confirmData });
 
     if (booking.type === 'surf_package') {
       toast({ title: 'Pacote confirmado!' });
@@ -107,6 +116,7 @@ export default function AdminBookings() {
           packageNameEn: booking.package_name_en,
           lessonsTotal: booking.lessons_total,
           priceTotal: booking.price_total,
+          expiresAt: confirmData.expires_at,
           lang: booking.lang || 'pt',
         }),
       }).catch((err) => console.error('Erro ao enviar email de confirmação:', err));
@@ -130,6 +140,7 @@ export default function AdminBookings() {
         checkOut: booking.check_out,
         nights,
         surfDate: booking.surf_date,
+        isPrivate: booking.is_private,
         guestsCount: booking.guests_count,
         childrenCount: booking.children_count,
         priceSubtotal: booking.price_subtotal,
@@ -142,7 +153,7 @@ export default function AdminBookings() {
   };
 
   const handleReject = (booking) => {
-    updateMutation.mutate({ id: booking.id, table: booking._table, data: { status: 'rejected' } });
+    updateMutation.mutate({ id: booking.id, table: booking._table, data: { status: 'rejected', rejected_at: new Date().toISOString() } });
     toast({ title: booking.type === 'surf_package' ? 'Pedido de pacote rejeitado.' : 'Reserva rejeitada.' });
   };
 

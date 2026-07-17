@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   const {
     to, guestName, type, lang,
     checkIn, checkOut, guestsCount, childrenCount,
-    surfDate, isPackageCredit,
+    surfDate, isPackageCredit, isPrivate,
     packageName, packageNameEn, lessonsTotal,
     priceTotal,
   } = req.body || {};
@@ -77,11 +77,18 @@ export default async function handler(req, res) {
         : `${guestsCount || '-'} pessoas (${childrenCount} criança${childrenCount === 1 ? '' : 's'})`
       : `${guestsCount || '-'}`;
 
-    subject = isEn ? 'We received your surf lesson request! - Ericeira Wave House' : 'Recebemos o teu pedido de aula! - Ericeira Wave House';
-    introLine = isEn
-      ? 'We received your surf lesson request. This is just a confirmation that it went through - here\'s a summary:'
-      : 'Recebemos o teu pedido de aula de surf. Isto é só para confirmar que o pedido chegou bem - aqui está um resumo:';
+    subject = isPrivate
+      ? (isEn ? 'We received your private lesson request! - Ericeira Wave House' : 'Recebemos o teu pedido de aula privada! - Ericeira Wave House')
+      : (isEn ? 'We received your surf lesson request! - Ericeira Wave House' : 'Recebemos o teu pedido de aula! - Ericeira Wave House');
+    introLine = isPrivate
+      ? (isEn
+        ? 'We received your private surf lesson request. This is just a confirmation that it went through - here\'s a summary:'
+        : 'Recebemos o teu pedido de aula privada de surf. Isto é só para confirmar que o pedido chegou bem - aqui está um resumo:')
+      : (isEn
+        ? 'We received your surf lesson request. This is just a confirmation that it went through - here\'s a summary:'
+        : 'Recebemos o teu pedido de aula de surf. Isto é só para confirmar que o pedido chegou bem - aqui está um resumo:');
     detailRows = [
+      [isEn ? 'Type' : 'Tipo', isPrivate ? (isEn ? 'Private lesson' : 'Aula privada') : (isEn ? 'Group lesson' : 'Aula de grupo')],
       [isEn ? 'Date' : 'Data', formatDate(surfDate)],
       [isEn ? 'People' : 'Pessoas', peopleLine],
       ...(isPackageCredit

@@ -13,11 +13,12 @@ export default function AdminLayout() {
   const { data: counts } = useQuery({
     queryKey: ['admin-nav-counts'],
     queryFn: async () => {
-      const [pending, unread] = await Promise.all([
+      const [pending, pendingPackages, unread] = await Promise.all([
         supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('status', 'pending').is('deleted_at', null),
+        supabase.from('surf_package_purchases').select('id', { count: 'exact', head: true }).eq('status', 'pending').is('deleted_at', null),
         supabase.from('contact_messages').select('id', { count: 'exact', head: true }).eq('read', false).is('deleted_at', null),
       ]);
-      return { pending: pending.count || 0, unread: unread.count || 0 };
+      return { pending: (pending.count || 0) + (pendingPackages.count || 0), unread: unread.count || 0 };
     },
     refetchInterval: 60000,
   });

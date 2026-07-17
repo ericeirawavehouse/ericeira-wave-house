@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Método não permitido' });
   }
 
-  const { to, guestName } = req.body || {};
+  const { to, guestName, lang } = req.body || {};
 
   if (!to) {
     return res.status(400).json({ error: 'Faltam campos obrigatórios' });
@@ -23,34 +23,46 @@ export default async function handler(req, res) {
     },
   });
 
-  const firstName = (guestName || '').split(' ')[0] || 'olá';
+  const isEn = lang === 'en';
+  const firstName = (guestName || '').split(' ')[0] || (isEn ? 'there' : 'olá');
+  const greeting = isEn ? `Hi ${firstName},` : `Olá ${firstName},`;
+  const welcomeLine = isEn ? 'Welcome to Ericeira Wave House!' : 'Bem-vindo(a) à Ericeira Wave House!';
+  const introLine = isEn
+    ? 'Attached you\'ll find all the information for your stay: host contacts, emergency number, safety equipment, complaints book, house rules, check-out and Wi-Fi details.'
+    : 'Em anexo encontras toda a informação para a tua estadia: contactos dos anfitriões, número de emergência, equipamentos de segurança, livro de reclamações, regras da casa, check-out e dados do Wi-Fi.';
+  const thanksLine = isEn
+    ? 'Thank you for choosing Ericeira Wave House. We hope you have a wonderful stay!'
+    : 'Obrigado por escolher a Ericeira Wave House. Desejamos-lhe uma excelente estadia!';
+  const signOff = isEn ? 'Best regards,' : 'Até já,';
+  const teamLine = isEn ? 'Ericeira Wave House Team' : 'Equipa Ericeira Wave House';
+  const imageFile = isEn ? 'welcome-en.jpeg' : 'welcome-pt.jpeg';
+  const imageAlt = isEn ? 'Guest Information' : 'Informações para Hóspedes';
 
-  const text = `Olá ${firstName},
+  const text = `${greeting}
 
-Bem-vindo(a) à Ericeira Wave House!
+${welcomeLine}
 
-Em anexo encontras toda a informação para a tua estadia: contactos dos anfitriões, número de emergência, equipamentos de segurança, livro de reclamações, regras da casa, check-out e dados do Wi-Fi (em português e em inglês).
+${introLine}
 
-Obrigado por escolher a Ericeira Wave House. Desejamos-lhe uma excelente estadia!
+${thanksLine}
 
-Até já,
-Equipa Ericeira Wave House
+${signOff}
+${teamLine}
 ericeirawavehouse@gmail.com
 Ericeira, Portugal`;
 
   const html = `
     <div style="font-family: -apple-system, Arial, sans-serif; color: #1c1c1c; max-width: 480px;">
-      <p>Olá ${firstName},</p>
-      <p><strong>Bem-vindo(a) à Ericeira Wave House!</strong></p>
-      <p>Em anexo encontras toda a informação para a tua estadia (contactos, Wi-Fi, equipamentos de segurança, regras da casa e check-out), em português e em inglês.</p>
+      <p>${greeting}</p>
+      <p><strong>${welcomeLine}</strong></p>
+      <p>${introLine}</p>
 
-      <img src="cid:welcomept" alt="Informações para Hóspedes" style="width:100%; max-width:480px; display:block; margin:24px 0;" />
-      <img src="cid:welcomeen" alt="Guest Information" style="width:100%; max-width:480px; display:block; margin:0 0 24px;" />
+      <img src="cid:welcomeimg" alt="${imageAlt}" style="width:100%; max-width:480px; display:block; margin:24px 0;" />
 
-      <p>Obrigado por escolher a Ericeira Wave House. Desejamos-lhe uma excelente estadia!</p>
+      <p>${thanksLine}</p>
 
-      <p>Até já,<br/>
-      Equipa Ericeira Wave House<br/>
+      <p>${signOff}<br/>
+      ${teamLine}<br/>
       ericeirawavehouse@gmail.com<br/>
       Ericeira, Portugal</p>
     </div>
@@ -60,14 +72,9 @@ Ericeira, Portugal`;
     const imagesDir = path.join(process.cwd(), 'src', 'images');
     const attachments = [
       {
-        filename: 'informacoes-hospedes.jpeg',
-        content: fs.readFileSync(path.join(imagesDir, 'welcome-pt.jpeg')),
-        cid: 'welcomept',
-      },
-      {
-        filename: 'guest-information.jpeg',
-        content: fs.readFileSync(path.join(imagesDir, 'welcome-en.jpeg')),
-        cid: 'welcomeen',
+        filename: imageFile,
+        content: fs.readFileSync(path.join(imagesDir, imageFile)),
+        cid: 'welcomeimg',
       },
     ];
 
@@ -75,7 +82,7 @@ Ericeira, Portugal`;
       from: `"Ericeira Wave House" <${process.env.SMTP_USER}>`,
       to,
       replyTo: 'ericeirawavehouse@gmail.com',
-      subject: 'Bem-vindo(a) à Ericeira Wave House! / Welcome to Ericeira Wave House!',
+      subject: isEn ? 'Welcome to Ericeira Wave House!' : 'Bem-vindo(a) à Ericeira Wave House!',
       text,
       html,
       attachments,

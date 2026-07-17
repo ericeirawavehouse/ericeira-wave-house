@@ -10,7 +10,7 @@ import { toast } from '@/components/ui/use-toast';
 
 export default function SurfPackagesManager() {
   const queryClient = useQueryClient();
-  const [newPackage, setNewPackage] = useState({ name: '', name_en: '', lessons_count: '', price_total: '' });
+  const [newPackage, setNewPackage] = useState({ name: '', name_en: '', lessons_count: '', price_total: '', validity_days: '' });
 
   const { data: pricing } = useQuery({
     queryKey: ['site-settings'],
@@ -38,13 +38,14 @@ export default function SurfPackagesManager() {
         name_en: newPackage.name_en || null,
         lessons_count: parseInt(newPackage.lessons_count) || 0,
         price_total: parseFloat(newPackage.price_total) || 0,
+        validity_days: newPackage.validity_days ? parseInt(newPackage.validity_days) : null,
         active: true,
       }]);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['surf-packages'] });
-      setNewPackage({ name: '', name_en: '', lessons_count: '', price_total: '' });
+      setNewPackage({ name: '', name_en: '', lessons_count: '', price_total: '', validity_days: '' });
       toast({ title: 'Pacote criado!' });
     },
     onError: (error) => {
@@ -149,10 +150,30 @@ export default function SurfPackagesManager() {
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground pl-7">
-                {pkg.lessons_count} aulas · €{pkg.price_total}
-                {savingsPercent > 0 && <span className="text-emerald-600"> · poupa {savingsPercent}%</span>}
-              </p>
+              <div className="flex items-center justify-between gap-3 pl-7">
+                <p className="text-xs text-muted-foreground">
+                  {pkg.lessons_count} aulas · €{pkg.price_total}
+                  {savingsPercent > 0 && <span className="text-emerald-600"> · poupa {savingsPercent}%</span>}
+                </p>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Label className="text-xs text-muted-foreground">Válido</Label>
+                  <Input
+                    key={`${pkg.id}-validity`}
+                    type="number"
+                    min="0"
+                    defaultValue={pkg.validity_days || ''}
+                    placeholder="dias"
+                    className="h-7 w-20 text-xs"
+                    onBlur={(e) => {
+                      const value = e.target.value ? parseInt(e.target.value) : null;
+                      if (value !== (pkg.validity_days || null)) {
+                        updatePackageMutation.mutate({ id: pkg.id, data: { validity_days: value } });
+                      }
+                    }}
+                  />
+                  <span className="text-xs text-muted-foreground">dias</span>
+                </div>
+              </div>
             </div>
           );
         })}
@@ -170,7 +191,7 @@ export default function SurfPackagesManager() {
             <Input placeholder="5 Lesson Package" value={newPackage.name_en} onChange={(e) => setNewPackage({ ...newPackage, name_en: e.target.value })} />
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div>
             <Label className="text-xs text-muted-foreground mb-1.5 block">Nº de aulas</Label>
             <Input type="number" min="1" step="1" value={newPackage.lessons_count} onChange={(e) => setNewPackage({ ...newPackage, lessons_count: e.target.value })} />
@@ -178,6 +199,10 @@ export default function SurfPackagesManager() {
           <div>
             <Label className="text-xs text-muted-foreground mb-1.5 block">Preço total (€)</Label>
             <Input type="number" min="0" step="0.01" value={newPackage.price_total} onChange={(e) => setNewPackage({ ...newPackage, price_total: e.target.value })} />
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1.5 block">Validade (dias) - opcional</Label>
+            <Input type="number" min="0" step="1" placeholder="ex: 180" value={newPackage.validity_days} onChange={(e) => setNewPackage({ ...newPackage, validity_days: e.target.value })} />
           </div>
         </div>
         <Button

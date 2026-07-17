@@ -20,6 +20,7 @@ export default function AdminPricing({ section = 'accommodation' }) {
   const handleTabChange = (value) => setSearchParams({ tab: value }, { replace: true });
   const [accommodationPrice, setAccommodationPrice] = useState('');
   const [surfPrice, setSurfPrice] = useState('');
+  const [surfPrivatePrice, setSurfPrivatePrice] = useState('');
   const [weekendPrice, setWeekendPrice] = useState('');
   const [weeklyDiscount, setWeeklyDiscount] = useState('');
   const [monthlyDiscount, setMonthlyDiscount] = useState('');
@@ -80,6 +81,7 @@ export default function AdminPricing({ section = 'accommodation' }) {
       hasLoadedRef.current = true;
       setAccommodationPrice(String(data.accommodation_price_per_night ?? ''));
       setSurfPrice(String(data.surf_lesson_price ?? ''));
+      setSurfPrivatePrice(String(data.surf_private_lesson_price ?? ''));
       setWeekendPrice(data.weekend_price_per_night != null ? String(data.weekend_price_per_night) : '');
       setWeeklyDiscount(String(data.weekly_discount_percent ?? 0));
       setMonthlyDiscount(String(data.monthly_discount_percent ?? 0));
@@ -114,6 +116,7 @@ export default function AdminPricing({ section = 'accommodation' }) {
         .update({
           accommodation_price_per_night: parseFloat(accommodationPrice) || 0,
           surf_lesson_price: parseFloat(surfPrice) || 0,
+          surf_private_lesson_price: parseFloat(surfPrivatePrice) || 0,
           weekend_price_per_night: weekendPrice === '' ? null : parseFloat(weekendPrice) || 0,
           weekly_discount_percent: parseFloat(weeklyDiscount) || 0,
           monthly_discount_percent: parseFloat(monthlyDiscount) || 0,
@@ -578,15 +581,15 @@ export default function AdminPricing({ section = 'accommodation' }) {
       <div className="max-w-2xl space-y-10">
         <div>
           <p className="text-sm text-muted-foreground mb-6">
-            Preço base das aulas de surf, por pessoa.
+            Preço base das aulas de surf, por pessoa. A aula privada (1-para-1 com o instrutor) tem um preço à parte, mais alto, e não tem desconto de grupo.
           </p>
-          <div className="bg-card border border-border rounded-2xl p-6">
+          <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                 <Waves className="w-5 h-5 text-primary" />
               </div>
               <div className="flex-1">
-                <Label className="text-sm mb-2 block">Preço por pessoa - Surf (€)</Label>
+                <Label className="text-sm mb-2 block">Preço por pessoa - Aula de Grupo (€)</Label>
                 <Input
                   type="number"
                   min="0"
@@ -596,6 +599,25 @@ export default function AdminPricing({ section = 'accommodation' }) {
                 />
               </div>
             </div>
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <Waves className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <Label className="text-sm mb-2 block">Preço por pessoa - Aula Privada (€)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={surfPrivatePrice}
+                  onChange={(e) => setSurfPrivatePrice(e.target.value)}
+                />
+              </div>
+            </div>
+            <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="w-full rounded-full">
+              {saveMutation.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+              Guardar preços
+            </Button>
           </div>
         </div>
 
