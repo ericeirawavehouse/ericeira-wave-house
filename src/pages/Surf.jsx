@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useLanguage } from '@/lib/i18n';
 import { supabase } from '@/lib/supabaseClient';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Star, Package, Loader2 } from 'lucide-react';
+import { Star, Package, Loader2, Info, Users, UserRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,6 +30,7 @@ export default function Surf() {
   const [requestPackage, setRequestPackage] = useState(null);
   const [form, setForm] = useState({ guest_name: '', guest_email: '', guest_phone: '' });
   const [sending, setSending] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   const { data: pricing } = useQuery({
     queryKey: ['site-settings'],
@@ -40,6 +41,7 @@ export default function Surf() {
     },
   });
   const surfPricePerPerson = pricing?.surf_lesson_price || 0;
+  const surfPrivatePricePerPerson = pricing?.surf_private_lesson_price || 0;
 
   const { data: packages = [] } = useQuery({
     queryKey: ['surf-packages-public'],
@@ -70,6 +72,7 @@ export default function Surf() {
       lessons_total: requestPackage.lessons_count,
       price_total: requestPackage.price_total,
       validity_days: requestPackage.validity_days || null,
+      lesson_type: requestPackage.lesson_type || 'group',
       guest_name: form.guest_name,
       guest_email: form.guest_email,
       guest_phone: form.guest_phone,
@@ -142,12 +145,22 @@ export default function Surf() {
                 <p className="text-foreground/80 leading-relaxed text-base mb-4">
                   {t('surf.description')}
                 </p>
-                <Link
-                  to="/booking?type=surf"
-                  className="inline-block bg-primary text-primary-foreground px-10 py-3.5 text-sm font-medium tracking-wide rounded-full hover:bg-primary/90 transition-all duration-300"
-                >
-                  {t('surf.bookLesson')}
-                </Link>
+                <div className="flex items-center gap-4 flex-wrap">
+                  <Link
+                    to="/booking?type=surf"
+                    className="inline-block bg-primary text-primary-foreground px-10 py-3.5 text-sm font-medium tracking-wide rounded-full hover:bg-primary/90 transition-all duration-300"
+                  >
+                    {t('surf.bookLesson')}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setShowDetails(true)}
+                    className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline underline-offset-2"
+                  >
+                    <Info className="w-4 h-4" />
+                    {t('surf.viewDetails')}
+                  </button>
+                </div>
               </div>
             </FadeInView>
             <FadeInView delay={0.2}>
@@ -164,7 +177,8 @@ export default function Surf() {
       {/* Packages */}
       {packages.length > 0 && (() => {
         const packagesWithSavings = packages.map((pkg) => {
-          const regularPrice = surfPricePerPerson * pkg.lessons_count;
+          const basePrice = pkg.lesson_type === 'private' ? surfPrivatePricePerPerson : surfPricePerPerson;
+          const regularPrice = basePrice * pkg.lessons_count;
           const savingsPercent = regularPrice > 0 ? Math.round((1 - pkg.price_total / regularPrice) * 100) : 0;
           return { pkg, savingsPercent };
         });
@@ -189,8 +203,14 @@ export default function Surf() {
                             {t('surf.bestValue')}
                           </span>
                         )}
-                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-5">
-                          <Package className="w-6 h-6 text-primary" />
+                        <div className="flex items-center justify-between mb-5">
+                          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Package className="w-6 h-6 text-primary" />
+                          </div>
+                          <span className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
+                            {pkg.lesson_type === 'private' ? <UserRound className="w-3 h-3" /> : <Users className="w-3 h-3" />}
+                            {pkg.lesson_type === 'private' ? t('booking.privateLesson') : t('booking.groupLesson')}
+                          </span>
                         </div>
                         <h3 className="font-heading text-xl font-semibold mb-1">{lang === 'en' && pkg.name_en ? pkg.name_en : pkg.name}</h3>
                         <p className="text-sm text-muted-foreground mb-5">{t('surf.packageLessons', { count: pkg.lessons_count })}</p>
@@ -267,6 +287,66 @@ export default function Surf() {
               </Button>
             </form>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDetails} onOpenChange={setShowDetails}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-heading">{t('surf.detailsTitle')}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-muted/50 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Users className="w-4 h-4 text-primary" />
+                  <p className="font-medium">{t('surf.detailsGroupTitle')}</p>
+                </div>
+                <p className="text-muted-foreground text-xs leading-relaxed">{t('surf.detailsGroupDesc')}</p>
+              </div>
+              <div className="bg-muted/50 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <UserRound className="w-4 h-4 text-primary" />
+                  <p className="font-medium">{t('surf.detailsPrivateTitle')}</p>
+                </div>
+                <p className="text-muted-foreground text-xs leading-relaxed">{t('surf.detailsPrivateDesc')}</p>
+              </div>
+            </div>
+
+            <div>
+              <p className="font-medium mb-1">{t('surf.detailsLevelsTitle')}</p>
+              <p className="text-muted-foreground text-xs mb-3">{t('surf.detailsLevelsIntro')}</p>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm font-medium">{t('surf.levelBeginnerLabel')}</p>
+                  <p className="text-muted-foreground text-xs leading-relaxed">{t('surf.levelBeginnerDesc')}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">{t('surf.levelIntermediateLabel')}</p>
+                  <p className="text-muted-foreground text-xs leading-relaxed">{t('surf.levelIntermediateDesc')}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">{t('surf.levelAdvancedLabel')}</p>
+                  <p className="text-muted-foreground text-xs leading-relaxed">{t('surf.levelAdvancedDesc')}</p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <p className="font-medium mb-1">{t('surf.detailsIncludedTitle')}</p>
+              <p className="text-muted-foreground text-xs leading-relaxed">{t('surf.detailsIncludedText')}</p>
+            </div>
+
+            <div>
+              <p className="font-medium mb-1">{t('surf.detailsPaymentTitle')}</p>
+              <p className="text-muted-foreground text-xs leading-relaxed">{t('surf.detailsPaymentText')}</p>
+            </div>
+
+            <div>
+              <p className="font-medium mb-1">{t('surf.detailsCancelTitle')}</p>
+              <p className="text-muted-foreground text-xs leading-relaxed">{t('surf.detailsCancelText')}</p>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

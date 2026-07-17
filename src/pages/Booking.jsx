@@ -158,7 +158,8 @@ export default function Booking() {
     },
     enabled: type === 'surf' && /\S+@\S+\.\S+/.test(guestEmailTrimmed),
   });
-  const availablePackage = !isPrivateLesson && guestPackages.find((p) =>
+  const availablePackage = guestPackages.find((p) =>
+    (p.lesson_type || 'group') === (isPrivateLesson ? 'private' : 'group') &&
     p.payment_received_at && p.lessons_used < p.lessons_total && (!p.expires_at || new Date(p.expires_at) >= new Date())
   );
   const isUsingPackageCredit = usePackageCredit && !!availablePackage;
@@ -419,16 +420,17 @@ export default function Booking() {
                     {t('booking.privateLesson')}
                   </button>
                 </div>
-                {!isPrivateLesson && (
-                  <Link
-                    to="/surf"
-                    target="_blank"
-                    className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline underline-offset-2"
-                  >
-                    <Package className="w-4 h-4" />
-                    {t('booking.viewPackages')}
-                  </Link>
-                )}
+                <p className="text-xs text-muted-foreground text-center max-w-sm">
+                  {isPrivateLesson ? t('booking.privateLessonNote') : t('booking.groupLessonNote')}
+                </p>
+                <Link
+                  to="/surf"
+                  target="_blank"
+                  className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline underline-offset-2"
+                >
+                  <Package className="w-4 h-4" />
+                  {t('booking.viewPackages')}
+                </Link>
               </div>
             )}
           </FadeInView>

@@ -213,7 +213,32 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
   };
 
   const handlePaymentChange = (b, value) => {
+    const wasFull = paymentState(b) === 'full';
     updatePaymentMutation.mutate({ b, data: computePaymentData(b, value) });
+
+    if (value === 'full' && !wasFull) {
+      fetch('/api/send-payment-received-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: b.guest_email,
+          guestName: b.guest_name,
+          type: b.type,
+          lang: b.lang || 'pt',
+          checkIn: b.check_in,
+          checkOut: b.check_out,
+          surfDate: b.surf_date,
+          packageName: b.package_name,
+          packageNameEn: b.package_name_en,
+          priceTotal: b.price_total,
+        }),
+      })
+        .then(() => toast({ title: 'Pagamento marcado e hóspede notificado por email.' }))
+        .catch((err) => {
+          console.error('Erro ao enviar email de pagamento recebido:', err);
+          toast({ variant: 'destructive', title: 'Erro', description: 'Pagamento marcado, mas não foi possível enviar o email ao hóspede.' });
+        });
+    }
   };
 
   const buildTimeline = (b) => {
@@ -240,7 +265,11 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
         <div className="flex items-center gap-2">
           {b.type === 'accommodation' ? <Home className="w-4 h-4 text-primary" /> : b.type === 'surf_package' ? <Package className="w-4 h-4 text-secondary" /> : <Waves className="w-4 h-4 text-secondary" />}
           <span className="text-sm capitalize">
-            {b.type === 'accommodation' ? 'Alojamento' : b.type === 'surf_package' ? 'Pacote de Surf' : b.is_private ? 'Surf (Privada)' : 'Surf'}
+            {b.type === 'accommodation'
+              ? 'Alojamento'
+              : b.type === 'surf_package'
+                ? `Pacote de Surf${b.lesson_type === 'private' ? ' (Privada)' : ''}`
+                : b.is_private ? 'Surf (Privada)' : 'Surf'}
           </span>
         </div>
       </TableCell>

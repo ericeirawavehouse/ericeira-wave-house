@@ -5,12 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trash2, Loader2, Plus, Package } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 export default function SurfPackagesManager() {
   const queryClient = useQueryClient();
-  const [newPackage, setNewPackage] = useState({ name: '', name_en: '', lessons_count: '', price_total: '', validity_days: '' });
+  const [newPackage, setNewPackage] = useState({ name: '', name_en: '', lessons_count: '', price_total: '', validity_days: '', lesson_type: 'group' });
 
   const { data: pricing } = useQuery({
     queryKey: ['site-settings'],
@@ -21,6 +22,7 @@ export default function SurfPackagesManager() {
     },
   });
   const surfPricePerPerson = pricing?.surf_lesson_price || 0;
+  const surfPrivatePricePerPerson = pricing?.surf_private_lesson_price || 0;
 
   const { data: packages = [], isLoading: loadingPackages } = useQuery({
     queryKey: ['surf-packages'],
@@ -39,13 +41,14 @@ export default function SurfPackagesManager() {
         lessons_count: parseInt(newPackage.lessons_count) || 0,
         price_total: parseFloat(newPackage.price_total) || 0,
         validity_days: newPackage.validity_days ? parseInt(newPackage.validity_days) : null,
+        lesson_type: newPackage.lesson_type,
         active: true,
       }]);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['surf-packages'] });
-      setNewPackage({ name: '', name_en: '', lessons_count: '', price_total: '', validity_days: '' });
+      setNewPackage({ name: '', name_en: '', lessons_count: '', price_total: '', validity_days: '', lesson_type: 'group' });
       toast({ title: 'Pacote criado!' });
     },
     onError: (error) => {
@@ -106,12 +109,23 @@ export default function SurfPackagesManager() {
           <p className="text-sm text-muted-foreground">Ainda não criaste nenhum pacote.</p>
         )}
         {packages.map((pkg) => {
-          const regularPrice = surfPricePerPerson * pkg.lessons_count;
+          const basePrice = pkg.lesson_type === 'private' ? surfPrivatePricePerPerson : surfPricePerPerson;
+          const regularPrice = basePrice * pkg.lessons_count;
           const savingsPercent = regularPrice > 0 ? Math.round((1 - pkg.price_total / regularPrice) * 100) : 0;
           return (
             <div key={pkg.id} className="p-3 rounded-xl border border-border bg-background space-y-2">
               <div className="flex items-center gap-3">
                 <Package className="w-4 h-4 text-primary shrink-0" />
+                <Select
+                  value={pkg.lesson_type || 'group'}
+                  onValueChange={(value) => updatePackageMutation.mutate({ id: pkg.id, data: { lesson_type: value } })}
+                >
+                  <SelectTrigger className="h-8 w-[110px] text-xs shrink-0"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="group">Grupo</SelectItem>
+                    <SelectItem value="private">Privada</SelectItem>
+                  </SelectContent>
+                </Select>
                 <div className="flex-1 min-w-0 grid grid-cols-2 gap-2">
                   <Input
                     key={`${pkg.id}-name`}
@@ -181,6 +195,16 @@ export default function SurfPackagesManager() {
 
       <div className="bg-card border border-border rounded-2xl p-6">
         <p className="text-sm font-medium mb-4">Novo pacote</p>
+        <div className="mb-3">
+          <Label className="text-xs text-muted-foreground mb-1.5 block">Tipo de aula</Label>
+          <Select value={newPackage.lesson_type} onValueChange={(value) => setNewPackage({ ...newPackage, lesson_type: value })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="group">Aulas de Grupo</SelectItem>
+              <SelectItem value="private">Aulas Privadas</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
           <div>
             <Label className="text-xs text-muted-foreground mb-1.5 block">Nome (PT)</Label>

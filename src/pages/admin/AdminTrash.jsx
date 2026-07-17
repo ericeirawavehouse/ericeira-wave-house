@@ -112,6 +112,16 @@ export default function AdminTrash() {
     toast({ title: `${label} restaurada(o) com sucesso.` });
   };
 
+  const handleBulkRestore = async (items) => {
+    if (items.length === 0) return;
+    for (const item of items) {
+      await restoreMutation.mutateAsync({ table: item._table, id: item.id });
+    }
+    toast({ title: `${items.length} item(ns) restaurado(s) com sucesso.` });
+    setSelectedBookingKeys(new Set());
+    setSelectedMessageIds(new Set());
+  };
+
   const handleConfirmPermanentDelete = async () => {
     if (!confirmTarget) return;
     if (confirmTarget.bulk) {
@@ -193,6 +203,7 @@ export default function AdminTrash() {
                 onToggleAll={toggleAllBookings}
                 selectedCount={selectedBookingKeys.size}
                 onDeleteSelected={() => setConfirmTarget({ bulk: selectedBookingItems })}
+                onRestoreSelected={() => handleBulkRestore(selectedBookingItems)}
               />
               <div className="space-y-2">
                 {trashItems.map((b) => (
@@ -237,6 +248,7 @@ export default function AdminTrash() {
                 onToggleAll={toggleAllMessages}
                 selectedCount={selectedMessageIds.size}
                 onDeleteSelected={() => setConfirmTarget({ bulk: selectedMessageItems })}
+                onRestoreSelected={() => handleBulkRestore(selectedMessageItems)}
               />
               <div className="space-y-2">
                 {messages.map((m) => (
@@ -293,7 +305,7 @@ export default function AdminTrash() {
   );
 }
 
-function SelectionToolbar({ allChecked, someChecked, onToggleAll, selectedCount, onDeleteSelected }) {
+function SelectionToolbar({ allChecked, someChecked, onToggleAll, selectedCount, onDeleteSelected, onRestoreSelected }) {
   return (
     <div className="flex items-center gap-3 px-1">
       <Checkbox checked={allChecked} onCheckedChange={(checked) => onToggleAll(checked === true)} />
@@ -301,9 +313,14 @@ function SelectionToolbar({ allChecked, someChecked, onToggleAll, selectedCount,
         {someChecked ? `${selectedCount} selecionado(s)` : 'Selecionar tudo'}
       </span>
       {someChecked && (
-        <Button size="sm" variant="destructive" onClick={onDeleteSelected} className="ml-auto">
-          <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Apagar selecionados
-        </Button>
+        <div className="ml-auto flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={onRestoreSelected}>
+            <RotateCcw className="w-3.5 h-3.5 mr-1.5" /> Restaurar selecionados
+          </Button>
+          <Button size="sm" variant="destructive" onClick={onDeleteSelected}>
+            <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Apagar selecionados
+          </Button>
+        </div>
       )}
     </div>
   );

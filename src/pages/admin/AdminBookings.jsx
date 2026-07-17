@@ -82,6 +82,7 @@ export default function AdminBookings() {
     lang: p.lang,
     validity_days: p.validity_days,
     expires_at: p.expires_at,
+    lesson_type: p.lesson_type,
   }));
   const normalizedBookings = bookings.map((b) => ({ ...b, _table: 'bookings' }));
   const allItems = [...normalizedBookings, ...normalizedPackages].sort(
