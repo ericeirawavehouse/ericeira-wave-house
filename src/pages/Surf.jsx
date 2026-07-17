@@ -66,12 +66,14 @@ export default function Surf() {
     const { error } = await supabase.from('surf_package_purchases').insert([{
       package_id: requestPackage.id,
       package_name: requestPackage.name,
+      package_name_en: requestPackage.name_en || null,
       lessons_total: requestPackage.lessons_count,
       price_total: requestPackage.price_total,
       guest_name: form.guest_name,
       guest_email: form.guest_email,
       guest_phone: form.guest_phone,
       status: 'pending',
+      lang,
     }]);
 
     setSending(false);
@@ -92,6 +94,21 @@ export default function Surf() {
           dates: `${requestPackage.name} (${requestPackage.lessons_count} aulas)`,
         }),
       }).catch((err) => console.error('Erro ao notificar novo pedido de pacote:', err));
+
+      fetch('/api/send-request-received-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: form.guest_email,
+          guestName: form.guest_name,
+          type: 'surf_package',
+          lang,
+          packageName: requestPackage.name,
+          packageNameEn: requestPackage.name_en,
+          lessonsTotal: requestPackage.lessons_count,
+          priceTotal: requestPackage.price_total,
+        }),
+      }).catch((err) => console.error('Erro ao enviar email de pedido recebido:', err));
     }
   };
 
@@ -158,7 +175,7 @@ export default function Surf() {
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                         <Package className="w-5 h-5 text-primary" />
                       </div>
-                      <h3 className="font-heading text-xl font-semibold mb-1">{pkg.name}</h3>
+                      <h3 className="font-heading text-xl font-semibold mb-1">{lang === 'en' && pkg.name_en ? pkg.name_en : pkg.name}</h3>
                       <p className="text-sm text-muted-foreground mb-4">{t('surf.packageLessons', { count: pkg.lessons_count })}</p>
                       <div className="flex items-baseline gap-2 mb-1">
                         <span className="text-2xl font-semibold">€{pkg.price_total}</span>

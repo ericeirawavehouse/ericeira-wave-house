@@ -5,7 +5,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Método não permitido' });
   }
 
-  const { to, guestName, checkInUrl } = req.body || {};
+  const { to, guestName, checkInUrl, lang } = req.body || {};
 
   if (!to || !checkInUrl) {
     return res.status(400).json({ error: 'Faltam campos obrigatórios' });
@@ -21,9 +21,28 @@ export default async function handler(req, res) {
     },
   });
 
-  const firstName = (guestName || '').split(' ')[0] || 'olá';
+  const firstName = (guestName || '').split(' ')[0] || (lang === 'en' ? 'there' : 'olá');
+  const isEn = lang === 'en';
 
-  const text = `Olá ${firstName},
+  const subject = isEn
+    ? 'Your check-in for Ericeira Wave House'
+    : 'O teu check-in para a Ericeira Wave House';
+
+  const text = isEn
+    ? `Hi ${firstName},
+
+We're getting everything ready for your stay at Ericeira Wave House, and there's just one step left: online check-in.
+
+Please fill in your details through this link, so we can speed up your arrival:
+${checkInUrl}
+
+It takes less than 2 minutes. If you have any questions, just reply to this email or contact us at +351 960 461 100.
+
+See you soon,
+Ericeira Wave House Team
+ericeirawavehouse@gmail.com
+Ericeira, Portugal`
+    : `Olá ${firstName},
 
 Estamos a preparar tudo para a tua estadia na Ericeira Wave House e falta só um passo: o check-in online.
 
@@ -37,7 +56,21 @@ Equipa Ericeira Wave House
 ericeirawavehouse@gmail.com
 Ericeira, Portugal`;
 
-  const html = `
+  const html = isEn
+    ? `
+    <div style="font-family: -apple-system, Arial, sans-serif; color: #1c1c1c; max-width: 480px;">
+      <p>Hi ${firstName},</p>
+      <p>We're getting everything ready for your stay at <strong>Ericeira Wave House</strong>, and there's just one step left: online check-in.</p>
+      <p>Please fill in your details through this link, so we can speed up your arrival:</p>
+      <p><a href="${checkInUrl}" style="color: #1c4a63;">${checkInUrl}</a></p>
+      <p>It takes less than 2 minutes. If you have any questions, just reply to this email or contact us at <a href="tel:+351960461100">+351 960 461 100</a>.</p>
+      <p>See you soon,<br/>
+      Ericeira Wave House Team<br/>
+      ericeirawavehouse@gmail.com<br/>
+      Ericeira, Portugal</p>
+    </div>
+  `
+    : `
     <div style="font-family: -apple-system, Arial, sans-serif; color: #1c1c1c; max-width: 480px;">
       <p>Olá ${firstName},</p>
       <p>Estamos a preparar tudo para a tua estadia na <strong>Ericeira Wave House</strong> e falta só um passo: o check-in online.</p>
@@ -56,7 +89,7 @@ Ericeira, Portugal`;
       from: `"Ericeira Wave House" <${process.env.SMTP_USER}>`,
       to,
       replyTo: 'ericeirawavehouse@gmail.com',
-      subject: 'O teu check-in para a Ericeira Wave House',
+      subject,
       text,
       html,
     });

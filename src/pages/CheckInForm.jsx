@@ -18,9 +18,17 @@ const MAX_ADDITIONAL_GUESTS = 4;
 const arrivalTimeSlots = generateTimeSlots(15, 23);
 
 export default function CheckInForm() {
-  const { lang } = useLanguage();
+  const { lang, setLang } = useLanguage();
   const urlParams = new URLSearchParams(window.location.search);
   const bookingId = urlParams.get('booking');
+  const urlLang = urlParams.get('lang');
+
+  useEffect(() => {
+    if ((urlLang === 'pt' || urlLang === 'en') && urlLang !== lang) {
+      setLang(urlLang);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);

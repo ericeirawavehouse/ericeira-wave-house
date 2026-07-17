@@ -1,6 +1,6 @@
 import React from 'react';
 import { format } from 'date-fns';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Check, X, Eye, Home, Waves, Mail, Copy, CheckCheck, Loader2, Trash2, Inbox, Send, Package, PartyPopper } from 'lucide-react';
+import { Check, X, Eye, Home, Waves, Mail, Copy, CheckCheck, Loader2, Trash2, Inbox, Send, Package, PartyPopper, Euro, Clock } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { generateTimeSlots } from '@/lib/timeSlots';
 
@@ -138,6 +138,170 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
   const [proposedTime, setProposedTime] = React.useState('');
   const [customMessage, setCustomMessage] = React.useState('');
   const [sendingContact, setSendingContact] = React.useState(false);
+  const [showAllPast, setShowAllPast] = React.useState(false);
+
+  const togglePaymentMutation = useMutation({
+    mutationFn: async ({ b, paid }) => {
+      const { error } = await supabase
+        .from(b._table)
+        .update({ payment_received_at: paid ? new Date().toISOString() : null })
+        .eq('id', b.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-package-purchases'] });
+    },
+    onError: (error) => {
+      console.error('Erro ao atualizar pagamento:', error);
+      toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível atualizar o estado do pagamento.' });
+    },
+  });
+
+  const isPastOrExhausted = (b) => {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (b.type === 'accommodation') return b.check_out ? new Date(b.check_out) < today : false;
+    if (b.type === 'surf') return b.surf_date ? new Date(b.surf_date) < today : false;
+    if (b.type === 'surf_package') return b.lessons_used >= b.lessons_total;
+    return false;
+  };
+  const activeItems = bookings.filter((b) => !isPastOrExhausted(b));
+  const pastItems = bookings.filter((b) => isPastOrExhausted(b));
+  const PAST_PREVIEW_COUNT = 3;
+  const visiblePastItems = showAllPast ? pastItems : pastItems.slice(0, PAST_PREVIEW_COUNT);
+
+  const renderPaymentBadge = (b) => {
+    const amount = b.price_total != null ? ` · €${b.price_total}` : '';
+
+    if (b.type === 'surf' && b.package_purchase_id) {
+      return (
+        <Badge variant="outline" className="mt-1 bg-blue-50 text-blue-700 border-blue-200 text-[10px] font-normal">
+          <Package className="w-3 h-3 mr-1" /> Pacote (pago)
+        </Badge>
+      );
+    }
+
+    const tracksPayment = b.type === 'accommodation' || b.type === 'surf_package' || b.type === 'surf';
+    if (!tracksPayment) return null;
+
+    if (b.status !== 'confirmed') {
+      return b.type === 'surf' ? (
+        <Badge variant="outline" className="mt-1 bg-muted text-muted-foreground border-border text-[10px] font-normal">
+          Paga à parte{amount}
+        </Badge>
+      ) : null;
+    }
+
+    return b.payment_received_at ? (
+      <Badge variant="outline" className="mt-1 bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px] font-normal">
+        <CheckCheck className="w-3 h-3 mr-1" /> Pago{amount}
+      </Badge>
+    ) : (
+      <Badge variant="outline" className="mt-1 bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-normal">
+        <Clock className="w-3 h-3 mr-1" /> Por pagar{amount}
+      </Badge>
+    );
+  };
+
+  const renderRow = (b, dimmed) => (
+    <TableRow
+      key={`${b._table}-${b.id}`}
+      className={`cursor-pointer hover:bg-muted/50 ${dimmed ? 'opacity-60' : ''}`}
+      onClick={() => setSelected(b)}
+    >
+      <TableCell>
+        <div className="flex items-center gap-2">
+          {b.type === 'accommodation' ? <Home className="w-4 h-4 text-primary" /> : b.type === 'surf_package' ? <Package className="w-4 h-4 text-secondary" /> : <Waves className="w-4 h-4 text-secondary" />}
+          <span className="text-sm capitalize">{b.type === 'accommodation' ? 'Alojamento' : b.type === 'surf_package' ? 'Pacote de Surf' : 'Surf'}</span>
+        </div>
+      </TableCell>
+      <TableCell>
+        <div>
+          <p className="font-medium text-sm">{b.guest_name}</p>
+          <p className="text-xs text-muted-foreground">{b.guest_email}</p>
+        </div>
+      </TableCell>
+      <TableCell className="text-sm">
+        {b.type === 'accommodation'
+          ? `${b.check_in ? format(new Date(b.check_in), 'dd/MM') : '-'} → ${b.check_out ? format(new Date(b.check_out), 'dd/MM') : '-'}`
+          : b.type === 'surf_package'
+            ? b.package_name
+            : b.surf_date ? format(new Date(b.surf_date), 'dd/MM/yyyy') : '-'}
+        {b.surf_time && ` (${b.surf_time})`}
+        {renderPaymentBadge(b)}
+      </TableCell>
+      <TableCell className="text-sm">{b.type === 'surf_package' ? `${b.lessons_used}/${b.lessons_total} aulas` : (b.guests_count || '-')}</TableCell>
+      <TableCell>
+        <Badge variant="outline" className={`${statusColors[b.status]} border text-xs`}>
+          {statusLabels[b.status]}
+        </Badge>
+      </TableCell>
+      <TableCell>
+        <div className="flex items-center gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
+          {b.status === 'pending' && (
+            <>
+              <Button size="icon" variant="ghost" onClick={() => onApprove(b)} className="h-8 w-8 text-emerald-600 hover:bg-emerald-50" title="Aprovar">
+                <Check className="w-4 h-4" />
+              </Button>
+              <Button size="icon" variant="ghost" onClick={() => openRejectModal(b)} className="h-8 w-8 text-red-500 hover:bg-red-50" title="Rejeitar">
+                <X className="w-4 h-4" />
+              </Button>
+            </>
+          )}
+          {b.status === 'confirmed' && b.type === 'accommodation' && !b.checkin_completed && (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => setCheckInBooking(b)}
+              className={`h-8 w-8 hover:bg-primary/10 ${b.checkin_email_sent_at ? 'text-emerald-600' : 'text-primary'}`}
+              title={b.checkin_email_sent_at ? `Check-in enviado em ${format(new Date(b.checkin_email_sent_at), "dd/MM/yyyy 'às' HH:mm")}` : 'Enviar check-in'}
+            >
+              {b.checkin_email_sent_at ? <CheckCheck className="w-4 h-4" /> : <Mail className="w-4 h-4" />}
+            </Button>
+          )}
+          {b.status === 'confirmed' && b.type === 'accommodation' && b.checkin_completed && (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => setWelcomeBooking(b)}
+              className={`h-8 w-8 hover:bg-primary/10 ${b.welcome_sent_at ? 'text-emerald-600' : 'text-primary'}`}
+              title={b.welcome_sent_at ? `Boas-vindas enviadas em ${format(new Date(b.welcome_sent_at), "dd/MM/yyyy 'às' HH:mm")}` : 'Enviar boas-vindas'}
+            >
+              {b.welcome_sent_at ? <CheckCheck className="w-4 h-4" /> : <PartyPopper className="w-4 h-4" />}
+            </Button>
+          )}
+          {b.status === 'confirmed' && b.type === 'surf' && (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => openContactModal(b)}
+              className={`h-8 w-8 hover:bg-primary/10 ${b.surf_contact_sent_at ? 'text-emerald-600' : 'text-primary'}`}
+              title={b.surf_contact_sent_at ? `Contactado em ${format(new Date(b.surf_contact_sent_at), "dd/MM/yyyy 'às' HH:mm")}` : 'Contactar aluno'}
+            >
+              {b.surf_contact_sent_at ? <CheckCheck className="w-4 h-4" /> : <Mail className="w-4 h-4" />}
+            </Button>
+          )}
+          {b.status === 'confirmed' && (b.type === 'accommodation' || b.type === 'surf_package' || (b.type === 'surf' && !b.package_purchase_id)) && (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => togglePaymentMutation.mutate({ b, paid: !b.payment_received_at })}
+              className={`h-8 w-8 hover:bg-primary/10 ${b.payment_received_at ? 'text-emerald-600' : 'text-amber-600'}`}
+              title={b.payment_received_at ? `Pago em ${format(new Date(b.payment_received_at), "dd/MM/yyyy 'às' HH:mm")} - clica para desmarcar` : 'Marcar como pago'}
+            >
+              <Euro className="w-4 h-4" />
+            </Button>
+          )}
+          <Button size="icon" variant="ghost" onClick={() => setSelected(b)} className="h-8 w-8" title="Ver detalhes">
+            <Eye className="w-4 h-4" />
+          </Button>
+          <Button size="icon" variant="ghost" onClick={() => onDelete(b)} className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-50" title="Apagar">
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
 
   const activeRejectionReasons = rejectBooking?.type === 'surf_package'
     ? packageRejectionReasons
@@ -273,6 +437,7 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
           guestName: rejectBooking.guest_name,
           reason: finalReason,
           type: rejectBooking.type,
+          lang: rejectBooking.lang || 'pt',
         }),
       });
       if (!res.ok) throw new Error('Falha no envio');
@@ -287,7 +452,7 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
   };
 
   const checkInUrl = checkInBooking
-    ? `${window.location.origin}/checkin?booking=${checkInBooking.id}`
+    ? `${window.location.origin}/checkin?booking=${checkInBooking.id}&lang=${checkInBooking.lang || 'pt'}`
     : '';
 
   const handleCopyLink = () => {
@@ -307,11 +472,21 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
           to: checkInBooking.guest_email,
           guestName: checkInBooking.guest_name,
           checkInUrl,
+          lang: checkInBooking.lang || 'pt',
         }),
       });
       if (!res.ok) throw new Error('Falha no envio');
+
+      const sentAt = new Date().toISOString();
+      const { error: updateError } = await supabase
+        .from('bookings')
+        .update({ checkin_email_sent_at: sentAt })
+        .eq('id', checkInBooking.id);
+      if (updateError) throw updateError;
+
+      queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
+      setCheckInBooking((prev) => (prev ? { ...prev, checkin_email_sent_at: sentAt } : prev));
       toast({ title: 'Email enviado com sucesso!' });
-      setCheckInBooking(null);
     } catch (error) {
       console.error('Erro ao enviar email:', error);
       toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível enviar o email.' });
@@ -332,8 +507,17 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
         }),
       });
       if (!res.ok) throw new Error('Falha no envio');
+
+      const sentAt = new Date().toISOString();
+      const { error: updateError } = await supabase
+        .from('bookings')
+        .update({ welcome_sent_at: sentAt })
+        .eq('id', welcomeBooking.id);
+      if (updateError) throw updateError;
+
+      queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
+      setWelcomeBooking((prev) => (prev ? { ...prev, welcome_sent_at: sentAt } : prev));
       toast({ title: 'Boas-vindas enviadas com sucesso!' });
-      setWelcomeBooking(null);
     } catch (error) {
       console.error('Erro ao enviar boas-vindas:', error);
       toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível enviar o email.' });
@@ -357,77 +541,24 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
             </TableRow>
           </TableHeader>
           <TableBody>
-            {bookings.map((b) => (
-              <TableRow key={`${b._table}-${b.id}`} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelected(b)}>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    {b.type === 'accommodation' ? <Home className="w-4 h-4 text-primary" /> : b.type === 'surf_package' ? <Package className="w-4 h-4 text-secondary" /> : <Waves className="w-4 h-4 text-secondary" />}
-                    <span className="text-sm capitalize">{b.type === 'accommodation' ? 'Alojamento' : b.type === 'surf_package' ? 'Pacote de Surf' : 'Surf'}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div>
-                    <p className="font-medium text-sm">{b.guest_name}</p>
-                    <p className="text-xs text-muted-foreground">{b.guest_email}</p>
-                  </div>
-                </TableCell>
-                <TableCell className="text-sm">
-                  {b.type === 'accommodation'
-                    ? `${b.check_in ? format(new Date(b.check_in), 'dd/MM') : '-'} → ${b.check_out ? format(new Date(b.check_out), 'dd/MM') : '-'}`
-                    : b.type === 'surf_package'
-                      ? b.package_name
-                      : b.surf_date ? format(new Date(b.surf_date), 'dd/MM/yyyy') : '-'}
-                  {b.surf_time && ` (${b.surf_time})`}
-                </TableCell>
-                <TableCell className="text-sm">{b.type === 'surf_package' ? `${b.lessons_used}/${b.lessons_total} aulas` : (b.guests_count || '-')}</TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={`${statusColors[b.status]} border text-xs`}>
-                    {statusLabels[b.status]}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1 justify-end" onClick={(e) => e.stopPropagation()}>
-                    {b.status === 'pending' && (
-                      <>
-                        <Button size="icon" variant="ghost" onClick={() => onApprove(b)} className="h-8 w-8 text-emerald-600 hover:bg-emerald-50">
-                          <Check className="w-4 h-4" />
-                        </Button>
-                        <Button size="icon" variant="ghost" onClick={() => openRejectModal(b)} className="h-8 w-8 text-red-500 hover:bg-red-50">
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </>
-                    )}
-                    {b.status === 'confirmed' && b.type === 'accommodation' && !b.checkin_completed && (
-                      <Button size="icon" variant="ghost" onClick={() => setCheckInBooking(b)} className="h-8 w-8 text-primary hover:bg-primary/10" title="Enviar check-in">
-                        <Mail className="w-4 h-4" />
-                      </Button>
-                    )}
-                    {b.status === 'confirmed' && b.type === 'accommodation' && b.checkin_completed && (
-                      <Button size="icon" variant="ghost" onClick={() => setWelcomeBooking(b)} className="h-8 w-8 text-primary hover:bg-primary/10" title="Enviar boas-vindas">
-                        <PartyPopper className="w-4 h-4" />
-                      </Button>
-                    )}
-                    {b.status === 'confirmed' && b.type === 'surf' && (
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => openContactModal(b)}
-                        className={`h-8 w-8 hover:bg-primary/10 ${b.surf_contact_sent_at ? 'text-emerald-600' : 'text-primary'}`}
-                        title={b.surf_contact_sent_at ? `Contactado em ${format(new Date(b.surf_contact_sent_at), "dd/MM/yyyy 'às' HH:mm")}` : 'Contactar aluno'}
-                      >
-                        {b.surf_contact_sent_at ? <CheckCheck className="w-4 h-4" /> : <Mail className="w-4 h-4" />}
-                      </Button>
-                    )}
-                    <Button size="icon" variant="ghost" onClick={() => setSelected(b)} className="h-8 w-8">
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    <Button size="icon" variant="ghost" onClick={() => onDelete(b)} className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-50">
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
+            {activeItems.map((b) => renderRow(b))}
+            {pastItems.length > 0 && (
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={6} className="py-2 bg-muted/40">
+                  <p className="text-xs font-medium text-muted-foreground">Passadas / Esgotadas ({pastItems.length})</p>
                 </TableCell>
               </TableRow>
-            ))}
+            )}
+            {visiblePastItems.map((b) => renderRow(b, true))}
+            {pastItems.length > PAST_PREVIEW_COUNT && (
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={6} className="py-3 text-center">
+                  <Button variant="ghost" size="sm" onClick={() => setShowAllPast((v) => !v)} className="text-xs text-muted-foreground">
+                    {showAllPast ? 'Ver menos' : `Ver todas (${pastItems.length})`}
+                  </Button>
+                </TableCell>
+              </TableRow>
+            )}
             {bookings.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="py-16">
@@ -478,6 +609,24 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
                     <div><p className="text-muted-foreground text-xs">Aulas</p><p>{selected.lessons_used}/{selected.lessons_total} usadas</p></div>
                     <div><p className="text-muted-foreground text-xs">Valor</p><p>€{selected.price_total}</p></div>
                   </>
+                )}
+                {selected.type === 'surf' && selected.package_purchase_id && (
+                  <div className="col-span-2">
+                    <p className="text-muted-foreground text-xs">Pagamento</p>
+                    <p className="font-medium">Aula do pacote (já paga, sem custo adicional)</p>
+                  </div>
+                )}
+                {(selected.type === 'accommodation' || selected.type === 'surf_package' || (selected.type === 'surf' && !selected.package_purchase_id)) && (
+                  <div className="col-span-2">
+                    <p className="text-muted-foreground text-xs">Pagamento</p>
+                    <p className="font-medium">
+                      {selected.status !== 'confirmed'
+                        ? `€${selected.price_total ?? '-'} (por confirmar)`
+                        : selected.payment_received_at
+                          ? `Pago em ${format(new Date(selected.payment_received_at), "dd/MM/yyyy 'às' HH:mm")}`
+                          : `Por pagar${selected.price_total != null ? ` (€${selected.price_total})` : ''}`}
+                    </p>
+                  </div>
                 )}
               </div>
               {selected.notes && (
@@ -561,9 +710,16 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
                 Para <span className="font-medium text-foreground">{checkInBooking.guest_name}</span> ({checkInBooking.guest_email})
               </p>
 
+              {checkInBooking.checkin_email_sent_at && (
+                <div className="flex items-center gap-2 text-emerald-700 text-xs bg-emerald-50 px-3 py-2 rounded-lg">
+                  <CheckCheck className="w-3.5 h-3.5 shrink-0" />
+                  <span>Já enviado em {format(new Date(checkInBooking.checkin_email_sent_at), "dd/MM/yyyy 'às' HH:mm")}</span>
+                </div>
+              )}
+
               <Button className="w-full" onClick={handleSendEmail} disabled={sendingEmail}>
                 {sendingEmail ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mail className="w-4 h-4 mr-2" />}
-                Enviar por email
+                {checkInBooking.checkin_email_sent_at ? 'Enviar novamente' : 'Enviar por email'}
               </Button>
 
               <div className="space-y-1.5">
@@ -594,9 +750,16 @@ export default function BookingListView({ bookings, onApprove, onReject, onDelet
                 Envia as informações da casa: contactos, Wi-Fi, equipamentos de segurança, regras da casa e check-out.
               </p>
 
+              {welcomeBooking.welcome_sent_at && (
+                <div className="flex items-center gap-2 text-emerald-700 text-xs bg-emerald-50 px-3 py-2 rounded-lg">
+                  <CheckCheck className="w-3.5 h-3.5 shrink-0" />
+                  <span>Já enviado em {format(new Date(welcomeBooking.welcome_sent_at), "dd/MM/yyyy 'às' HH:mm")}</span>
+                </div>
+              )}
+
               <Button className="w-full" onClick={handleSendWelcome} disabled={sendingWelcome}>
                 {sendingWelcome ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <PartyPopper className="w-4 h-4 mr-2" />}
-                Enviar por email
+                {welcomeBooking.welcome_sent_at ? 'Enviar novamente' : 'Enviar por email'}
               </Button>
             </div>
           )}

@@ -248,6 +248,7 @@ export default function Booking() {
       ...form,
       type,
       status: 'pending',
+      lang,
     };
 
     if (type === 'accommodation' && dateRange.from) {
@@ -261,7 +262,6 @@ export default function Booking() {
 
     if (type === 'surf' && surfDate) {
       dataToInsert.surf_date = format(surfDate, 'yyyy-MM-dd');
-      dataToInsert.surf_time = 'A combinar consoante as condições';
       if (isUsingPackageCredit) {
         dataToInsert.price_subtotal = 0;
         dataToInsert.discount_amount = 0;
@@ -301,13 +301,31 @@ export default function Booking() {
 
       const dates = type === 'accommodation'
         ? `${dataToInsert.check_in || '?'} → ${dataToInsert.check_out || '?'}`
-        : `${dataToInsert.surf_date || '?'}${dataToInsert.surf_time ? ` (${dataToInsert.surf_time})` : ''}`;
+        : `${dataToInsert.surf_date || '?'}`;
 
       fetch('/api/notify-new-booking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ guestName: form.guest_name, type, dates }),
       }).catch((err) => console.error('Erro ao notificar nova reserva:', err));
+
+      fetch('/api/send-request-received-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: form.guest_email,
+          guestName: form.guest_name,
+          type,
+          lang,
+          checkIn: dataToInsert.check_in,
+          checkOut: dataToInsert.check_out,
+          guestsCount: form.guests_count,
+          childrenCount: form.children_count,
+          surfDate: dataToInsert.surf_date,
+          isPackageCredit: isUsingPackageCredit,
+          priceTotal: dataToInsert.price_total,
+        }),
+      }).catch((err) => console.error('Erro ao enviar email de pedido recebido:', err));
     }
   };
 
@@ -364,6 +382,18 @@ export default function Booking() {
                 <span className="font-medium text-sm">{t('booking.surfType')}</span>
               </button>
             </div>
+            {type === 'surf' && (
+              <div className="flex justify-center -mt-6 mb-12">
+                <Link
+                  to="/surf"
+                  target="_blank"
+                  className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline underline-offset-2"
+                >
+                  <Package className="w-4 h-4" />
+                  {t('booking.viewPackages')}
+                </Link>
+              </div>
+            )}
           </FadeInView>
 
           {/* Form */}

@@ -169,7 +169,8 @@ const translations = {
       termsError: 'Tens de aceitar os Termos e Condições para continuar.',
       packageCreditBanner: 'Tens um pacote confirmado com {{count}} aula(s) por marcar ("{{name}}").',
       usePackageCredit: 'Usar uma aula deste pacote nesta reserva (sem custo adicional)',
-      packageCreditApplied: 'Grátis — usa 1 aula do pacote',
+      packageCreditApplied: 'Grátis - usa 1 aula do pacote',
+      viewPackages: 'Ver Pacotes de Aulas',
     },
     testimonials: {
       title: 'O que dizem os nossos hóspedes',
@@ -344,7 +345,8 @@ const translations = {
       termsError: 'You need to accept the Terms & Conditions to continue.',
       packageCreditBanner: 'You have a confirmed package with {{count}} lesson(s) left to book ("{{name}}").',
       usePackageCredit: 'Use one lesson from this package for this booking (no extra cost)',
-      packageCreditApplied: 'Free — uses 1 package lesson',
+      packageCreditApplied: 'Free - uses 1 package lesson',
+      viewPackages: 'View Lesson Packages',
     },
     testimonials: {
       title: 'What our guests say',

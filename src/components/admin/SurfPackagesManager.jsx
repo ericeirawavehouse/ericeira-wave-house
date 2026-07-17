@@ -10,7 +10,7 @@ import { toast } from '@/components/ui/use-toast';
 
 export default function SurfPackagesManager() {
   const queryClient = useQueryClient();
-  const [newPackage, setNewPackage] = useState({ name: '', lessons_count: '', price_total: '' });
+  const [newPackage, setNewPackage] = useState({ name: '', name_en: '', lessons_count: '', price_total: '' });
 
   const { data: pricing } = useQuery({
     queryKey: ['site-settings'],
@@ -35,6 +35,7 @@ export default function SurfPackagesManager() {
     mutationFn: async () => {
       const { error } = await supabase.from('surf_packages').insert([{
         name: newPackage.name,
+        name_en: newPackage.name_en || null,
         lessons_count: parseInt(newPackage.lessons_count) || 0,
         price_total: parseFloat(newPackage.price_total) || 0,
         active: true,
@@ -43,7 +44,7 @@ export default function SurfPackagesManager() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['surf-packages'] });
-      setNewPackage({ name: '', lessons_count: '', price_total: '' });
+      setNewPackage({ name: '', name_en: '', lessons_count: '', price_total: '' });
       toast({ title: 'Pacote criado!' });
     },
     onError: (error) => {
@@ -58,6 +59,18 @@ export default function SurfPackagesManager() {
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['surf-packages'] }),
+  });
+
+  const updatePackageMutation = useMutation({
+    mutationFn: async ({ id, data }) => {
+      const { error } = await supabase.from('surf_packages').update(data).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['surf-packages'] }),
+    onError: (error) => {
+      console.error('Erro ao atualizar pacote:', error);
+      toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível guardar a alteração.' });
+    },
   });
 
   const deletePackageMutation = useMutation({
@@ -95,28 +108,51 @@ export default function SurfPackagesManager() {
           const regularPrice = surfPricePerPerson * pkg.lessons_count;
           const savingsPercent = regularPrice > 0 ? Math.round((1 - pkg.price_total / regularPrice) * 100) : 0;
           return (
-            <div key={pkg.id} className="flex items-center gap-3 p-3 rounded-xl border border-border bg-background">
-              <Package className="w-4 h-4 text-primary shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{pkg.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {pkg.lessons_count} aulas · €{pkg.price_total}
-                  {savingsPercent > 0 && <span className="text-emerald-600"> · poupa {savingsPercent}%</span>}
-                </p>
+            <div key={pkg.id} className="p-3 rounded-xl border border-border bg-background space-y-2">
+              <div className="flex items-center gap-3">
+                <Package className="w-4 h-4 text-primary shrink-0" />
+                <div className="flex-1 min-w-0 grid grid-cols-2 gap-2">
+                  <Input
+                    key={`${pkg.id}-name`}
+                    defaultValue={pkg.name}
+                    placeholder="Nome (PT)"
+                    className="h-8 text-sm"
+                    onBlur={(e) => {
+                      if (e.target.value.trim() && e.target.value !== pkg.name) {
+                        updatePackageMutation.mutate({ id: pkg.id, data: { name: e.target.value.trim() } });
+                      }
+                    }}
+                  />
+                  <Input
+                    key={`${pkg.id}-name_en`}
+                    defaultValue={pkg.name_en || ''}
+                    placeholder="Nome (EN) - opcional"
+                    className="h-8 text-sm"
+                    onBlur={(e) => {
+                      if (e.target.value !== (pkg.name_en || '')) {
+                        updatePackageMutation.mutate({ id: pkg.id, data: { name_en: e.target.value.trim() || null } });
+                      }
+                    }}
+                  />
+                </div>
+                <Switch
+                  checked={pkg.active}
+                  onCheckedChange={(checked) => toggleActiveMutation.mutate({ id: pkg.id, active: checked })}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="text-destructive hover:text-destructive shrink-0"
+                  onClick={() => deletePackageMutation.mutate(pkg.id)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
               </div>
-              <Switch
-                checked={pkg.active}
-                onCheckedChange={(checked) => toggleActiveMutation.mutate({ id: pkg.id, active: checked })}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="text-destructive hover:text-destructive"
-                onClick={() => deletePackageMutation.mutate(pkg.id)}
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
+              <p className="text-xs text-muted-foreground pl-7">
+                {pkg.lessons_count} aulas · €{pkg.price_total}
+                {savingsPercent > 0 && <span className="text-emerald-600"> · poupa {savingsPercent}%</span>}
+              </p>
             </div>
           );
         })}
@@ -124,11 +160,17 @@ export default function SurfPackagesManager() {
 
       <div className="bg-card border border-border rounded-2xl p-6">
         <p className="text-sm font-medium mb-4">Novo pacote</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
           <div>
-            <Label className="text-xs text-muted-foreground mb-1.5 block">Nome</Label>
+            <Label className="text-xs text-muted-foreground mb-1.5 block">Nome (PT)</Label>
             <Input placeholder="Pacote 5 Aulas" value={newPackage.name} onChange={(e) => setNewPackage({ ...newPackage, name: e.target.value })} />
           </div>
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1.5 block">Nome (EN) - opcional</Label>
+            <Input placeholder="5 Lesson Package" value={newPackage.name_en} onChange={(e) => setNewPackage({ ...newPackage, name_en: e.target.value })} />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <Label className="text-xs text-muted-foreground mb-1.5 block">Nº de aulas</Label>
             <Input type="number" min="1" step="1" value={newPackage.lessons_count} onChange={(e) => setNewPackage({ ...newPackage, lessons_count: e.target.value })} />

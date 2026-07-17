@@ -4,5 +4,10 @@
   ],
   "crons": [
     { "path": "/api/sync-airbnb-calendar", "schedule": "0 3 * * *" }
-  ]
+  ],
+  "functions": {
+    "api/send-welcome-email.js": {
+      "includeFiles": "src/images/welcome-*.jpeg"
+    }
+  }
 }

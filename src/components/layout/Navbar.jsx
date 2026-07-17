@@ -19,6 +19,33 @@ export default function Navbar() {
 
   useEffect(() => { setMenuOpen(false); }, [location]);
 
+  const [showLangHint, setShowLangHint] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem('langHintSeen')) {
+      const showTimer = setTimeout(() => setShowLangHint(true), 1200);
+      return () => clearTimeout(showTimer);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (showLangHint) {
+      const hideTimer = setTimeout(dismissLangHint, 6000);
+      return () => clearTimeout(hideTimer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showLangHint]);
+
+  const dismissLangHint = () => {
+    setShowLangHint(false);
+    localStorage.setItem('langHintSeen', '1');
+  };
+
+  const handleLangClick = () => {
+    setLang(lang === 'pt' ? 'en' : 'pt');
+    dismissLangHint();
+  };
+
   const navLinks = [
     { path: '/', label: t('nav.home') },
     { path: '/accommodation', label: t('nav.accommodation') },
@@ -57,13 +84,28 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
-          <button
-            onClick={() => setLang(lang === 'pt' ? 'en' : 'pt')}
-            className={`flex items-center gap-1.5 text-sm opacity-75 hover:opacity-100 transition-opacity ${textClass}`}
-          >
-            <Globe className="w-4 h-4" />
-            {lang.toUpperCase()}
-          </button>
+          <div className="relative">
+            <button
+              onClick={handleLangClick}
+              className={`flex items-center gap-1.5 text-sm opacity-75 hover:opacity-100 transition-opacity ${textClass}`}
+            >
+              <Globe className="w-4 h-4" />
+              {lang.toUpperCase()}
+            </button>
+            <AnimatePresence>
+              {showLangHint && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -6, scale: 0.95 }}
+                  className="absolute top-full right-0 mt-2 w-max bg-foreground text-background text-xs px-3 py-2 rounded-lg shadow-lg z-50"
+                >
+                  Switch language / Mudar idioma
+                  <div className="absolute -top-1 right-4 w-2 h-2 bg-foreground rotate-45" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
           <Link
             to="/booking"
             className="bg-primary text-primary-foreground px-6 py-2.5 text-sm font-medium tracking-wide rounded-full hover:bg-primary/90 transition-all duration-300"
@@ -74,13 +116,28 @@ export default function Navbar() {
 
         {/* Mobile Menu Button */}
         <div className="flex items-center gap-3 lg:hidden">
-          <button
-            onClick={() => setLang(lang === 'pt' ? 'en' : 'pt')}
-            className={`flex items-center gap-1 text-sm transition-colors ${textClass}`}
-          >
-            <Globe className="w-4 h-4" />
-            {lang.toUpperCase()}
-          </button>
+          <div className="relative">
+            <button
+              onClick={handleLangClick}
+              className={`flex items-center gap-1 text-sm transition-colors ${textClass}`}
+            >
+              <Globe className="w-4 h-4" />
+              {lang.toUpperCase()}
+            </button>
+            <AnimatePresence>
+              {showLangHint && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -6, scale: 0.95 }}
+                  className="absolute top-full right-0 mt-2 w-max max-w-[200px] bg-foreground text-background text-xs px-3 py-2 rounded-lg shadow-lg z-50"
+                >
+                  Switch language / Mudar idioma
+                  <div className="absolute -top-1 right-4 w-2 h-2 bg-foreground rotate-45" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
           <button onClick={() => setMenuOpen(!menuOpen)} className={`transition-colors ${menuOpen ? 'text-foreground' : textClass}`}>
             {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>

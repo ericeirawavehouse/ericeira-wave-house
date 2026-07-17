@@ -31,7 +31,7 @@ export default function AdminBookings() {
     },
   });
 
-  // Pedidos de pacotes de surf — tratados como "reservas" de Surf, junto com as aulas
+  // Pedidos de pacotes de surf - tratados como "reservas" de Surf, junto com as aulas
   const { data: packagePurchases = [], isLoading: isLoadingPackages } = useQuery({
     queryKey: ['admin-package-purchases'],
     queryFn: async () => {
@@ -72,9 +72,12 @@ export default function AdminBookings() {
     created_at: p.created_at,
     deleted_at: p.deleted_at,
     package_name: p.package_name,
+    package_name_en: p.package_name_en,
     lessons_total: p.lessons_total,
     lessons_used: p.lessons_used,
     price_total: p.price_total,
+    payment_received_at: p.payment_received_at,
+    lang: p.lang,
   }));
   const normalizedBookings = bookings.map((b) => ({ ...b, _table: 'bookings' }));
   const allItems = [...normalizedBookings, ...normalizedPackages].sort(
@@ -101,8 +104,10 @@ export default function AdminBookings() {
           guestName: booking.guest_name,
           type: 'surf_package',
           packageName: booking.package_name,
+          packageNameEn: booking.package_name_en,
           lessonsTotal: booking.lessons_total,
           priceTotal: booking.price_total,
+          lang: booking.lang || 'pt',
         }),
       }).catch((err) => console.error('Erro ao enviar email de confirmação:', err));
       return;
@@ -131,6 +136,7 @@ export default function AdminBookings() {
         discountAmount: booking.discount_amount,
         discountLabel: booking.discount_label,
         priceTotal: booking.price_total,
+        lang: booking.lang || 'pt',
       }),
     }).catch((err) => console.error('Erro ao enviar email de confirmação:', err));
   };
